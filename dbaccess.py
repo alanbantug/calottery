@@ -153,51 +153,91 @@ class databaseConn(object):
 
     def get_super_stats(self, table_name, order):
 
-        select = f'''
-        select A.num, sum(A.tot)
-        from (
-            select numa as num, count(*) as tot from {table_name} group by numa
-            union
-            select numb as num, count(*) as tot from {table_name} group by numb
-            union
-            select numc as num, count(*) as tot from {table_name} group by numc
-            union
-            select numd as num, count(*) as tot from {table_name} group by numd
-            union
-            select nume as num, count(*) as tot from {table_name} group by nume
-            ) A
 
-        group by A.num
-        order by sum(A.tot)
-        '''
+        if order == 0 or order == 1:
 
-        if order == 0:
-            select += ' desc'
+            select = f'''
+            select A.num, sum(A.tot)
+            from (
+                select numa as num, count(*) as tot from {table_name} group by numa
+                union
+                select numb as num, count(*) as tot from {table_name} group by numb
+                union
+                select numc as num, count(*) as tot from {table_name} group by numc
+                union
+                select numd as num, count(*) as tot from {table_name} group by numd
+                union
+                select nume as num, count(*) as tot from {table_name} group by nume
+                ) A
+
+            group by A.num
+
+            '''
+
+            if order == 0:
+                select += ' order by sum(A.tot) desc'
+            else:
+                select += ' order by A.num asc'
+
         else:
-            select += ' asc'
 
+            select = f'''
+
+            select numx, drwx 
+            from (
+                select num as numx, max(drw) as drwx 
+                from (
+                    select numa as num, draw_date as drw from {table_name} 
+                    union
+                    select numb as num, draw_date as drw from {table_name}
+                    union
+                    select numc as num, draw_date as drw from {table_name}
+                    union
+                    select numd as num, draw_date as drw from {table_name}
+                    union
+                    select nume as num, draw_date as drw from {table_name}
+                    ) as A
+                    
+                    group by A.num) as B
+            
+            order by B.drwx desc
+            '''
         cur = self.db_conn.cursor()
 
         cur.execute(select)
 
         number_counts = cur.fetchall()
 
-        number_counts = [[n, int(c)] for n, c in number_counts]
+        if order == 0 or order == 1:
+            number_counts = [[n, int(c)] for n, c in number_counts]
+        else:
+            number_counts = [[n, str(c)] for n, c in number_counts]
 
         cur.close()
 
         return number_counts
 
-    def get_mega_stats(self, table_name, order):
+    def get_extra_stats(self, table_name, order):
 
-        select = f'''
-        select mega as num, count(*) as tot from {table_name} group by mega
-        '''
+        if order == 0 or order == 1:
+            select = f'''
+            select mega as num, count(*) as tot from {table_name} group by mega
+            '''
 
-        if order == 0:
-            select += ' order by tot desc'
+            if order == 0:
+                select += ' order by tot desc'
+            else:
+                select += ' order by num asc'
         else:
-            select += ' order by num asc'
+            select = f'''
+            select mega, max(draw_date) as maxdd 
+            from (
+                
+                select mega, draw_date from super_lotto) as A
+                
+                group by mega
+                order by maxdd desc
+            '''
 
         cur = self.db_conn.cursor()
 
@@ -205,7 +245,10 @@ class databaseConn(object):
 
         number_counts = cur.fetchall()
 
-        number_counts = [[n, int(c)] for n, c in number_counts]
+        if order == 0 or order == 1:
+            number_counts = [[n, int(c)] for n, c in number_counts]
+        else:
+            number_counts = [[n, str(c)] for n, c in number_counts]
 
         cur.close()
 

@@ -36,6 +36,7 @@ class Application(Frame):
         self.offset = StringVar()
 
         self.sortOrder = IntVar()
+        self.sortSuperOrder = IntVar()
 
         self.topNumbers = IntVar()
         self.topCount = IntVar()
@@ -85,7 +86,7 @@ class Application(Frame):
         self.dataCheck = LabelFrame(self.dataTab, text=' Combination Check', style="O.TLabelframe")
 
         self.dscroller = Scrollbar(self.dataDisplay, orient=VERTICAL)
-        self.dataSelect = Listbox(self.dataDisplay, yscrollcommand=self.dscroller.set, width=70, height=11)
+        self.dataSelect = Listbox(self.dataDisplay, yscrollcommand=self.dscroller.set, width=95, height=17)
         self.reloadAll = Button(self.dataDisplay, text="Reload All", style="F.TButton", command = lambda : self.loadData())
         self.retrieveData = Button(self.dataDisplay, text="Retrieve Data", style="F.TButton")
 
@@ -94,7 +95,7 @@ class Application(Frame):
         self.numC = Entry(self.dataCheck, textvariable=self.numberC, width="5")
         self.numD = Entry(self.dataCheck, textvariable=self.numberD, width="5")
         self.numE = Entry(self.dataCheck, textvariable=self.numberE, width="5")
-        self.super = Entry(self.dataCheck, textvariable=self.numberE, width="5")
+        self.super = Entry(self.dataCheck, textvariable=self.numberS, width="5")
         self.clearSelect = Button(self.dataCheck, text="Clear", style="F.TButton", command = lambda : self.clearFilter())
         self.checkSelect = Button(self.dataCheck, text="Check", style="F.TButton", command = lambda : self.loadFilteredData())
 
@@ -118,8 +119,8 @@ class Application(Frame):
         self.numE.grid(row=0, column=0, padx=(210,0), pady=(5, 10), sticky='W')
         self.super.grid(row=0, column=0, padx=(260,0), pady=(5, 10), sticky='W')
 
-        self.checkSelect.grid(row=0, column=0, padx=(260,0), pady=(5,10), sticky='W')
-        self.clearSelect.grid(row=0, column=0, padx=(360,0), pady=(5,10), sticky='W')
+        self.checkSelect.grid(row=0, column=0, padx=(410,0), pady=(5,10), sticky='W')
+        self.clearSelect.grid(row=0, column=0, padx=(510,0), pady=(5,10), sticky='W')
         self.dataCheck.grid(row=8, column=0, columnspan=5, padx=5, pady=2, sticky="NSEW")
 
         self.selectReturn.grid(row=10, column=0, columnspan=5, padx=5, pady=(0,5), sticky='NSEW')
@@ -129,16 +130,24 @@ class Application(Frame):
         '''
         self.statDisplay = LabelFrame(self.statTab, text=' Count ', style="O.TLabelframe")
         self.trendDisplay = LabelFrame(self.statTab, text=' Top Numbers Trend ', style="O.TLabelframe")
+        self.nscroller = Scrollbar(self.statDisplay, orient=VERTICAL)
+        self.sortStat = Button(self.statDisplay, text="Sort", style="F.TButton", command=self.statNumberOrder)
+        self.statNumbers = Listbox(self.statDisplay, yscrollcommand=self.nscroller.set, width=20, height=12)
         self.sscroller = Scrollbar(self.statDisplay, orient=VERTICAL)
-        self.sortStat = Button(self.statDisplay, text="Sort", style="F.TButton", command=self.statSortOrder)
-        self.statSelect = Listbox(self.statDisplay, yscrollcommand=self.sscroller.set, width=18, height=17)
+        self.sortSuperStat = Button(self.statDisplay, text="Sort", style="F.TButton", command=self.statSuperOrder)
+        self.statSupers = Listbox(self.statDisplay, yscrollcommand=self.sscroller.set, width=20, height=8)
+
         self.trendPlot = Label(self.trendDisplay)
         self.reloadTrend = Button(self.trendDisplay, text="Reload", style="F.TButton", command=self.reload)
 
-        self.statSelect.grid(row=0, column=0, padx=(10,0), pady=5, sticky='NSEW')
-        self.sscroller.grid(row=0, column=1, padx=(5,0), pady=5, sticky='NSEW')
+        self.statNumbers.grid(row=0, column=0, padx=(10,0), pady=5, sticky='NSEW')
+        self.nscroller.grid(row=0, column=1, padx=(5,0), pady=5, sticky='NSEW')
         self.sortStat.grid(row=1, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
+        self.statSupers.grid(row=2, column=0, padx=(10,0), pady=5, sticky='NSEW')
+        self.sscroller.grid(row=2, column=1, padx=(5,0), pady=5, sticky='NSEW')
+        self.sortSuperStat.grid(row=3, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
         self.statDisplay.grid(row=0, column=0, columnspan=1, padx=5, pady=5, sticky='NSEW')
+
         self.trendPlot.grid(row=0, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
         self.reloadTrend.grid(row=1, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
         self.trendDisplay.grid(row=0, column=1, columnspan=4, padx=5, pady=5, sticky='NSEW')
@@ -216,6 +225,7 @@ class Application(Frame):
 
         self.loadData()
         self.loadStats()
+        self.loadSuperStats()
         self.loadTrend()
 
     def loadData(self):
@@ -294,18 +304,38 @@ class Application(Frame):
 
         stats = self.dataconn.get_super_stats('super_lotto', self.sortOrder.get())
 
-        self.statSelect.delete(0, END)
+        self.statNumbers.delete(0, END)
 
         for idx, stat in enumerate(stats):
 
             if idx == 26:
-                self.statSelect.insert(END, '==========')
+                self.statNumbers.insert(END, '==========')
 
-            stat_line = "  -  ".join(['{:02d}'.format(stat[0]), '{:04d}'.format(stat[1])])
+            if self.sortOrder.get() == 2:
+                stat_line = "  -  ".join(['{:02d}'.format(stat[0]), stat[1]])
+            else:
+                stat_line = "  -  ".join(['{:02d}'.format(stat[0]), '{:04d}'.format(stat[1])])
 
-            self.statSelect.insert(END, stat_line)
+            self.statNumbers.insert(END, stat_line)
 
-        self.sscroller.config(command=self.statSelect.yview)
+        self.nscroller.config(command=self.statNumbers.yview)
+
+    def loadSuperStats(self):
+
+        stats = self.dataconn.get_extra_stats('super_lotto', self.sortSuperOrder.get())
+
+        self.statSupers.delete(0, END)
+
+        for idx, stat in enumerate(stats):
+
+            if self.sortSuperOrder.get() == 2:
+                stat_line = "  -  ".join(['{:02d}'.format(stat[0]), stat[1]])
+            else:
+                stat_line = "  -  ".join(['{:02d}'.format(stat[0]), '{:04d}'.format(stat[1])])
+
+            self.statSupers.insert(END, stat_line)
+
+        self.sscroller.config(command=self.statSupers.yview)
 
     def loadTrend(self):
 
@@ -328,12 +358,12 @@ class Application(Frame):
 
             self.hideProgress()
 
-            plt.figure(figsize=(3,3))
+            plt.figure(figsize=(5,3))
             plt.plot(df['TOP'][:50])
             plt.savefig('super.jpg')
 
         image = Image.open("super.jpg")
-        image = image.resize((300,270))
+        image = image.resize((440,360))
         results_fig = ImageTk.PhotoImage(image)
 
         # Define a style
@@ -362,14 +392,27 @@ class Application(Frame):
 
         self.loadTrend()
 
-    def statSortOrder(self):
+    def statNumberOrder(self):
 
         if self.sortOrder.get() == 0:
             self.sortOrder.set(1)
+        elif self.sortOrder.get() == 1:
+            self.sortOrder.set(2)
         else:
             self.sortOrder.set(0)
 
         self.loadStats()
+
+    def statSuperOrder(self):
+
+        if self.sortSuperOrder.get() == 0:
+            self.sortSuperOrder.set(1)
+        elif self.sortSuperOrder.get() == 1:
+            self.sortSuperOrder.set(2)
+        else:
+            self.sortSuperOrder.set(0)
+
+        self.loadSuperStats()
 
     def generate(self):
 
