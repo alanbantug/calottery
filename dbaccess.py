@@ -121,6 +121,7 @@ class databaseConn(object):
     def get_super_filtered(self, table_name, selected):
 
         select_list = "({}, {}, {}, {}, {})".format(selected[0], selected[1], selected[2], selected[3], selected[4])
+        mega_num = selected[5]
 
         select_sql = f'''
         select to_char(draw_date, 'YYYY-MM-DD'), numa, numb, numc, numd, nume, mega
@@ -130,6 +131,7 @@ class databaseConn(object):
         or numc in {select_list}
         or numd in {select_list}
         or nume in {select_list}
+        or mega = {mega_num}
         order by draw_date desc
         '''
 
