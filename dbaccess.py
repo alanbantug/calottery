@@ -502,7 +502,7 @@ class databaseConn(object):
 
             insert_sql = f'''
             insert into super_lotto_bets
-            (numa, numb, numc, numd, nume, mega, play_date, seq_num, saved_ind)
+            (numa, numb, numc, numd, nume, super, play_date, seq_num, saved_ind)
             values ({gen[0]}, {gen[1]}, {gen[2]}, {gen[3]}, {gen[4]},  \
                     {gen[5]}, '{play_date}', {seq_num}, {saved_ind}) '''
 

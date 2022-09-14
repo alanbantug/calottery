@@ -95,6 +95,7 @@ class Application(Frame):
         self.numC = Entry(self.dataCheck, textvariable=self.numberC, width="5")
         self.numD = Entry(self.dataCheck, textvariable=self.numberD, width="5")
         self.numE = Entry(self.dataCheck, textvariable=self.numberE, width="5")
+        self.superLabel  = Label(self.dataCheck, text="Super", style="T.TLabel" )
         self.super = Entry(self.dataCheck, textvariable=self.numberS, width="5")
         self.clearSelect = Button(self.dataCheck, text="Clear", style="F.TButton", command = lambda : self.clearFilter())
         self.checkSelect = Button(self.dataCheck, text="Check", style="F.TButton", command = lambda : self.loadFilteredData())
@@ -117,7 +118,8 @@ class Application(Frame):
         self.numC.grid(row=0, column=0, padx=(110,0), pady=(5, 10), sticky='W')
         self.numD.grid(row=0, column=0, padx=(160,0), pady=(5, 10), sticky='W')
         self.numE.grid(row=0, column=0, padx=(210,0), pady=(5, 10), sticky='W')
-        self.super.grid(row=0, column=0, padx=(260,0), pady=(5, 10), sticky='W')
+        self.superLabel.grid(row=0, column=0, padx=(260,0), pady=(5, 10), sticky='W')
+        self.super.grid(row=0, column=0, padx=(310,0), pady=(5, 10), sticky='W')
 
         self.checkSelect.grid(row=0, column=0, padx=(410,0), pady=(5,10), sticky='W')
         self.clearSelect.grid(row=0, column=0, padx=(510,0), pady=(5,10), sticky='W')
@@ -457,7 +459,7 @@ class Application(Frame):
         may be reached without completely generating 5 combinations
 
         '''
-
+        print(generated)
         if len(generated) == 5:
             for i in range(5):
                 win = self.dataconn.check_super_winner(generated[i])
@@ -481,6 +483,7 @@ class Application(Frame):
             try:
                 nums = self.get_a_combination(iterator)
                 if self.check_numbers(generated, nums):
+                    nums.append(self.get_a_super())
                     generated.append(nums)
 
                 if len(generated) == 5:
@@ -507,6 +510,14 @@ class Application(Frame):
         num_set = next(iterator)
 
         return list(sorted(num_set))
+
+    def get_a_super(self):
+
+        sups = [n+1 for n in range(27)]
+        
+        random.shuffle(sups)
+
+        return sups.pop()
 
     def check_numbers(self, generated, num_set):
 
