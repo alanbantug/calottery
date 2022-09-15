@@ -46,7 +46,7 @@ class Application(Frame):
         self.pattern = IntVar()
 
         self.varCountLimit = StringVar()
-        self.limitList = ['25', '25', '20', '15']
+        self.limitList = ['25', '25', '20', '15', '10']
         rfont = font.Font(family='Verdana', size=8)
         lfont = font.Font(family='Verdana', size=8, slant="italic")
         bfont = font.Font(family='Verdana', size=16, weight="bold")
@@ -101,6 +101,7 @@ class Application(Frame):
         self.checkSelect = Button(self.dataCheck, text="Check", style="F.TButton", command = lambda : self.loadFilteredData())
 
         self.selectReturn = Button(self.main_container, text="EXIT", style="E.TButton",command=self.exitRoutine)
+        self.progressBar = Progressbar(self.main_container, orient="horizontal", mode="indeterminate", length=280)
 
         # position widgets
         self.headerA.grid(row=0, column=0, padx=5, pady=1, sticky='NSEW')
@@ -126,6 +127,7 @@ class Application(Frame):
         self.dataCheck.grid(row=8, column=0, columnspan=5, padx=5, pady=2, sticky="NSEW")
 
         self.selectReturn.grid(row=10, column=0, columnspan=5, padx=5, pady=(0,5), sticky='NSEW')
+        self.progressBar.grid(row=11, column=0, columnspan=5, padx=5, pady=(0,5), sticky='NSEW')
 
         '''
         define widgets for stats tab
@@ -168,7 +170,7 @@ class Application(Frame):
         self.noConsec = Checkbutton(self.genOpt, text="No Consecutives", style="B.TCheckbutton", variable=self.noCon)
 
         self.genPat = LabelFrame(self.generateTab, text='Pattern Options', style="O.TLabelframe")
-        self.noPattern = Radiobutton(self.genPat, text="No all odd/even ", style="B.TRadiobutton", variable=self.pattern, value=1)
+        self.noPattern = Radiobutton(self.genPat, text="Likely patterns ", style="B.TRadiobutton", variable=self.pattern, value=1)
         self.oddEven = Radiobutton(self.genPat, text="Any pattern", style="B.TRadiobutton", variable=self.pattern, value=0)
 
         self.h_sep_ga = Separator(self.generateTab, orient=HORIZONTAL)
@@ -424,10 +426,12 @@ class Application(Frame):
     def generateThread(self):
 
         ''' This function will generate combinations of numbers using the getCombination method of the sg object
+            ATTENTION !!! CHANGE THE GENERATION PROCESS TO GENERATE ALL POSSIBLE COMBINATIONS FIRST INSTEAD OF GETTING 
+            DIFFERENT SETS OF NUMBERS TO GENERATE FROM
         '''
 
         # self.showProgress()
-        print(self.varCountLimit.get())
+        self.progressBar.start()
         t_count = int(self.varCountLimit.get())
 
         # if t_count:
@@ -447,7 +451,6 @@ class Application(Frame):
         random.shuffle(low_numbers)
 
         use_numbers = top_numbers[:t_count] + low_numbers[:l_count]
-
         generated = self.generate_set(use_numbers)
         # self.hideProgress()
 
@@ -459,7 +462,7 @@ class Application(Frame):
         may be reached without completely generating 5 combinations
 
         '''
-        print(generated)
+
         if len(generated) == 5:
             for i in range(5):
                 win = self.dataconn.check_super_winner(generated[i])
@@ -469,6 +472,8 @@ class Application(Frame):
 
         else:
             messagebox.showerror('Generate Error', 'Generation taking too long. Retry.')
+
+        self.progressBar.stop()
 
     def generate_set(self, numbers):
 
@@ -584,45 +589,45 @@ class Application(Frame):
         for i in range(5):
             self.dGen[i].clearTopStyle()
 
-    def showProgress(self):
+    # def showProgress(self):
 
-        ''' This function will show the progress bar for the different threads
-        '''
+    #     ''' This function will show the progress bar for the different threads
+    #     '''
 
-        Style().configure("P.TLabel", font="Verdana 12 bold", anchor="center")
-        Style().configure("B.TProgressbar", foreground="blue", background="blue")
+    #     Style().configure("P.TLabel", font="Verdana 12 bold", anchor="center")
+    #     Style().configure("B.TProgressbar", foreground="blue", background="blue")
 
-        self.popProgress = Toplevel(self.main_container)
-        self.popProgress.title("Processing")
+    #     self.popProgress = Toplevel(self.main_container)
+    #     self.popProgress.title("Processing")
 
-        self.progressMessage = Label(self.popProgress, text="Processing, please wait...", style="P.TLabel" )
-        self.progressBar = Progressbar(self.popProgress, orient="horizontal", mode="indeterminate", length=280)
+    #     self.progressMessage = Label(self.popProgress, text="Processing, please wait...", style="P.TLabel" )
+    #     self.progressBar = Progressbar(self.popProgress, orient="horizontal", mode="indeterminate", length=280)
 
-        self.progressMessage.grid(row=0, column=0, columnspan=5, padx=10 , pady=5, sticky='NSEW')
-        self.progressBar.grid(row=1, column=0, columnspan=5, padx=10 , pady=5, sticky='NSEW')
+    #     self.progressMessage.grid(row=0, column=0, columnspan=5, padx=10 , pady=5, sticky='NSEW')
+    #     self.progressBar.grid(row=1, column=0, columnspan=5, padx=10 , pady=5, sticky='NSEW')
 
-        wh = 70
-        ww = 300
+    #     wh = 70
+    #     ww = 300
 
-        self.popProgress.minsize(ww, wh)
-        self.popProgress.maxsize(ww, wh)
+    #     self.popProgress.minsize(ww, wh)
+    #     self.popProgress.maxsize(ww, wh)
 
-        # Position in center screen
+    #     # Position in center screen
 
-        ws = self.popProgress.winfo_screenwidth()
-        hs = self.popProgress.winfo_screenheight()
+    #     ws = self.popProgress.winfo_screenwidth()
+    #     hs = self.popProgress.winfo_screenheight()
 
-        # calculate x and y coordinates for the Tk root window
-        x = (ws/2) - (ww/2)
-        y = (hs/2) - (wh/2)
+    #     # calculate x and y coordinates for the Tk root window
+    #     x = (ws/2) - (ww/2)
+    #     y = (hs/2) - (wh/2)
 
-        self.popProgress.geometry('%dx%d+%d+%d' % (ww, wh, x, y))
-        self.progressBar.start()
+    #     self.popProgress.geometry('%dx%d+%d+%d' % (ww, wh, x, y))
+    #     self.progressBar.start()
 
-    def hideProgress(self):
+    # def hideProgress(self):
 
-        self.progressBar.stop()
-        self.popProgress.destroy()
+    #     self.progressBar.stop()
+    #     self.popProgress.destroy()
 
     def save_generated(self):
 
@@ -648,7 +653,7 @@ root = Tk()
 root.title("SUPER LOTTO")
 
 # Set size
-wh = 560
+wh = 590
 ww = 650
 
 #root.resizable(height=False, width=False)

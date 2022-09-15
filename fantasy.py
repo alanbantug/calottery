@@ -97,6 +97,7 @@ class Application(Frame):
         self.checkSelect = Button(self.dataCheck, text="Check", style="F.TButton", command = lambda : self.loadFilteredData())
 
         self.selectReturn = Button(self.main_container, text="EXIT", style="E.TButton",command=self.exitRoutine)
+        self.progressBar = Progressbar(self.main_container, orient="horizontal", mode="indeterminate", length=280)
 
         # position widgets
         self.headerA.grid(row=0, column=0, padx=5, pady=1, sticky='NSEW')
@@ -119,6 +120,7 @@ class Application(Frame):
         self.dataCheck.grid(row=8, column=0, columnspan=5, padx=5, pady=2, sticky="NSEW")
 
         self.selectReturn.grid(row=10, column=0, columnspan=5, padx=5, pady=(0,5), sticky='NSEW')
+        self.progressBar.grid(row=11, column=0, columnspan=5, padx=5, pady=(0,5), sticky='NSEW')
 
         '''
         define widgets for stats tab
@@ -375,7 +377,7 @@ class Application(Frame):
         '''
 
         # self.showProgress()
-        print(self.varCountLimit.get())
+        self.progressBar.start()
         t_count = int(self.varCountLimit.get())
 
         # if t_count:
@@ -417,6 +419,8 @@ class Application(Frame):
 
         else:
             messagebox.showerror('Generate Error', 'Generation taking too long. Retry.')
+        
+        self.progressBar.stop()
 
     def generate_set(self, numbers):
 
@@ -587,7 +591,7 @@ root = Tk()
 root.title("FANTASY FIVE")
 
 # Set size
-wh = 470
+wh = 490
 ww = 500
 
 #root.resizable(height=False, width=False)
