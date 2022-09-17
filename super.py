@@ -7,6 +7,7 @@ from tkinter.ttk import *
 from tkinter import messagebox
 from PIL import Image, ImageTk
 from itertools import combinations
+from datetime import datetime, timedelta
 
 import numpy as np
 import pandas as pd
@@ -45,8 +46,10 @@ class Application(Frame):
         self.noCon = IntVar()
         self.pattern = IntVar()
 
+        self.generated = []
+
         self.varCountLimit = StringVar()
-        self.limitList = ['25', '25', '20', '15']
+        self.limitList = ['25', '25', '20', '15', '10']
         rfont = font.Font(family='Verdana', size=8)
         lfont = font.Font(family='Verdana', size=8, slant="italic")
         bfont = font.Font(family='Verdana', size=16, weight="bold")
@@ -306,7 +309,7 @@ class Application(Frame):
 
     def loadStats(self):
 
-        stats = self.dataconn.get_super_stats('super_lotto', self.sortOrder.get())
+        stats = self.dataconn.get_number_stats('super_lotto', self.sortOrder.get())
 
         self.statNumbers.delete(0, END)
 
@@ -424,86 +427,85 @@ class Application(Frame):
 
     def generate(self):
 
-        t = threading.Thread(None, self.generateThread, ())
-        t.start()
+        if self.generated:
+            self.get_a_set() 
+        else: 
+
+            if self.genSet['text'] == 'GENERATE':
+                resp = messagebox.askyesno('Generating combinations', 'Generation will take some time. Continue?')
+            else:
+                resp = messagebox.askyesno('Generated List End', 'All generated numbers shown. Generate again?')
+
+            if resp:
+
+                t = threading.Thread(None, self.generateThread, ())
+                t.start()
+
+                self.genSet['text'] = 'NEXT'
+ 
+            else:
+                self.genSet['text'] = 'GENERATE'
 
     def generateThread(self):
 
-        ''' This function will generate combinations of numbers using the getCombination method of the sg object
-            ATTENTION !!! CHANGE THE GENERATION PROCESS TO GENERATE ALL POSSIBLE COMBINATIONS FIRST INSTEAD OF GETTING 
-            DIFFERENT SETS OF NUMBERS TO GENERATE FROM
-        '''
-
-        # self.showProgress()
+        self.progressBar.start()
         t_count = int(self.varCountLimit.get())
-
-        # if t_count:
-        #     if int(t_count) > 25:
-        #         self.offset.set('25')
-        #         t_count = 25
-        # else:
-        #     self.offset.set('25')
-        #     t_count = 25
-        #
         l_count = 25 - t_count
 
-        top_numbers = [n[0] for n in self.dataconn.get_fantasy_stats(0)][:25]
-        low_numbers = [n[0] for n in self.dataconn.get_fantasy_stats(0)][25:]
+        top_numbers = [n[0] for n in self.dataconn.get_number_stats('super_lotto', 0)][:25]
+        low_numbers = [n[0] for n in self.dataconn.get_number_stats('super_lotto', 0)][25:]
 
         random.shuffle(top_numbers)
         random.shuffle(low_numbers)
 
         use_numbers = top_numbers[:t_count] + low_numbers[:l_count]
-        generated = self.generate_set(use_numbers)
-        # self.hideProgress()
 
-        # self.unused['text'] = ''
+        self.generated = self.generate_sets(use_numbers)
+        self.progressBar.stop()
 
-        '''
+    def generate_sets(self, numbers):
 
-        check the selection limit before showing it. this is needed since the looping limit for generating
-        may be reached without completely generating 5 combinations
-
-        '''
-
-        if len(generated) == 5:
-            for i in range(5):
-                win = self.dataconn.check_super_winner(generated[i])
-                self.dGen[i].changeTopStyle(generated[i], win)
-
-            self.dataconn.store_super_plays(generated)
-
-        else:
-            messagebox.showerror('Generate Error', 'Generation taking too long. Retry.')
-
-    def generate_set(self, numbers):
+        start = datetime.now()
+        print(start)
 
         iterator = self.set_iterator(numbers)
+        combis = list(iterator)
 
-        generated = []
-
+        combi_sets = []
+        combi_set = []
+    
         count = 0
 
         while True:
 
-            try:
-                nums = self.get_a_combination(iterator)
-                if self.check_numbers(generated, nums):
-                    nums.append(self.get_a_super())
-                    generated.append(nums)
+            random.shuffle(combis)
 
-                if len(generated) == 5:
-                    break
+            for idx, combi in enumerate(combis):
 
-            except Exception as e:
-                count += 1
-                iterator = self.set_iterator(numbers)
-                generated = []
+                comb = list(sorted(combi))
 
-            if count > 100:
+                if self.check_numbers(combi_set, comb):
+                    comb.append(self.get_a_super())
+                    combi_set.append(comb)
+
+                if len(combi_set) == 5:
+                    combi_sets.append(combi_set)
+                    combi_set = []
+
+            combi_set = []
+            count += 1
+
+            if count > 800:
+                break
+            
+            if len(combi_sets) >= 200:
                 break
 
-        return generated
+        end = datetime.now()
+        print(end)
+        print("Time elapsed: ", end - start)
+        print(len(combi_sets))
+        return combi_sets
 
     def set_iterator(self, nums):
 
@@ -511,11 +513,14 @@ class Application(Frame):
 
         return combinations(nums, 5)
 
-    def get_a_combination(self, iterator):
+    def get_a_set(self):
 
-        num_set = next(iterator)
-
-        return list(sorted(num_set))
+        generated = self.generated.pop(0)
+        self.dataconn.store_super_plays(generated)
+        
+        for i in range(5):
+            win = self.dataconn.check_super_winner(generated[i])
+            self.dGen[i].changeTopStyle(generated[i], win)
 
     def get_a_super(self):
 
@@ -529,7 +534,7 @@ class Application(Frame):
 
         # check if any of the numbers were selected before
         for gen in generated:
-            check = [n for n in num_set if n not in gen]
+            check = [n for n in num_set if n not in gen[:5]]
 
             if len(check) < 5:
                 return False
@@ -547,10 +552,6 @@ class Application(Frame):
             if con_count > 1:
                 return False
 
-        # if self.dataconn.check_fantasy_winner(num_set):
-        #     print('prev winner : ', num_set)
-        #     return False
-
         if self.noClose.get():
             if self.dataconn.check_close_super_winner(num_set):
                 pass
@@ -563,12 +564,6 @@ class Application(Frame):
             else:
                 return False
 
-        # check if combination has no close match in the last 20 winners
-        # check if mean is within acceptable range
-        # if np.mean(num_set) < 15 or np.mean(num_set) > 25:
-        #     print('bad mean')
-        #     return False
-
         return True
 
     def check_pattern(self, num_set):
@@ -579,16 +574,17 @@ class Application(Frame):
             return True
         else:
             return False
-        # if self.pattern.get() == 0:
-        #     if odd_count in [0, 5]:
-        #         return False
-        #
-        # return True
 
     def clear_generated(self):
 
-        for i in range(5):
-            self.dGen[i].clearTopStyle()
+        resp = messagebox.askyesno('Reset','This will reset generated numbers. Continue?')
+
+        if resp:
+            self.generated = []
+            self.genSet['text'] = 'GENERATE'
+
+            for i in range(5):
+                self.dGen[i].clearTopStyle()
 
     # def showProgress(self):
 
@@ -632,7 +628,7 @@ class Application(Frame):
 
     def save_generated(self):
 
-        self.dataconn.save_fantasy_plays()
+        self.dataconn.save_super_plays()
 
     def getCountLimits(self):
 
@@ -647,7 +643,7 @@ class Application(Frame):
         ''' This function will be executed when the user exits
         '''
 
-        self.dataconn.delete_fantasy_plays()
+        self.dataconn.delete_super_plays()
         root.destroy()
 
 root = Tk()
