@@ -290,7 +290,7 @@ class Application(Frame):
 
     def loadStats(self):
 
-        stats = self.dataconn.get_fantasy_stats(self.sortOrder.get())
+        stats = self.dataconn.get_number_stats('fantasy_five', self.sortOrder.get())
 
         self.statSelect.delete(0, END)
 
@@ -299,7 +299,10 @@ class Application(Frame):
             if idx == 26:
                 self.statSelect.insert(END, '==========')
 
-            stat_line = "  -  ".join(['{:02d}'.format(stat[0]), '{:04d}'.format(stat[1])])
+            if self.sortOrder.get() == 2:
+                stat_line = "  -  ".join(['{:02d}'.format(stat[0]), stat[1]])
+            else:
+                stat_line = "  -  ".join(['{:02d}'.format(stat[0]), '{:04d}'.format(stat[1])])
 
             self.statSelect.insert(END, stat_line)
 
@@ -364,6 +367,8 @@ class Application(Frame):
 
         if self.sortOrder.get() == 0:
             self.sortOrder.set(1)
+        elif self.sortOrder.get() == 1:
+            self.sortOrder.set(2)
         else:
             self.sortOrder.set(0)
 
@@ -403,8 +408,8 @@ class Application(Frame):
 
         l_count = 25 - t_count
 
-        top_numbers = [n[0] for n in self.dataconn.get_fantasy_stats(0)][:25]
-        low_numbers = [n[0] for n in self.dataconn.get_fantasy_stats(0)][25:]
+        top_numbers = [n[0] for n in self.dataconn.get_number_stats('fantasy_five', 0)][:25]
+        low_numbers = [n[0] for n in self.dataconn.get_number_stats('fantasy_five', 0)][25:]
 
         random.shuffle(top_numbers)
         random.shuffle(low_numbers)

@@ -151,7 +151,7 @@ class databaseConn(object):
 
         return winners_select
 
-    def get_super_stats(self, table_name, order):
+    def get_number_stats(self, table_name, order):
 
 
         if order == 0 or order == 1:
