@@ -46,7 +46,7 @@ class Application(Frame):
         self.pattern = IntVar()
 
         self.varCountLimit = StringVar()
-        self.limitList = ['25', '25', '20', '15', '10']
+        self.limitList = ['25', '25', '20', '15']
         rfont = font.Font(family='Verdana', size=8)
         lfont = font.Font(family='Verdana', size=8, slant="italic")
         bfont = font.Font(family='Verdana', size=16, weight="bold")
@@ -343,28 +343,11 @@ class Application(Frame):
 
     def loadTrend(self):
 
+        self.progressBar.start()
         if os.path.exists('super.jpg'):
             pass
         else:
-            self.showProgress()
-
-            winners = self.dataconn.get_super_data('super_lotto')
-
-            cols = ['Draw Date', 'A', 'B', 'C', 'D', 'E', 'M']
-            df = pd.DataFrame.from_records(winners, columns=cols)
-
-            df['TOP'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_top_n, args=(25, ), axis=1)
-
-            try:
-                os.remove('super.jpg')
-            except:
-                pass
-
-            self.hideProgress()
-
-            plt.figure(figsize=(5,3))
-            plt.plot(df['TOP'][:50])
-            plt.savefig('super.jpg')
+            self.loadTrendFromData()
 
         image = Image.open("super.jpg")
         image = image.resize((440,360))
@@ -375,6 +358,8 @@ class Application(Frame):
         Style().configure("DT.TLabel", image=results_fig, background="white", anchor="left", font="Verdana 2")
 
         self.trendPlot['style'] = 'DT.TLabel'
+        
+        self.progressBar.stop()
 
     def check_top_n(self, data, top):
 
@@ -383,9 +368,26 @@ class Application(Frame):
         num_set = [na, nb, nc, nd, ne]
 
         # get the top numbers prior to the draw date passed
-        top_numbers = self.dataconn.get_top_stats_by_date(dd, top, 'fantasy_five')
+        top_numbers = self.dataconn.get_top_stats_by_date(dd, top, 'super_lotto')
 
         return len([num for num in num_set if num in top_numbers])
+
+    def loadTrendFromData(self):
+
+        self.progressBar.start()
+
+        winners = self.dataconn.get_super_data('super_lotto')
+
+        cols = ['Draw Date', 'A', 'B', 'C', 'D', 'E', 'M']
+        df = pd.DataFrame.from_records(winners, columns=cols)
+
+        df['TOP'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_top_n, args=(25, ), axis=1)
+
+        plt.figure(figsize=(5,3))
+        plt.plot(df['TOP'][:50])
+        plt.savefig('super.jpg')
+
+        self.progressBar.stop()
 
     def reload(self):
 
@@ -394,7 +396,9 @@ class Application(Frame):
         except:
             pass
 
-        self.loadTrend()
+        t = threading.Thread(None, self.loadTrend, ())
+        t.start()
+        
 
     def statNumberOrder(self):
 
@@ -431,7 +435,6 @@ class Application(Frame):
         '''
 
         # self.showProgress()
-        self.progressBar.start()
         t_count = int(self.varCountLimit.get())
 
         # if t_count:
@@ -472,8 +475,6 @@ class Application(Frame):
 
         else:
             messagebox.showerror('Generate Error', 'Generation taking too long. Retry.')
-
-        self.progressBar.stop()
 
     def generate_set(self, numbers):
 
@@ -551,7 +552,7 @@ class Application(Frame):
         #     return False
 
         if self.noClose.get():
-            if self.dataconn.check_close_fantasy_winner(num_set):
+            if self.dataconn.check_close_super_winner(num_set):
                 pass
             else:
                 return False

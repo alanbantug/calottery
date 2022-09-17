@@ -7,6 +7,7 @@ from tkinter.ttk import *
 from tkinter import messagebox
 from PIL import Image, ImageTk
 from itertools import combinations
+from datetime import datetime, timedelta
 
 import numpy as np
 import pandas as pd
@@ -42,6 +43,8 @@ class Application(Frame):
         self.limitMean = IntVar()
         self.noCon = IntVar()
         self.pattern = IntVar()
+
+        self.generated = [] 
 
         self.varCountLimit = StringVar()
         self.limitList = ['25', '25', '20', '15']
@@ -368,26 +371,36 @@ class Application(Frame):
 
     def generate(self):
 
-        t = threading.Thread(None, self.generateThread, ())
-        t.start()
+        if self.generated:
+
+            self.get_a_set()
+
+        else: 
+
+            if self.genSet['text'] == 'GENERATE':
+                resp = messagebox.askyesno('Generating combinations', 'Generation will take some time. Continue?')
+            else:
+                resp = messagebox.askyesno('Generated List End', 'All generated numbers shown. Generate again?')
+
+            if resp:
+
+                t = threading.Thread(None, self.generateThread, ())
+                t.start()
+
+                self.genSet['text'] = 'NEXT'
+ 
+            else:
+                self.genSet['text'] = 'GENERATE'
+
 
     def generateThread(self):
 
         ''' This function will generate combinations of numbers using the getCombination method of the sg object
         '''
 
-        # self.showProgress()
         self.progressBar.start()
         t_count = int(self.varCountLimit.get())
 
-        # if t_count:
-        #     if int(t_count) > 25:
-        #         self.offset.set('25')
-        #         t_count = 25
-        # else:
-        #     self.offset.set('25')
-        #     t_count = 25
-        #
         l_count = 25 - t_count
 
         top_numbers = [n[0] for n in self.dataconn.get_fantasy_stats(0)][:25]
@@ -398,57 +411,52 @@ class Application(Frame):
 
         use_numbers = top_numbers[:t_count] + low_numbers[:l_count]
 
-        generated = self.generate_set(use_numbers)
-        # self.hideProgress()
+        self.generated = self.generate_sets(use_numbers)
 
-        # self.unused['text'] = ''
-
-        '''
-
-        check the selection limit before showing it. this is needed since the looping limit for generating
-        may be reached without completely generating 5 combinations
-
-        '''
-
-        if len(generated) == 5:
-            for i in range(5):
-                win = self.dataconn.check_fantasy_winner(generated[i])
-                self.dGen[i].changeTopStyle(generated[i], win)
-
-            self.dataconn.store_fantasy_plays(generated)
-
-        else:
-            messagebox.showerror('Generate Error', 'Generation taking too long. Retry.')
-        
         self.progressBar.stop()
 
-    def generate_set(self, numbers):
+    def generate_sets(self, numbers):
+
+        start = datetime.now()
+        print(start)
 
         iterator = self.set_iterator(numbers)
+        combis = list(iterator)
 
-        generated = []
-
+        combi_sets = []
+        combi_set = []
+    
         count = 0
 
         while True:
 
-            try:
-                nums = self.get_a_combination(iterator)
-                if self.check_numbers(generated, nums):
-                    generated.append(nums)
+            random.shuffle(combis)
 
-                if len(generated) == 5:
-                    break
+            for idx, combi in enumerate(combis):
 
-            except Exception as e:
-                count += 1
-                iterator = self.set_iterator(numbers)
-                generated = []
+                comb = list(sorted(combi))
 
-            if count > 100:
+                if self.check_numbers(combi_set, comb):
+                    combi_set.append(comb)
+
+                if len(combi_set) == 5:
+                    combi_sets.append(combi_set)
+                    combi_set = []
+
+            combi_set = []
+            count += 1
+
+            if count > 800:
+                break
+            
+            if len(combi_sets) >= 200:
                 break
 
-        return generated
+        end = datetime.now()
+        print(end)
+        print("Time elapsed: ", end - start)
+        print(len(combi_sets))
+        return combi_sets
 
     def set_iterator(self, nums):
 
@@ -456,11 +464,15 @@ class Application(Frame):
 
         return combinations(nums, 5)
 
-    def get_a_combination(self, iterator):
+    def get_a_set(self):
 
-        num_set = next(iterator)
+        generated = self.generated.pop(0)
+        self.dataconn.store_fantasy_plays(generated)
+        
+        for i in range(5):
+            win = self.dataconn.check_fantasy_winner(generated[i])
+            self.dGen[i].changeTopStyle(generated[i], win)
 
-        return list(sorted(num_set))
 
     def check_numbers(self, generated, num_set):
 
@@ -484,10 +496,6 @@ class Application(Frame):
             if con_count > 1:
                 return False
 
-        # if self.dataconn.check_fantasy_winner(num_set):
-        #     print('prev winner : ', num_set)
-        #     return False
-
         if self.noClose.get():
             if self.dataconn.check_close_fantasy_winner(num_set):
                 pass
@@ -500,12 +508,6 @@ class Application(Frame):
             else:
                 return False
 
-        # check if combination has no close match in the last 20 winners
-        # check if mean is within acceptable range
-        # if np.mean(num_set) < 15 or np.mean(num_set) > 25:
-        #     print('bad mean')
-        #     return False
-
         return True
 
     def check_pattern(self, num_set):
@@ -516,16 +518,14 @@ class Application(Frame):
             return True
         else:
             return False
-        # if self.pattern.get() == 0:
-        #     if odd_count in [0, 5]:
-        #         return False
-        #
-        # return True
 
     def clear_generated(self):
 
         for i in range(5):
             self.dGen[i].clearTopStyle()
+
+        self.generated = []
+        self.genSet['text'] = 'GENERATE'
 
     def showProgress(self):
 
@@ -591,7 +591,7 @@ root = Tk()
 root.title("FANTASY FIVE")
 
 # Set size
-wh = 490
+wh = 495
 ww = 500
 
 #root.resizable(height=False, width=False)
