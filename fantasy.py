@@ -178,13 +178,10 @@ class Application(Frame):
         self.genSave = Button(self.generateTab, text="SAVE", style="F.TButton", command=self.save_generated)
         self.genClear = Button(self.generateTab, text="CLEAR", style="F.TButton", command=self.clear_generated)
 
-        # self.topNumsOnly.grid(row=0, column=0, padx=5, pady=5, sticky="NSEW")
         self.offsetLabel.grid(row=0, column=0, padx=5, pady=5, sticky="NSEW")
-        # self.topOffset.grid(row=0, column=2, padx=5, pady=5, sticky="W")
         self.topCountList.grid(row=0, column=2, padx=5, pady=5, sticky="W")
         self.avoidClose.grid(row=1, column=0, padx=5, pady=5, sticky="NSEW")
         self.noConsec.grid(row=1, column=2, padx=5, pady=5, sticky="NSEW")
-        # self.commonMean.grid(row=1, column=2, padx=5, pady=5, sticky="NSEW")
         self.genOpt.grid(row=3, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
 
         self.oddEven.grid(row=0, column=0, padx=5, pady=5, sticky="NSEW")
@@ -531,46 +528,6 @@ class Application(Frame):
 
         self.generated = []
         self.genSet['text'] = 'GENERATE'
-
-    def showProgress(self):
-
-        ''' This function will show the progress bar for the different threads
-        '''
-
-        Style().configure("P.TLabel", font="Verdana 12 bold", anchor="center")
-        Style().configure("B.TProgressbar", foreground="blue", background="blue")
-
-        self.popProgress = Toplevel(self.main_container)
-        self.popProgress.title("Processing")
-
-        self.progressMessage = Label(self.popProgress, text="Processing, please wait...", style="P.TLabel" )
-        self.progressBar = Progressbar(self.popProgress, orient="horizontal", mode="indeterminate", length=280)
-
-        self.progressMessage.grid(row=0, column=0, columnspan=5, padx=10 , pady=5, sticky='NSEW')
-        self.progressBar.grid(row=1, column=0, columnspan=5, padx=10 , pady=5, sticky='NSEW')
-
-        wh = 70
-        ww = 300
-
-        self.popProgress.minsize(ww, wh)
-        self.popProgress.maxsize(ww, wh)
-
-        # Position in center screen
-
-        ws = self.popProgress.winfo_screenwidth()
-        hs = self.popProgress.winfo_screenheight()
-
-        # calculate x and y coordinates for the Tk root window
-        x = (ws/2) - (ww/2)
-        y = (hs/2) - (wh/2)
-
-        self.popProgress.geometry('%dx%d+%d+%d' % (ww, wh, x, y))
-        self.progressBar.start()
-
-    def hideProgress(self):
-
-        self.progressBar.stop()
-        self.popProgress.destroy()
 
     def save_generated(self):
 
