@@ -310,7 +310,6 @@ class Application(Frame):
         if os.path.exists('fantasy.jpg'):
             pass
         else:
-            self.showProgress()
 
             winners = self.dataconn.get_fantasy_data()
 
@@ -323,8 +322,6 @@ class Application(Frame):
                 os.remove('fantasy.jpg')
             except:
                 pass
-
-            self.hideProgress()
 
             plt.figure(figsize=(3,3))
             plt.plot(df['TOP'][:50])
