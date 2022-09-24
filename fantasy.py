@@ -370,6 +370,7 @@ class Application(Frame):
 
     def generate(self):
 
+        print(self.dataconn.get_latest_fantasy_winner())
         if self.generated:
 
             self.get_a_set()
@@ -386,8 +387,6 @@ class Application(Frame):
                 t = threading.Thread(None, self.generateThread, ())
                 t.start()
 
-                self.genSet['text'] = 'NEXT'
- 
             else:
                 self.genSet['text'] = 'GENERATE'
 
@@ -400,7 +399,7 @@ class Application(Frame):
         self.progressBar.start()
         t_count = int(self.varCountLimit.get())
 
-        l_count = 25 - t_count
+        l_count = 25 - t_count  
 
         top_numbers = [n[0] for n in self.dataconn.get_number_stats('fantasy_five', 0)][:25]
         low_numbers = [n[0] for n in self.dataconn.get_number_stats('fantasy_five', 0)][25:]
@@ -410,7 +409,7 @@ class Application(Frame):
 
         use_numbers = top_numbers[:t_count] + low_numbers[:l_count]
 
-        self.generated = self.generate_sets(use_numbers)
+        self.generate_sets(use_numbers)
 
         self.progressBar.stop()
 
@@ -455,7 +454,10 @@ class Application(Frame):
         print(end)
         print("Time elapsed: ", end - start)
         print(len(combi_sets))
-        return combi_sets
+
+        self.generated = combi_sets
+        self.genSet['text'] = 'NEXT'
+        self.get_a_set()
 
     def set_iterator(self, nums):
 
