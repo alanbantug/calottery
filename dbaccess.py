@@ -61,11 +61,11 @@ class databaseConn(object):
 
         return winners_select
 
-    def get_latest_fantasy_winner(self):
+    def get_latest_winner(self, table_name):
 
         select_sql = f'''
         select to_char(draw_date, 'YYYY-MM-DD'), numa, numb, numc, numd, nume
-        from fantasy_five
+        from {table_name}
         order by draw_date desc
         limit 1
         '''
@@ -79,6 +79,7 @@ class databaseConn(object):
         cur.close()
 
         return winners
+
 
     def get_fantasy_stats(self, order):
 

@@ -40,7 +40,7 @@ class Application(Frame):
         self.topNumbers = IntVar()
         self.topCount = IntVar()
         self.noClose = IntVar()
-        self.limitMean = IntVar()
+        self.skipWinner = IntVar()
         self.noCon = IntVar()
         self.pattern = IntVar()
 
@@ -149,17 +149,18 @@ class Application(Frame):
         '''
         self.genOpt = LabelFrame(self.generateTab, text='Generate Options', style="O.TLabelframe")
         self.topNumsOnly = Checkbutton(self.genOpt, text="Top numbers only", style="B.TCheckbutton", variable=self.topNumbers)
-        self.offsetLabel = Label(self.genOpt, text="Top number count", style="T.TLabel")
+        self.offsetLabel = Label(self.genOpt, text="Top number count :", style="T.TLabel")
         self.topOffset = Entry(self.genOpt, textvariable=self.offset, width="8")
         self.topCountList = OptionMenu(self.genOpt, self.varCountLimit, *self.limitList)
         self.topCountList.config(width=12)
         self.avoidClose = Checkbutton(self.genOpt, text="No close winners", style="B.TCheckbutton", variable=self.noClose)
-        self.commonMean = Checkbutton(self.genOpt, text="Limit mean", style="B.TCheckbutton", variable=self.limitMean)
         self.noConsec = Checkbutton(self.genOpt, text="No Consecutives", style="B.TCheckbutton", variable=self.noCon)
+        self.skipLastWin = Checkbutton(self.genOpt, text="Skip last winner", style="B.TCheckbutton", variable=self.skipWinner)
+        self.commonPattern = Checkbutton(self.genOpt, text="Common patterns", style="B.TCheckbutton", variable=self.pattern)
 
-        self.genPat = LabelFrame(self.generateTab, text='Pattern Options', style="O.TLabelframe")
-        self.noPattern = Radiobutton(self.genPat, text="No all odd/even ", style="B.TRadiobutton", variable=self.pattern, value=1)
-        self.oddEven = Radiobutton(self.genPat, text="Any pattern", style="B.TRadiobutton", variable=self.pattern, value=0)
+        # self.genPat = LabelFrame(self.generateTab, text='Pattern Options', style="O.TLabelframe")
+        # self.noPattern = Radiobutton(self.genPat, text="Likely patterns ", style="B.TRadiobutton", variable=self.pattern, value=1)
+        # self.oddEven = Radiobutton(self.genPat, text="Any pattern", style="B.TRadiobutton", variable=self.pattern, value=0)
 
         self.h_sep_ga = Separator(self.generateTab, orient=HORIZONTAL)
         self.h_sep_gb = Separator(self.generateTab, orient=HORIZONTAL)
@@ -178,16 +179,13 @@ class Application(Frame):
         self.genSave = Button(self.generateTab, text="SAVE", style="F.TButton", command=self.save_generated)
         self.genClear = Button(self.generateTab, text="CLEAR", style="F.TButton", command=self.clear_generated)
 
-        self.offsetLabel.grid(row=0, column=0, padx=5, pady=5, sticky="NSEW")
-        self.topCountList.grid(row=0, column=2, padx=5, pady=5, sticky="W")
-        self.avoidClose.grid(row=1, column=0, padx=5, pady=5, sticky="NSEW")
-        self.noConsec.grid(row=1, column=2, padx=5, pady=5, sticky="NSEW")
-        self.genOpt.grid(row=3, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
-
-        self.oddEven.grid(row=0, column=0, padx=5, pady=5, sticky="NSEW")
-        self.noPattern.grid(row=1, column=0, padx=5, pady=5, sticky="NSEW")
-        self.genPat.grid(row=3, column=3, columnspan=2, padx=5, pady=5, sticky='NSEW')
-
+        self.offsetLabel.grid(row=0, column=0, padx=5, pady=5, sticky="W")
+        self.topCountList.grid(row=0, column=0, padx=(160,0), pady=5, sticky="W")
+        self.skipLastWin.grid(row=0, column=0, padx=(320,0), pady=5, sticky="W")
+        self.avoidClose.grid(row=1, column=0, padx=5, pady=5, sticky="W")
+        self.noConsec.grid(row=1, column=0, padx=(160,0), pady=5, sticky="W")
+        self.commonPattern.grid(row=1, column=0, padx=(320,0), pady=5, sticky="W")
+        self.genOpt.grid(row=3, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
 
         self.h_sep_ga.grid(row=4, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
 
@@ -206,8 +204,8 @@ class Application(Frame):
 
         self.topNumbers.set(0)
         self.noClose.set(0)
-        self.limitMean.set(0)
         self.noCon.set(0)
+        self.skipWinner.set(0)
         self.pattern.set(0)
 
         self.varCountLimit.set('25')
@@ -370,12 +368,18 @@ class Application(Frame):
 
     def generate(self):
 
-        print(self.dataconn.get_latest_fantasy_winner())
         if self.generated:
 
             self.get_a_set()
 
         else: 
+
+            if self.skipWinner.get() == 1:
+                if int(self.varCountLimit.get()) == 25:
+                    pass 
+                else:
+                    messagebox.showinfo('Invalid option combination', 'Count will be set to 25 before skipping last winner')
+                    self.varCountLimit.set('25')
 
             if self.genSet['text'] == 'GENERATE':
                 resp = messagebox.askyesno('Generating combinations', 'Generation will take some time. Continue?')
@@ -401,8 +405,15 @@ class Application(Frame):
 
         l_count = 25 - t_count  
 
-        top_numbers = [n[0] for n in self.dataconn.get_number_stats('fantasy_five', 0)][:25]
-        low_numbers = [n[0] for n in self.dataconn.get_number_stats('fantasy_five', 0)][25:]
+        all_numbers = [n[0] for n in self.dataconn.get_number_stats('fantasy_five', 0)]
+
+        print(len(all_numbers))
+        if self.skipWinner.get() == 1:
+            all_numbers = [n for n in all_numbers if n not in list(self.dataconn.get_latest_winner('fantasy_five')[0])[1:]]
+
+        print(len(all_numbers))
+        top_numbers = all_numbers[:25]
+        low_numbers = all_numbers[25:]
 
         random.shuffle(top_numbers)
         random.shuffle(low_numbers)

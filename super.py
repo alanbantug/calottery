@@ -39,10 +39,9 @@ class Application(Frame):
         self.sortOrder = IntVar()
         self.sortSuperOrder = IntVar()
 
-        self.topNumbers = IntVar()
         self.topCount = IntVar()
         self.noClose = IntVar()
-        self.limitMean = IntVar()
+        self.skipWinner = IntVar()
         self.noCon = IntVar()
         self.pattern = IntVar()
 
@@ -163,18 +162,15 @@ class Application(Frame):
         define widgets for generator tab
         '''
         self.genOpt = LabelFrame(self.generateTab, text='Generate Options', style="O.TLabelframe")
-        self.topNumsOnly = Checkbutton(self.genOpt, text="Top numbers only", style="B.TCheckbutton", variable=self.topNumbers)
-        self.offsetLabel = Label(self.genOpt, text="Top number count", style="T.TLabel")
+        # self.topNumsOnly = Checkbutton(self.genOpt, text="Top numbers only", style="B.TCheckbutton", variable=self.topNumbers)
+        self.offsetLabel = Label(self.genOpt, text="Top number count : ", style="T.TLabel")
         self.topOffset = Entry(self.genOpt, textvariable=self.offset, width="8")
         self.topCountList = OptionMenu(self.genOpt, self.varCountLimit, *self.limitList)
         self.topCountList.config(width=12)
         self.avoidClose = Checkbutton(self.genOpt, text="No close winners", style="B.TCheckbutton", variable=self.noClose)
-        self.commonMean = Checkbutton(self.genOpt, text="Limit mean", style="B.TCheckbutton", variable=self.limitMean)
-        self.noConsec = Checkbutton(self.genOpt, text="No Consecutives", style="B.TCheckbutton", variable=self.noCon)
-
-        self.genPat = LabelFrame(self.generateTab, text='Pattern Options', style="O.TLabelframe")
-        self.noPattern = Radiobutton(self.genPat, text="Likely patterns ", style="B.TRadiobutton", variable=self.pattern, value=1)
-        self.oddEven = Radiobutton(self.genPat, text="Any pattern", style="B.TRadiobutton", variable=self.pattern, value=0)
+        self.skipLastWin = Checkbutton(self.genOpt, text="Skip last winner", style="B.TCheckbutton", variable=self.skipWinner)
+        self.noConsec = Checkbutton(self.genOpt, text="No consecutives", style="B.TCheckbutton", variable=self.noCon)
+        self.commonPattern = Checkbutton(self.genOpt, text="Common patterns", style="B.TCheckbutton", variable=self.pattern)
 
         self.h_sep_ga = Separator(self.generateTab, orient=HORIZONTAL)
         self.h_sep_gb = Separator(self.generateTab, orient=HORIZONTAL)
@@ -194,15 +190,13 @@ class Application(Frame):
         self.genClear = Button(self.generateTab, text="CLEAR", style="F.TButton", command=self.clear_generated)
 
         self.offsetLabel.grid(row=0, column=0, padx=5, pady=5, sticky="NSEW")
-        self.topCountList.grid(row=0, column=2, padx=5, pady=5, sticky="W")
-        self.avoidClose.grid(row=1, column=0, padx=5, pady=5, sticky="NSEW")
-        self.noConsec.grid(row=1, column=2, padx=5, pady=5, sticky="NSEW")
-        self.genOpt.grid(row=3, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
+        self.topCountList.grid(row=0, column=0, padx=(170,0), pady=5, sticky="W")
+        self.avoidClose.grid(row=1, column=0, padx=5, pady=5, sticky="W")
+        self.noConsec.grid(row=1, column=0, padx=(170,0), pady=5, sticky="W")
+        self.skipLastWin.grid(row=1, column=0, padx=(320,0), pady=5, sticky='W')
+        self.commonPattern.grid(row=1, column=0, padx=(460,0), pady=5, sticky="NSEW")
 
-        self.oddEven.grid(row=0, column=0, padx=5, pady=5, sticky="NSEW")
-        self.noPattern.grid(row=1, column=0, padx=5, pady=5, sticky="NSEW")
-        self.genPat.grid(row=3, column=3, columnspan=2, padx=5, pady=5, sticky='NSEW')
-
+        self.genOpt.grid(row=3, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
 
         self.h_sep_ga.grid(row=4, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
 
@@ -219,9 +213,9 @@ class Application(Frame):
 
         self.sortOrder.set(0)
 
-        self.topNumbers.set(0)
+        # self.topNumbers.set(0)
         self.noClose.set(0)
-        self.limitMean.set(0)
+        self.skipWinner.set(0)
         self.noCon.set(0)
         self.pattern.set(0)
 
@@ -438,8 +432,6 @@ class Application(Frame):
                 t = threading.Thread(None, self.generateThread, ())
                 t.start()
 
-                self.genSet['text'] = 'NEXT'
- 
             else:
                 self.genSet['text'] = 'GENERATE'
 
@@ -449,15 +441,22 @@ class Application(Frame):
         t_count = int(self.varCountLimit.get())
         l_count = 25 - t_count
 
-        top_numbers = [n[0] for n in self.dataconn.get_number_stats('super_lotto', 0)][:25]
-        low_numbers = [n[0] for n in self.dataconn.get_number_stats('super_lotto', 0)][25:]
+        all_numbers = [n[0] for n in self.dataconn.get_number_stats('super_lotto', 0)]
+
+        print(list(self.dataconn.get_latest_winner('super_lotto')[0])[1:])
+
+        if self.skipWinner.get() == 1:
+            all_numbers = [n for n in all_numbers if n not in list(self.dataconn.get_latest_winner('super_lotto')[0])[1:]]
+
+        top_numbers = all_numbers[:25]
+        low_numbers = all_numbers[25:]
 
         random.shuffle(top_numbers)
         random.shuffle(low_numbers)
 
         use_numbers = top_numbers[:t_count] + low_numbers[:l_count]
 
-        self.generated = self.generate_sets(use_numbers)
+        self.generate_sets(use_numbers)
         self.progressBar.stop()
 
     def generate_sets(self, numbers):
@@ -502,6 +501,11 @@ class Application(Frame):
         print(end)
         print("Time elapsed: ", end - start)
         print(len(combi_sets))
+
+        self.generated = combi_sets
+        self.genSet['text'] = 'NEXT'
+        self.get_a_set()
+
         return combi_sets
 
     def set_iterator(self, nums):
