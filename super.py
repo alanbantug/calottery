@@ -48,7 +48,7 @@ class Application(Frame):
         self.generated = []
 
         self.varCountLimit = StringVar()
-        self.limitList = ['25', '25', '20', '15', '10']
+        self.limitList = ['5', '5', '4', '3', '2']
         rfont = font.Font(family='Verdana', size=8)
         lfont = font.Font(family='Verdana', size=8, slant="italic")
         bfont = font.Font(family='Verdana', size=16, weight="bold")
@@ -219,7 +219,7 @@ class Application(Frame):
         self.noCon.set(0)
         self.pattern.set(0)
 
-        self.varCountLimit.set('25')
+        self.varCountLimit.set('5')
 
         self.loadData()
         self.loadStats()
@@ -439,33 +439,47 @@ class Application(Frame):
 
         self.progressBar.start()
         t_count = int(self.varCountLimit.get())
-        l_count = 25 - t_count
+        l_count = 5 - t_count
 
         all_numbers = [n[0] for n in self.dataconn.get_number_stats('super_lotto', 0)]
 
-        print(list(self.dataconn.get_latest_winner('super_lotto')[0])[1:])
+        # print(list(self.dataconn.get_latest_winner('super_lotto')[0])[1:])
 
         if self.skipWinner.get() == 1:
             all_numbers = [n for n in all_numbers if n not in list(self.dataconn.get_latest_winner('super_lotto')[0])[1:]]
 
-        top_numbers = all_numbers[:25]
-        low_numbers = all_numbers[25:]
+        # top_numbers = all_numbers[:25]
+        # low_numbers = all_numbers[25:]
 
-        random.shuffle(top_numbers)
-        random.shuffle(low_numbers)
+        # random.shuffle(top_numbers)
+        # random.shuffle(low_numbers)
 
-        use_numbers = top_numbers[:t_count] + low_numbers[:l_count]
+        # use_numbers = top_numbers[:t_count] + low_numbers[:l_count]
 
-        self.generate_sets(use_numbers)
+        self.generate_sets(all_numbers, t_count, l_count)
         self.progressBar.stop()
 
-    def generate_sets(self, numbers):
+    def generate_sets(self, numbers, t_count, l_count):
 
         start = datetime.now()
         print(start)
 
-        iterator = self.set_iterator(numbers)
-        combis = list(iterator)
+        top_combos = list(self.set_iterator(numbers[:25], t_count))
+        bot_combos = list(self.set_iterator(numbers[25:], l_count))
+
+        all_combos = []
+
+        for tc in top_combos:
+            for bc in bot_combos:
+                tcl = list(tc)
+                bcl = list(bc)
+                tcl.extend(bcl)
+                all_combos.append(sorted(tcl))
+
+        print(len(all_combos))
+
+        # iterator = self.set_iterator(numbers)
+        # combis = list(iterator)
 
         combi_sets = []
         combi_set = []
@@ -474,9 +488,9 @@ class Application(Frame):
 
         while True:
 
-            random.shuffle(combis)
+            random.shuffle(all_combos)
 
-            for idx, combi in enumerate(combis):
+            for idx, combi in enumerate(all_combos):
 
                 comb = list(sorted(combi))
 
@@ -488,13 +502,16 @@ class Application(Frame):
                     combi_sets.append(combi_set)
                     combi_set = []
 
+                if len(combi_sets) >= 200:
+                    break
+
             combi_set = []
             count += 1
 
-            if count > 800:
+            if count > 500:
                 break
             
-            if len(combi_sets) >= 200:
+            if len(combi_sets) >= 400:
                 break
 
         end = datetime.now()
@@ -506,13 +523,13 @@ class Application(Frame):
         self.genSet['text'] = 'NEXT'
         self.get_a_set()
 
-        return combi_sets
+        # return combi_sets
 
-    def set_iterator(self, nums):
+    def set_iterator(self, nums, count):
 
         random.shuffle(nums)
 
-        return combinations(nums, 5)
+        return combinations(nums, count)
 
     def get_a_set(self):
 
