@@ -407,11 +407,9 @@ class Application(Frame):
 
         all_numbers = [n[0] for n in self.dataconn.get_number_stats('fantasy_five', 0)]
 
-        print(len(all_numbers))
         if self.skipWinner.get() == 1:
             all_numbers = [n for n in all_numbers if n not in list(self.dataconn.get_latest_winner('fantasy_five')[0])[1:]]
 
-        print(len(all_numbers))
         top_numbers = all_numbers[:25]
         low_numbers = all_numbers[25:]
 
