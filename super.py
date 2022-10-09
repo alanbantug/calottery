@@ -274,7 +274,7 @@ class Application(Frame):
             messagebox.showerror('Incomplete filter', 'Please enter five numbers to filter.')
             return
 
-        winners = self.dataconn.get_fantasy_filtered(selected)
+        winners = self.dataconn.get_super_filtered('super_lotto', selected)
 
         self.dataSelect.delete(0, END)
 
@@ -502,9 +502,6 @@ class Application(Frame):
                     combi_sets.append(combi_set)
                     combi_set = []
 
-                if len(combi_sets) >= 200:
-                    break
-
             combi_set = []
             count += 1
 
@@ -517,7 +514,7 @@ class Application(Frame):
         end = datetime.now()
         print(end)
         print("Time elapsed: ", end - start)
-        print(len(combi_sets))
+        print(len(combi_sets), count)
 
         self.generated = combi_sets
         self.genSet['text'] = 'NEXT'
