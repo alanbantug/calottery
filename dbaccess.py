@@ -1,15 +1,19 @@
 import psycopg2
+import json 
 from datetime import datetime, timedelta
 
 class databaseConn(object):
 
     def __init__(self):
 
-        self.db_conn = psycopg2.connect(database="calotto_db",
-        user="postgres",
-        password="fa#040us",
-        host="localhost",
-        port="5432")
+        with open("credentials.json", "r") as credentials:
+            creds = json.loads(credentials.read())
+
+        self.db_conn = psycopg2.connect(database=creds['database'],
+        user=creds['user'],
+        password=creds['password'],
+        host=creds['host'],
+        port=creds['port'])
 
 
     def get_fantasy_data(self):
