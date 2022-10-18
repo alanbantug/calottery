@@ -375,9 +375,7 @@ class Application(Frame):
         else: 
 
             if self.skipWinner.get() == 1:
-                if int(self.varCountLimit.get()) == 5:
-                    pass 
-                else:
+                if int(self.varCountLimit.get()) == 3:
                     messagebox.showinfo('Invalid option combination', 'Count will be set to 5 before skipping last winner')
                     self.varCountLimit.set('5')
 
