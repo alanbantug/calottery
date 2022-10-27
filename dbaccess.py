@@ -348,7 +348,11 @@ class databaseConn(object):
         winners = cur.fetchall()
         cur.close()
 
-        win_select = [w for w in winners if len(set(w[1:]).intersection(set(numbers))) >= 4]
+        ''' convert to list before comparing
+        '''
+        winners = [list(w) for w in winners]
+
+        win_select = [w for w in winners if len(set(w[1:]).intersection(set(numbers))) in [4,5]]
 
         return True if len(win_select) == 0  else False
 
@@ -489,7 +493,11 @@ class databaseConn(object):
         winners = cur.fetchall()
         cur.close()
 
-        win_select = [w for w in winners if len(set(w[1:]).intersection(set(numbers))) >= 4]
+        ''' convert to list before comparing
+        '''
+        winners = [list(w) for w in winners]
+
+        win_select = [w for w in winners if len(set(w[1:]).intersection(set(numbers))) in [4,5]]
 
         return True if len(win_select) == 0  else False
 

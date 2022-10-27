@@ -167,7 +167,7 @@ class Application(Frame):
         self.topOffset = Entry(self.genOpt, textvariable=self.offset, width="8")
         self.topCountList = OptionMenu(self.genOpt, self.varCountLimit, *self.limitList)
         self.topCountList.config(width=12)
-        self.avoidClose = Checkbutton(self.genOpt, text="No close winners", style="B.TCheckbutton", variable=self.noClose)
+        self.avoidClose = Checkbutton(self.genOpt, text="No close/past winners", style="B.TCheckbutton", variable=self.noClose)
         self.skipLastWin = Checkbutton(self.genOpt, text="Skip last winner", style="B.TCheckbutton", variable=self.skipWinner)
         self.noConsec = Checkbutton(self.genOpt, text="No consecutives", style="B.TCheckbutton", variable=self.noCon)
         self.commonPattern = Checkbutton(self.genOpt, text="Common patterns", style="B.TCheckbutton", variable=self.pattern)
@@ -439,11 +439,8 @@ class Application(Frame):
 
         self.progressBar.start()
         t_count = int(self.varCountLimit.get())
-        l_count = 5 - t_count
 
         all_numbers = [n[0] for n in self.dataconn.get_number_stats('super_lotto', 0)]
-
-        # print(list(self.dataconn.get_latest_winner('super_lotto')[0])[1:])
 
         if self.skipWinner.get() == 1:
             all_numbers = [n for n in all_numbers if n not in list(self.dataconn.get_latest_winner('super_lotto')[0])[1:]]
@@ -456,77 +453,202 @@ class Application(Frame):
 
         # use_numbers = top_numbers[:t_count] + low_numbers[:l_count]
 
-        self.generate_sets(all_numbers, t_count, l_count)
+        self.generate_sets(all_numbers, t_count)
+
         self.progressBar.stop()
 
-    def generate_sets(self, numbers, t_count, l_count):
+    def generate_sets(self, all_numbers, t_count):
 
         start = datetime.now()
         print(start)
+        print(len(all_numbers))
+        top_numbers = all_numbers[:25]
 
-        top_combos = list(self.set_iterator(numbers[:25], t_count))
-        bot_combos = list(self.set_iterator(numbers[25:], l_count))
+        combos_all = self.set_generator(all_numbers, 5)
+        selected = []
 
-        all_combos = []
+        while True:
 
-        for tc in top_combos:
-            for bc in bot_combos:
-                tcl = list(tc)
-                bcl = list(bc)
-                tcl.extend(bcl)
-                all_combos.append(sorted(tcl))
+            try:
+                combo = next(combos_all)
+                selected.append(sorted(list(combo)))
+            except Exception as e:
+                print(e)
+                break
 
-        print(len(all_combos))
+        combos_all = self.set_iterator(selected)
+        print(len(selected))
+        selected = []
 
-        # iterator = self.set_iterator(numbers)
-        # combis = list(iterator)
+        while True:
 
-        combi_sets = []
-        combi_set = []
-    
+            try:
+                combo = next(combos_all)
+                if len(set(top_numbers).intersection(set(combo))) == t_count:
+                    selected.append(list(combo))
+            except:
+                break
+
+        if self.noCon.get():
+
+            combos_all = self.set_iterator(selected)
+            selected = []
+
+            while True:
+
+                try:
+                    combo = next(combos_all)
+                    if self.check_consecutives(combo):
+                        selected.append(combo)
+                except:
+                    break
+
+        if self.pattern.get():
+
+            combos_all = self.set_iterator(selected)
+            selected = []
+
+            while True:
+
+                try:
+                    combo = next(combos_all)
+                    if self.check_pattern(combo):
+                        selected.append(combo)
+                except:
+                    break
+
+        if self.noClose.get():
+
+            combos_all = self.set_iterator(selected)
+            selected = []
+
+            while True:
+
+                try:
+                    combo = next(combos_all)
+                    if self.dataconn.check_close_super_winner(combo):
+                        selected.append(combo)
+                except:
+                    break
+
+        combo_sets = []
+        combo_set = []
+        skipped = []
+        numbers = []
+
+        ''' The logic below will select combinations and remove them from succeeding iterations
+            This will ensure that combinations will not be selected again
+        '''
+        random.shuffle(selected)
+        print('For grouping : ', len(selected))
+        combos_all = self.set_iterator(selected)
         count = 0
 
         while True:
 
-            random.shuffle(all_combos)
+            while True:
 
-            for idx, combi in enumerate(all_combos):
+                try:
+                    combo = next(combos_all)
 
-                comb = list(sorted(combi))
+                    if numbers:
+                        if len(set(numbers).intersection(set(combo))) == 0:
+                            numbers.extend(combo)
+                            combo.append(self.get_a_super())
+                            combo_set.append(combo)
+                            
+                        else:
+                            skipped.append(combo)
+                    else:
+                        numbers.extend(combo)
+                        combo.append(self.get_a_super())
+                        combo_set.append(combo)
+                        
+                        
+                    if len(combo_set) == 5:
+                        combo_sets.append(combo_set)
+                        combo_set = []
+                        numbers = []
+                except:
+                    break
 
-                if self.check_numbers(combi_set, comb):
-                    comb.append(self.get_a_super())
-                    combi_set.append(comb)
+            random.shuffle(skipped)
+            combos_all = self.set_iterator(skipped)
+            combo_set = []
+            skipped = []
+            numbers = []
 
-                if len(combi_set) == 5:
-                    combi_sets.append(combi_set)
-                    combi_set = []
-
-            combi_set = []
             count += 1
-
-            if count > 500:
-                break
             
-            if len(combi_sets) >= 400:
+            if count == 400:
                 break
+        # top_combos = list(self.set_iterator(numbers[:25], t_count))
+        # bot_combos = list(self.set_iterator(numbers[25:], l_count))
+
+        # all_combos = []
+
+        # for tc in top_combos:
+        #     for bc in bot_combos:
+        #         tcl = list(tc)
+        #         bcl = list(bc)
+        #         tcl.extend(bcl)
+        #         all_combos.append(sorted(tcl))
+
+        # print(len(all_combos))
+
+        # # iterator = self.set_iterator(numbers)
+        # # combis = list(iterator)
+
+        # combi_sets = []
+        # combi_set = []
+    
+        # count = 0
+
+        # while True:
+
+        #     random.shuffle(all_combos)
+
+        #     for idx, combi in enumerate(all_combos):
+
+        #         comb = list(sorted(combi))
+
+        #         if self.check_numbers(combi_set, comb):
+        #             comb.append(self.get_a_super())
+        #             combi_set.append(comb)
+
+        #         if len(combi_set) == 5:
+        #             combi_sets.append(combi_set)
+        #             combi_set = []
+
+        #     combi_set = []
+        #     count += 1
+
+        #     if count > 500:
+        #         break
+            
+        #     if len(combi_sets) >= 400:
+        #         break
 
         end = datetime.now()
         print(end)
         print("Time elapsed: ", end - start)
-        print(len(combi_sets), count)
+        print(len(combo_sets), count)
 
-        self.generated = combi_sets
+        self.generated = combo_sets
         self.genSet['text'] = 'NEXT'
         self.get_a_set()
 
         # return combi_sets
 
-    def set_iterator(self, nums, count):
+    def set_generator(self, nums, count):
 
         random.shuffle(nums)
 
         return combinations(nums, count)
+
+    def set_iterator(self, combos):
+
+        return iter(combos)
 
     def get_a_set(self):
 
@@ -545,41 +667,57 @@ class Application(Frame):
 
         return sups.pop()
 
-    def check_numbers(self, generated, num_set):
+    # def check_numbers(self, generated, num_set):
 
-        # check if any of the numbers were selected before
-        for gen in generated:
-            check = [n for n in num_set if n not in gen[:5]]
+    #     # check if any of the numbers were selected before
+    #     for gen in generated:
+    #         check = [n for n in num_set if n not in gen[:5]]
 
-            if len(check) < 5:
-                return False
+    #         if len(check) < 5:
+    #             return False
 
-        # check that consecutives do not exceed 1
-        con_count = 0
-        for i in range(len(num_set) - 1):
-            if num_set[i] == num_set[i+1] - 1:
-                con_count += 1
+    #     # check that consecutives do not exceed 1
+    #     con_count = 0
+    #     for i in range(len(num_set) - 1):
+    #         if num_set[i] == num_set[i+1] - 1:
+    #             con_count += 1
 
-        if self.noCon.get() == 1:
-            if con_count > 0:
-                return False
-        else:
-            if con_count > 1:
-                return False
+    #     if self.noCon.get() == 1:
+    #         if con_count > 0:
+    #             return False
+    #     else:
+    #         if con_count > 1:
+    #             return False
 
-        if self.noClose.get():
-            if self.dataconn.check_close_super_winner(num_set):
-                pass
-            else:
-                return False
+    #     if self.noClose.get():
+    #         if self.dataconn.check_close_super_winner(num_set):
+    #             pass
+    #         else:
+    #             return False
 
-        if self.pattern.get() == 1:
-            if self.check_pattern(num_set):
-                pass
-            else:
-                return False
+    #     if self.pattern.get() == 1:
+    #         if self.check_pattern(num_set):
+    #             pass
+    #         else:
+    #             return False
 
-        return True
+    #     return True
+
+    def check_consecutives(self, num_set):
+
+        count = 0
+        prev = 0
+
+        for num in num_set:
+            if prev == 0:
+                prev = num 
+            else: 
+                if num - 1 == prev:
+                    count += 1
+                else:
+                    prev = num 
+        
+        return True if count <= 1 else False
 
     def check_pattern(self, num_set):
 
