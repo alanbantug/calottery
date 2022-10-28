@@ -340,7 +340,7 @@ class databaseConn(object):
         or numc in {select_list}
         or numd in {select_list}
         or nume in {select_list})
-        and draw_date > '{last_date}'
+        and draw_date > {last_date}
         order by draw_date
         '''
 
@@ -485,7 +485,7 @@ class databaseConn(object):
         or numc in {select_list}
         or numd in {select_list}
         or nume in {select_list})
-        and draw_date > '{last_date}'
+        and draw_date > {last_date}
         order by draw_date
         '''
 

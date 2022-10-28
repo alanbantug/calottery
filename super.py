@@ -473,7 +473,6 @@ class Application(Frame):
                 combo = next(combos_all)
                 selected.append(sorted(list(combo)))
             except Exception as e:
-                print(e)
                 break
 
         combos_all = self.set_iterator(selected)
@@ -490,7 +489,6 @@ class Application(Frame):
                 break
 
         if self.noCon.get():
-
             combos_all = self.set_iterator(selected)
             selected = []
 
@@ -714,10 +712,10 @@ class Application(Frame):
             else: 
                 if num - 1 == prev:
                     count += 1
-                else:
-                    prev = num 
+
+                prev = num 
         
-        return True if count <= 1 else False
+        return True if count == 0 else False
 
     def check_pattern(self, num_set):
 

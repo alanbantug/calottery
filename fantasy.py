@@ -653,10 +653,11 @@ class Application(Frame):
             else: 
                 if num - 1 == prev:
                     count += 1
+                    prev = num
                 else:
                     prev = num 
         
-        return True if count <= 1 else False
+        return True if count == 0 else False
 
     def check_pattern(self, num_set):
 
