@@ -138,20 +138,21 @@ class Application(Frame):
         self.trendDisplay = LabelFrame(self.statTab, text=' Top Numbers Trend ', style="O.TLabelframe")
         self.nscroller = Scrollbar(self.statDisplay, orient=VERTICAL)
         self.sortStat = Button(self.statDisplay, text="Sort", style="F.TButton", command=self.statNumberOrder)
-        self.statNumbers = Listbox(self.statDisplay, yscrollcommand=self.nscroller.set, width=20, height=12)
+        self.statNumbers = Listbox(self.statDisplay, yscrollcommand=self.nscroller.set, width=22, height=22)
         self.sscroller = Scrollbar(self.statDisplay, orient=VERTICAL)
         self.sortPowerStat = Button(self.statDisplay, text="Sort", style="F.TButton", command=self.statPowerOrder)
-        self.statPowers = Listbox(self.statDisplay, yscrollcommand=self.sscroller.set, width=20, height=8)
+        self.statPowers = Listbox(self.statDisplay, yscrollcommand=self.sscroller.set, width=22, height=22)
 
         self.trendPlot = Label(self.trendDisplay)
         self.reloadTrend = Button(self.trendDisplay, text="Reload", style="F.TButton", command=self.reload)
 
         self.statNumbers.grid(row=0, column=0, padx=(10,0), pady=5, sticky='NSEW')
         self.nscroller.grid(row=0, column=1, padx=(5,0), pady=5, sticky='NSEW')
-        self.sortStat.grid(row=1, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
-        self.statPowers.grid(row=2, column=0, padx=(10,0), pady=5, sticky='NSEW')
-        self.sscroller.grid(row=2, column=1, padx=(5,0), pady=5, sticky='NSEW')
-        self.sortPowerStat.grid(row=3, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
+        self.statPowers.grid(row=0, column=2, padx=(10,0), pady=5, sticky='NSEW')
+        self.sscroller.grid(row=0, column=3, padx=(5,0), pady=5, sticky='NSEW')
+
+        self.sortStat.grid(row=1, column=0, columnspan=2, padx=5, pady=(12, 5), sticky='NSEW')
+        self.sortPowerStat.grid(row=1, column=2, columnspan=2, padx=5, pady=(12, 5), sticky='NSEW')
         self.statDisplay.grid(row=0, column=0, columnspan=1, padx=5, pady=5, sticky='NSEW')
 
         self.trendPlot.grid(row=0, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
@@ -226,7 +227,7 @@ class Application(Frame):
 
     def loadData(self):
 
-        winners = self.dataconn.get_power_data('power_ball')
+        winners = self.dataconn.get_mps_data('power_ball')
 
         self.dataSelect.delete(0, END)
 
@@ -272,7 +273,7 @@ class Application(Frame):
             messagebox.showerror('Incomplete filter', 'Please enter five numbers to filter.')
             return
 
-        winners = self.dataconn.get_power_filtered('power_ball', selected)
+        winners = self.dataconn.get_mps_filtered('power_ball', selected)
 
         self.dataSelect.delete(0, END)
 
@@ -342,7 +343,7 @@ class Application(Frame):
             self.loadTrendFromData()
 
         image = Image.open("power.jpg")
-        image = image.resize((440,360))
+        image = image.resize((700,360))
         results_fig = ImageTk.PhotoImage(image)
 
         # Define a style
@@ -368,7 +369,7 @@ class Application(Frame):
 
         self.progressBar.start()
 
-        winners = self.dataconn.get_power_data('power_ball')
+        winners = self.dataconn.get_mps_data('power_ball')
 
         cols = ['Draw Date', 'A', 'B', 'C', 'D', 'E', 'M']
         df = pd.DataFrame.from_records(winners, columns=cols)
@@ -522,7 +523,7 @@ class Application(Frame):
 
                 try:
                     combo = next(combos_all)
-                    if self.dataconn.check_power_winner(combo): # if winner, bypass 
+                    if self.dataconn.check_mps_winner('power_ball', combo): # if winner, bypass 
                         pass 
                     else:
                         selected.append(combo)
@@ -552,14 +553,14 @@ class Application(Frame):
                     if numbers:
                         if len(set(numbers).intersection(set(combo))) == 0:
                             numbers.extend(combo)
-                            combo.append(self.get_a_power())
+                            combo.append(self.get_extra())
                             combo_set.append(combo)
                             
                         else:
                             skipped.append(combo)
                     else:
                         numbers.extend(combo)
-                        combo.append(self.get_a_power())
+                        combo.append(self.get_extra())
                         combo_set.append(combo)
                         
                         
@@ -605,13 +606,13 @@ class Application(Frame):
     def get_a_set(self):
 
         generated = self.generated.pop(0)
-        self.dataconn.store_power_plays(generated)
+        self.dataconn.store_mps_plays('power_ball_bets', generated)
         
         for i in range(5):
-            win = self.dataconn.check_power_winner(generated[i])
+            win = self.dataconn.check_mps_winner('power_ball', generated[i])
             self.dGen[i].changeTopStyle(generated[i], win)
 
-    def get_a_power(self):
+    def get_extra(self):
 
         sups = [n+1 for n in range(26)]
         
@@ -659,7 +660,7 @@ class Application(Frame):
 
     def save_generated(self):
 
-        self.dataconn.save_power_plays()
+        self.dataconn.save_mps_plays('power_ball_bets')
 
     def getCountLimits(self):
 
@@ -674,7 +675,7 @@ class Application(Frame):
         ''' This function will be executed when the user exits
         '''
 
-        self.dataconn.delete_power_plays()
+        self.dataconn.delete_mps_plays('power_ball_bets')
         root.destroy()
 
 root = Tk()

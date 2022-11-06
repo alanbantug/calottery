@@ -185,7 +185,7 @@ class displayNumbers(object):
         row_ctr = row
 
         for i in range(self.topLimit):
-            self.num[i].grid(row=row_ctr, column=col, padx=(x_position,10), pady=1, sticky='W')
+            self.num[i].grid(row=row_ctr, column=col, padx=(x_position,10), pady=5, sticky='W')
             col_ctr += 1
             if col_ctr > 10:
                 col_ctr = 1
@@ -203,7 +203,7 @@ class displayNumbers(object):
         row_ctr += 1
 
         for i in range(self.extLimit):
-            self.ext[i].grid(row=row_ctr, column=col, padx=(x_position,10), pady=1, sticky='W')
+            self.ext[i].grid(row=row_ctr, column=col, padx=(x_position,10), pady=5, sticky='W')
             col_ctr += 1
             if col_ctr > 10:
                 col_ctr = 1

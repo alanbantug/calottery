@@ -65,64 +65,46 @@ class databaseConn(object):
 
         return winners_select
 
-    def get_latest_winner(self, table_name):
-
-        select_sql = f'''
-        select to_char(draw_date, 'YYYY-MM-DD'), numa, numb, numc, numd, nume
-        from {table_name}
-        order by draw_date desc
-        limit 1
-        '''
-
-        cur = self.db_conn.cursor()
-
-        cur.execute(select_sql)
-
-        winners = cur.fetchall()
-
-        cur.close()
-
-        return winners
 
 
-    def get_fantasy_stats(self, order):
+    # def get_fantasy_stats(self, order):
 
-        table = 'fantasy_five'
+    #     table = 'fantasy_five'
 
-        select = f'''
-        select A.num, sum(A.tot)
-        from (
-            select numa as num, count(*) as tot from {table} group by numa
-            union
-            select numb as num, count(*) as tot from {table} group by numb
-            union
-            select numc as num, count(*) as tot from {table} group by numc
-            union
-            select numd as num, count(*) as tot from {table} group by numd
-            union
-            select nume as num, count(*) as tot from {table} group by nume
-            ) A
+    #     select = f'''
+    #     select A.num, sum(A.tot)
+    #     from (
+    #         select numa as num, count(*) as tot from {table} group by numa
+    #         union
+    #         select numb as num, count(*) as tot from {table} group by numb
+    #         union
+    #         select numc as num, count(*) as tot from {table} group by numc
+    #         union
+    #         select numd as num, count(*) as tot from {table} group by numd
+    #         union
+    #         select nume as num, count(*) as tot from {table} group by nume
+    #         ) A
 
-        group by A.num
-        order by sum(A.tot)
-        '''
+    #     group by A.num
+    #     order by sum(A.tot)
+    #     '''
 
-        if order == 0:
-            select += ' desc'
-        else:
-            select += ' asc'
+    #     if order == 0:
+    #         select += ' desc'
+    #     else:
+    #         select += ' asc'
 
-        cur = self.db_conn.cursor()
+    #     cur = self.db_conn.cursor()
 
-        cur.execute(select)
+    #     cur.execute(select)
 
-        number_counts = cur.fetchall()
+    #     number_counts = cur.fetchall()
 
-        number_counts = [[n, int(c)] for n, c in number_counts]
+    #     number_counts = [[n, int(c)] for n, c in number_counts]
 
-        cur.close()
+    #     cur.close()
 
-        return number_counts
+    #     return number_counts
 
     def get_super_data(self, table_name):
 
@@ -175,7 +157,7 @@ class databaseConn(object):
 
         return winners_select
 
-    def get_power_data(self, table_name):
+    def get_mps_data(self, table_name):
 
         select_sql = f'''
         select to_char(draw_date, 'YYYY-MM-DD'), numa, numb, numc, numd, nume, numx
@@ -193,10 +175,10 @@ class databaseConn(object):
 
         return winners
 
-    def get_power_filtered(self, table_name, selected):
+    def get_mps_filtered(self, table_name, selected):
 
         select_list = "({}, {}, {}, {}, {})".format(selected[0], selected[1], selected[2], selected[3], selected[4])
-        power_num = selected[5]
+        extr_num = selected[5]
 
         select_sql = f'''
         select to_char(draw_date, 'YYYY-MM-DD'), numa, numb, numc, numd, nume, numx
@@ -206,7 +188,7 @@ class databaseConn(object):
         or numc in {select_list}
         or numd in {select_list}
         or nume in {select_list}
-        or numx = {power_num}
+        or numx = {extr_num}
         order by draw_date desc
         '''
 
@@ -328,20 +310,20 @@ class databaseConn(object):
 
         return number_counts
 
-    def get_top_stats_by_date(self, draw_date, top, table):
+    def get_top_stats_by_date(self, draw_date, top, table_name):
 
         select = f'''
         select A.num, sum(A.tot)
         from (
-            select numa as num, count(*) as tot from {table} where draw_date < '{draw_date}' group by numa
+            select numa as num, count(*) as tot from {table_name} where draw_date < '{draw_date}' group by numa
             union
-            select numb as num, count(*) as tot from {table} where draw_date < '{draw_date}' group by numb
+            select numb as num, count(*) as tot from {table_name} where draw_date < '{draw_date}' group by numb
             union
-            select numc as num, count(*) as tot from {table} where draw_date < '{draw_date}' group by numc
+            select numc as num, count(*) as tot from {table_name} where draw_date < '{draw_date}' group by numc
             union
-            select numd as num, count(*) as tot from {table} where draw_date < '{draw_date}' group by numd
+            select numd as num, count(*) as tot from {table_name} where draw_date < '{draw_date}' group by numd
             union
-            select nume as num, count(*) as tot from {table} where draw_date < '{draw_date}' group by nume
+            select nume as num, count(*) as tot from {table_name} where draw_date < '{draw_date}' group by nume
             ) A
 
         group by A.num
@@ -520,12 +502,12 @@ class databaseConn(object):
 
         return True if cur.fetchall() else False
 
-    def check_power_winner(self, numbers):
+    def check_mps_winner(self, table_name, numbers):
 
         cur = self.db_conn.cursor()
 
         select_sql = f'''
-        select draw_date from power_ball
+        select draw_date from {table_name}
         where numa = {numbers[0]}
         and numb = {numbers[1]}
         and numc = {numbers[2]}
@@ -600,7 +582,7 @@ class databaseConn(object):
 
             insert_sql = f'''
             insert into super_lotto_bets
-            (numa, numb, numc, numd, nume, super, play_date, seq_num, saved_ind)
+            (numa, numb, numc, numd, nume, numx, play_date, seq_num, saved_ind)
             values ({gen[0]}, {gen[1]}, {gen[2]}, {gen[3]}, {gen[4]},  \
                     {gen[5]}, '{play_date}', {seq_num}, {saved_ind}) '''
 
@@ -661,7 +643,7 @@ class databaseConn(object):
         cur.execute(delete_sql)
         self.db_conn.commit()
 
-    def store_power_plays(self, generated):
+    def store_mps_plays(self, table_name, generated): 
 
         play_date = (datetime.now()).strftime("%Y-%m-%d")
 
@@ -673,7 +655,7 @@ class databaseConn(object):
 
         select_sql = f'''
         select max(seq_num)
-        from power_ball_bets
+        from {table_name}
         where play_date = '{play_date}'
         '''
 
@@ -693,8 +675,8 @@ class databaseConn(object):
             '''
 
             insert_sql = f'''
-            insert into power_ball_bets
-            (numa, numb, numc, numd, nume, super, play_date, seq_num, saved_ind)
+            insert into {table_name}
+            (numa, numb, numc, numd, nume, numx, play_date, seq_num, saved_ind)
             values ({gen[0]}, {gen[1]}, {gen[2]}, {gen[3]}, {gen[4]},  \
                     {gen[5]}, '{play_date}', {seq_num}, {saved_ind}) '''
 
@@ -703,7 +685,7 @@ class databaseConn(object):
 
         cur.close()
 
-    def save_power_plays(self):
+    def save_mps_plays(self, table_name):
 
         play_date = (datetime.now()).strftime("%Y-%m-%d")
 
@@ -715,7 +697,7 @@ class databaseConn(object):
 
         select_sql = f'''
         select max(seq_num)
-        from power_ball_bets
+        from {table_name}
         where play_date = '{play_date}'
         '''
 
@@ -727,7 +709,7 @@ class databaseConn(object):
         saved_ind = True
 
         update_sql = f'''
-        update power_ball_bets
+        update {table_name}
         set saved_ind = {saved_ind}
         where play_date = '{play_date}'
         and seq_num = {seq_num}
@@ -738,7 +720,7 @@ class databaseConn(object):
 
         cur.close()
 
-    def delete_power_plays(self):
+    def delete_mps_plays(self, table_name):
 
         cur = self.db_conn.cursor()
 
@@ -748,9 +730,28 @@ class databaseConn(object):
         delete all rows that does not have saved indicator set
         '''
         delete_sql = f'''
-        delete from power_ball_bets
+        delete from {table_name}
         where saved_ind = {saved_ind}
         '''
 
         cur.execute(delete_sql)
         self.db_conn.commit()
+
+    def get_latest_winner(self, table_name):
+
+        select_sql = f'''
+        select to_char(draw_date, 'YYYY-MM-DD'), numa, numb, numc, numd, nume
+        from {table_name}
+        order by draw_date desc
+        limit 1
+        '''
+
+        cur = self.db_conn.cursor()
+
+        cur.execute(select_sql)
+
+        winners = cur.fetchall()
+
+        cur.close()
+
+        return winners
