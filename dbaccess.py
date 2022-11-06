@@ -127,7 +127,7 @@ class databaseConn(object):
     def get_super_data(self, table_name):
 
         select_sql = f'''
-        select to_char(draw_date, 'YYYY-MM-DD'), numa, numb, numc, numd, nume, mega
+        select to_char(draw_date, 'YYYY-MM-DD'), numa, numb, numc, numd, nume, numx
         from {table_name}
         order by draw_date desc
         '''
@@ -145,17 +145,68 @@ class databaseConn(object):
     def get_super_filtered(self, table_name, selected):
 
         select_list = "({}, {}, {}, {}, {})".format(selected[0], selected[1], selected[2], selected[3], selected[4])
-        mega_num = selected[5]
+        numx = selected[5]
 
         select_sql = f'''
-        select to_char(draw_date, 'YYYY-MM-DD'), numa, numb, numc, numd, nume, mega
+        select to_char(draw_date, 'YYYY-MM-DD'), numa, numb, numc, numd, nume, numx
         from {table_name}
         where numa in {select_list}
         or numb in {select_list}
         or numc in {select_list}
         or numd in {select_list}
         or nume in {select_list}
-        or mega = {mega_num}
+        or numx = {numx}
+        order by draw_date desc
+        '''
+
+        cur = self.db_conn.cursor()
+
+        cur.execute(select_sql)
+
+        winners = cur.fetchall()
+
+        cur.close()
+
+        # select only those that have four or more matches
+        winners_select = []
+        for win in winners:
+            if len(set(win[1:6]).intersection(set(selected))) >= 4:
+                winners_select.append(win)
+
+        return winners_select
+
+    def get_power_data(self, table_name):
+
+        select_sql = f'''
+        select to_char(draw_date, 'YYYY-MM-DD'), numa, numb, numc, numd, nume, powerball
+        from {table_name}
+        order by draw_date desc
+        '''
+
+        cur = self.db_conn.cursor()
+
+        cur.execute(select_sql)
+
+        winners = cur.fetchall()
+
+        cur.close()
+
+        return winners
+
+    def get_power_filtered(self, table_name, selected):
+
+        select_list = "({}, {}, {}, {}, {})".format(selected[0], selected[1], selected[2], selected[3], selected[4])
+        power_num = selected[5]
+
+        select_sql = f'''
+        select to_char(draw_date, 'YYYY-MM-DD'), numa, numb, numc, numd, nume, powerball
+        from {table_name}
+        where numa in {select_list}
+        or numb in {select_list}
+        or numc in {select_list}
+        or numd in {select_list}
+        or nume in {select_list}
+        or numx = {power_num}
         order by draw_date desc
         '''
 
@@ -176,7 +227,6 @@ class databaseConn(object):
         return winners_select
 
     def get_number_stats(self, table_name, order):
-
 
         if order == 0 or order == 1:
 
@@ -245,7 +295,7 @@ class databaseConn(object):
 
         if order == 0 or order == 1:
             select = f'''
-            select mega as num, count(*) as tot from {table_name} group by mega
+            select numx as num, count(*) as tot from {table_name} group by numx
             '''
 
             if order == 0:
@@ -254,12 +304,12 @@ class databaseConn(object):
                 select += ' order by num asc'
         else:
             select = f'''
-            select mega, max(draw_date) as maxdd 
+            select numx, max(draw_date) as maxdd 
             from (
                 
-                select mega, draw_date from super_lotto) as A
+                select numx, draw_date from super_lotto) as A
                 
-                group by mega
+                group by numx
                 order by maxdd desc
             '''
 
@@ -340,7 +390,7 @@ class databaseConn(object):
         or numc in {select_list}
         or numd in {select_list}
         or nume in {select_list})
-        and draw_date > {last_date}
+        and draw_date > '{last_date}'
         order by draw_date
         '''
 
@@ -485,7 +535,6 @@ class databaseConn(object):
         or numc in {select_list}
         or numd in {select_list}
         or nume in {select_list})
-        and draw_date > {last_date}
         order by draw_date
         '''
 

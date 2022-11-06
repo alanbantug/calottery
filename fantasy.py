@@ -153,7 +153,7 @@ class Application(Frame):
         self.topOffset = Entry(self.genOpt, textvariable=self.offset, width="8")
         self.topCountList = OptionMenu(self.genOpt, self.varCountLimit, *self.limitList)
         self.topCountList.config(width=12)
-        self.avoidClose = Checkbutton(self.genOpt, text="No close/past winners", style="B.TCheckbutton", variable=self.noClose)
+        self.avoidClose = Checkbutton(self.genOpt, text="No past winners", style="B.TCheckbutton", variable=self.noClose)
         self.noConsec = Checkbutton(self.genOpt, text="No Consecutives", style="B.TCheckbutton", variable=self.noCon)
         self.skipLastWin = Checkbutton(self.genOpt, text="Skip last winner", style="B.TCheckbutton", variable=self.skipWinner)
         self.commonPattern = Checkbutton(self.genOpt, text="Common patterns", style="B.TCheckbutton", variable=self.pattern)
@@ -479,7 +479,9 @@ class Application(Frame):
 
                 try:
                     combo = next(combos_all)
-                    if self.dataconn.check_close_fantasy_winner(combo):
+                    if self.dataconn.check_fantasy_winner(combo): # if winner, bypass
+                        pass 
+                    else:
                         selected.append(combo)
                 except:
                     break
