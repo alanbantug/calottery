@@ -228,7 +228,7 @@ class Application(Frame):
 
     def loadData(self):
 
-        winners = self.dataconn.get_super_data('super_lotto')
+        winners = self.dataconn.get_mps_data('super_lotto')
 
         self.dataSelect.delete(0, END)
 
@@ -274,7 +274,7 @@ class Application(Frame):
             messagebox.showerror('Incomplete filter', 'Please enter five numbers to filter.')
             return
 
-        winners = self.dataconn.get_super_filtered('super_lotto', selected)
+        winners = self.dataconn.get_mps_filtered('super_lotto', selected)
 
         self.dataSelect.delete(0, END)
 
@@ -370,7 +370,7 @@ class Application(Frame):
 
         self.progressBar.start()
 
-        winners = self.dataconn.get_super_data('super_lotto')
+        winners = self.dataconn.get_mps_data('super_lotto')
 
         cols = ['Draw Date', 'A', 'B', 'C', 'D', 'E', 'M']
         df = pd.DataFrame.from_records(winners, columns=cols)
@@ -445,14 +445,6 @@ class Application(Frame):
         if self.skipWinner.get() == 1:
             all_numbers = [n for n in all_numbers if n not in list(self.dataconn.get_latest_winner('super_lotto')[0])[1:]]
 
-        # top_numbers = all_numbers[:25]
-        # low_numbers = all_numbers[25:]
-
-        # random.shuffle(top_numbers)
-        # random.shuffle(low_numbers)
-
-        # use_numbers = top_numbers[:t_count] + low_numbers[:l_count]
-
         self.generate_sets(all_numbers, t_count)
 
         self.progressBar.stop()
@@ -524,7 +516,7 @@ class Application(Frame):
 
                 try:
                     combo = next(combos_all)
-                    if self.dataconn.check_super_winner(combo): # if winner, bypass 
+                    if self.dataconn.check_mps_winner('super_lotto', combo): # if winner, bypass 
                         pass 
                     else:
                         selected.append(combo)
@@ -582,52 +574,6 @@ class Application(Frame):
             
             if count == 400:
                 break
-        # top_combos = list(self.set_iterator(numbers[:25], t_count))
-        # bot_combos = list(self.set_iterator(numbers[25:], l_count))
-
-        # all_combos = []
-
-        # for tc in top_combos:
-        #     for bc in bot_combos:
-        #         tcl = list(tc)
-        #         bcl = list(bc)
-        #         tcl.extend(bcl)
-        #         all_combos.append(sorted(tcl))
-
-        # print(len(all_combos))
-
-        # # iterator = self.set_iterator(numbers)
-        # # combis = list(iterator)
-
-        # combi_sets = []
-        # combi_set = []
-    
-        # count = 0
-
-        # while True:
-
-        #     random.shuffle(all_combos)
-
-        #     for idx, combi in enumerate(all_combos):
-
-        #         comb = list(sorted(combi))
-
-        #         if self.check_numbers(combi_set, comb):
-        #             comb.append(self.get_a_super())
-        #             combi_set.append(comb)
-
-        #         if len(combi_set) == 5:
-        #             combi_sets.append(combi_set)
-        #             combi_set = []
-
-        #     combi_set = []
-        #     count += 1
-
-        #     if count > 500:
-        #         break
-            
-        #     if len(combi_sets) >= 400:
-        #         break
 
         end = datetime.now()
         print(end)
@@ -653,10 +599,10 @@ class Application(Frame):
     def get_a_set(self):
 
         generated = self.generated.pop(0)
-        self.dataconn.store_super_plays(generated)
+        self.dataconn.store_mps_plays('super_lotto_bets', generated)
         
         for i in range(5):
-            win = self.dataconn.check_super_winner(generated[i])
+            win = self.dataconn.check_mps_winner('super_lotto', generated[i])
             self.dGen[i].changeTopStyle(generated[i], win)
 
     def get_a_super(self):
@@ -666,42 +612,6 @@ class Application(Frame):
         random.shuffle(sups)
 
         return sups.pop()
-
-    # def check_numbers(self, generated, num_set):
-
-    #     # check if any of the numbers were selected before
-    #     for gen in generated:
-    #         check = [n for n in num_set if n not in gen[:5]]
-
-    #         if len(check) < 5:
-    #             return False
-
-    #     # check that consecutives do not exceed 1
-    #     con_count = 0
-    #     for i in range(len(num_set) - 1):
-    #         if num_set[i] == num_set[i+1] - 1:
-    #             con_count += 1
-
-    #     if self.noCon.get() == 1:
-    #         if con_count > 0:
-    #             return False
-    #     else:
-    #         if con_count > 1:
-    #             return False
-
-    #     if self.noClose.get():
-    #         if self.dataconn.check_close_super_winner(num_set):
-    #             pass
-    #         else:
-    #             return False
-
-    #     if self.pattern.get() == 1:
-    #         if self.check_pattern(num_set):
-    #             pass
-    #         else:
-    #             return False
-
-    #     return True
 
     def check_consecutives(self, num_set):
 
@@ -742,7 +652,7 @@ class Application(Frame):
 
     def save_generated(self):
 
-        self.dataconn.save_super_plays()
+        self.dataconn.save_mps_plays('super_lotto_bets')
 
     def getCountLimits(self):
 
@@ -757,7 +667,7 @@ class Application(Frame):
         ''' This function will be executed when the user exits
         '''
 
-        self.dataconn.delete_super_plays()
+        self.dataconn.delete_mps_plays('super_lotto_bets')
         root.destroy()
 
 root = Tk()

@@ -106,56 +106,56 @@ class databaseConn(object):
 
     #     return number_counts
 
-    def get_super_data(self, table_name):
+    # def get_super_data(self, table_name):
 
-        select_sql = f'''
-        select to_char(draw_date, 'YYYY-MM-DD'), numa, numb, numc, numd, nume, numx
-        from {table_name}
-        order by draw_date desc
-        '''
+    #     select_sql = f'''
+    #     select to_char(draw_date, 'YYYY-MM-DD'), numa, numb, numc, numd, nume, numx
+    #     from {table_name}
+    #     order by draw_date desc
+    #     '''
 
-        cur = self.db_conn.cursor()
+    #     cur = self.db_conn.cursor()
 
-        cur.execute(select_sql)
+    #     cur.execute(select_sql)
 
-        winners = cur.fetchall()
+    #     winners = cur.fetchall()
 
-        cur.close()
+    #     cur.close()
 
-        return winners
+    #     return winners
 
-    def get_super_filtered(self, table_name, selected):
+    # def get_super_filtered(self, table_name, selected):
 
-        select_list = "({}, {}, {}, {}, {})".format(selected[0], selected[1], selected[2], selected[3], selected[4])
-        super_num = selected[5]
+    #     select_list = "({}, {}, {}, {}, {})".format(selected[0], selected[1], selected[2], selected[3], selected[4])
+    #     super_num = selected[5]
 
-        select_sql = f'''
-        select to_char(draw_date, 'YYYY-MM-DD'), numa, numb, numc, numd, nume, numx
-        from {table_name}
-        where numa in {select_list}
-        or numb in {select_list}
-        or numc in {select_list}
-        or numd in {select_list}
-        or nume in {select_list}
-        or numx = {super_num}
-        order by draw_date desc
-        '''
+    #     select_sql = f'''
+    #     select to_char(draw_date, 'YYYY-MM-DD'), numa, numb, numc, numd, nume, numx
+    #     from {table_name}
+    #     where numa in {select_list}
+    #     or numb in {select_list}
+    #     or numc in {select_list}
+    #     or numd in {select_list}
+    #     or nume in {select_list}
+    #     or numx = {super_num}
+    #     order by draw_date desc
+    #     '''
 
-        cur = self.db_conn.cursor()
+    #     cur = self.db_conn.cursor()
 
-        cur.execute(select_sql)
+    #     cur.execute(select_sql)
 
-        winners = cur.fetchall()
+    #     winners = cur.fetchall()
 
-        cur.close()
+    #     cur.close()
 
-        # select only those that have four or more matches
-        winners_select = []
-        for win in winners:
-            if len(set(win[1:6]).intersection(set(selected))) >= 4:
-                winners_select.append(win)
+    #     # select only those that have four or more matches
+    #     winners_select = []
+    #     for win in winners:
+    #         if len(set(win[1:6]).intersection(set(selected))) >= 4:
+    #             winners_select.append(win)
 
-        return winners_select
+    #     return winners_select
 
     def get_mps_data(self, table_name):
 
@@ -485,22 +485,22 @@ class databaseConn(object):
         self.db_conn.commit()
         cur.close()
 
-    def check_super_winner(self, numbers):
+    # def check_super_winner(self, numbers):
 
-        cur = self.db_conn.cursor()
+    #     cur = self.db_conn.cursor()
 
-        select_sql = f'''
-        select draw_date from super_lotto
-        where numa = {numbers[0]}
-        and numb = {numbers[1]}
-        and numc = {numbers[2]}
-        and numd = {numbers[3]}
-        and nume = {numbers[4]}
-        '''
+    #     select_sql = f'''
+    #     select draw_date from super_lotto
+    #     where numa = {numbers[0]}
+    #     and numb = {numbers[1]}
+    #     and numc = {numbers[2]}
+    #     and numd = {numbers[3]}
+    #     and nume = {numbers[4]}
+    #     '''
 
-        cur.execute(select_sql)
+    #     cur.execute(select_sql)
 
-        return True if cur.fetchall() else False
+    #     return True if cur.fetchall() else False
 
     def check_mps_winner(self, table_name, numbers):
 
@@ -519,129 +519,129 @@ class databaseConn(object):
 
         return True if cur.fetchall() else False
 
-    def check_close_super_winner(self, numbers):
+    # def check_close_super_winner(self, numbers):
 
-        select_list = "({}, {}, {}, {}, {})".format(numbers[0], numbers[1], numbers[2], numbers[3], numbers[4])
-        last_date = (datetime.now() - timedelta(1000)).strftime("%Y-%m-%d")
+    #     select_list = "({}, {}, {}, {}, {})".format(numbers[0], numbers[1], numbers[2], numbers[3], numbers[4])
+    #     last_date = (datetime.now() - timedelta(1000)).strftime("%Y-%m-%d")
 
-        cur = self.db_conn.cursor()
+    #     cur = self.db_conn.cursor()
 
-        select_sql = f'''
-        select to_char(draw_date, 'YYYY-MM-DD'), numa, numb, numc, numd, nume
-        from super_lotto
-        where (numa in {select_list}
-        or numb in {select_list}
-        or numc in {select_list}
-        or numd in {select_list}
-        or nume in {select_list})
-        order by draw_date
-        '''
+    #     select_sql = f'''
+    #     select to_char(draw_date, 'YYYY-MM-DD'), numa, numb, numc, numd, nume
+    #     from super_lotto
+    #     where (numa in {select_list}
+    #     or numb in {select_list}
+    #     or numc in {select_list}
+    #     or numd in {select_list}
+    #     or nume in {select_list})
+    #     order by draw_date
+    #     '''
 
-        cur.execute(select_sql)
-        winners = cur.fetchall()
-        cur.close()
+    #     cur.execute(select_sql)
+    #     winners = cur.fetchall()
+    #     cur.close()
 
-        ''' convert to list before comparing
-        '''
-        winners = [list(w) for w in winners]
+    #     ''' convert to list before comparing
+    #     '''
+    #     winners = [list(w) for w in winners]
 
-        win_select = [w for w in winners if len(set(w[1:]).intersection(set(numbers))) in [4,5]]
+    #     win_select = [w for w in winners if len(set(w[1:]).intersection(set(numbers))) in [4,5]]
 
-        return True if len(win_select) == 0  else False
+    #     return True if len(win_select) == 0  else False
 
-    def store_super_plays(self, generated):
+    # def store_super_plays(self, generated):
 
-        play_date = (datetime.now()).strftime("%Y-%m-%d")
+    #     play_date = (datetime.now()).strftime("%Y-%m-%d")
 
-        cur = self.db_conn.cursor()
+    #     cur = self.db_conn.cursor()
 
-        '''
-        get sequence number with today's date
-        '''
+    #     '''
+    #     get sequence number with today's date
+    #     '''
 
-        select_sql = f'''
-        select max(seq_num)
-        from super_lotto_bets
-        where play_date = '{play_date}'
-        '''
+    #     select_sql = f'''
+    #     select max(seq_num)
+    #     from super_lotto_bets
+    #     where play_date = '{play_date}'
+    #     '''
 
-        cur.execute(select_sql)
-        seq_num = cur.fetchall()[0][0]
-        if seq_num:
-            seq_num += 1
-        else:
-            seq_num = 1
+    #     cur.execute(select_sql)
+    #     seq_num = cur.fetchall()[0][0]
+    #     if seq_num:
+    #         seq_num += 1
+    #     else:
+    #         seq_num = 1
 
-        saved_ind = False
+    #     saved_ind = False
 
-        for gen in generated:
+    #     for gen in generated:
 
-            '''
-            insert
-            '''
+    #         '''
+    #         insert
+    #         '''
 
-            insert_sql = f'''
-            insert into super_lotto_bets
-            (numa, numb, numc, numd, nume, numx, play_date, seq_num, saved_ind)
-            values ({gen[0]}, {gen[1]}, {gen[2]}, {gen[3]}, {gen[4]},  \
-                    {gen[5]}, '{play_date}', {seq_num}, {saved_ind}) '''
+    #         insert_sql = f'''
+    #         insert into super_lotto_bets
+    #         (numa, numb, numc, numd, nume, numx, play_date, seq_num, saved_ind)
+    #         values ({gen[0]}, {gen[1]}, {gen[2]}, {gen[3]}, {gen[4]},  \
+    #                 {gen[5]}, '{play_date}', {seq_num}, {saved_ind}) '''
 
-            cur.execute(insert_sql)
-            self.db_conn.commit()
+    #         cur.execute(insert_sql)
+    #         self.db_conn.commit()
 
-        cur.close()
+    #     cur.close()
 
-    def save_super_plays(self):
+    # def save_super_plays(self):
 
-        play_date = (datetime.now()).strftime("%Y-%m-%d")
+    #     play_date = (datetime.now()).strftime("%Y-%m-%d")
 
-        cur = self.db_conn.cursor()
+    #     cur = self.db_conn.cursor()
 
-        '''
-        get sequence number with today's date
-        '''
+    #     '''
+    #     get sequence number with today's date
+    #     '''
 
-        select_sql = f'''
-        select max(seq_num)
-        from super_lotto_bets
-        where play_date = '{play_date}'
-        '''
+    #     select_sql = f'''
+    #     select max(seq_num)
+    #     from super_lotto_bets
+    #     where play_date = '{play_date}'
+    #     '''
 
-        cur.execute(select_sql)
-        seq_num = cur.fetchall()[0][0]
-        '''
-        update
-        '''
-        saved_ind = True
+    #     cur.execute(select_sql)
+    #     seq_num = cur.fetchall()[0][0]
+    #     '''
+    #     update
+    #     '''
+    #     saved_ind = True
 
-        update_sql = f'''
-        update super_lotto_bets
-        set saved_ind = {saved_ind}
-        where play_date = '{play_date}'
-        and seq_num = {seq_num}
-        '''
+    #     update_sql = f'''
+    #     update super_lotto_bets
+    #     set saved_ind = {saved_ind}
+    #     where play_date = '{play_date}'
+    #     and seq_num = {seq_num}
+    #     '''
 
-        cur.execute(update_sql)
-        self.db_conn.commit()
+    #     cur.execute(update_sql)
+    #     self.db_conn.commit()
 
-        cur.close()
+    #     cur.close()
 
-    def delete_super_plays(self):
+    # def delete_super_plays(self):
 
-        cur = self.db_conn.cursor()
+    #     cur = self.db_conn.cursor()
 
-        saved_ind = False
+    #     saved_ind = False
 
-        '''
-        delete all rows that does not have saved indicator set
-        '''
-        delete_sql = f'''
-        delete from super_lotto_bets
-        where saved_ind = {saved_ind}
-        '''
+    #     '''
+    #     delete all rows that does not have saved indicator set
+    #     '''
+    #     delete_sql = f'''
+    #     delete from super_lotto_bets
+    #     where saved_ind = {saved_ind}
+    #     '''
 
-        cur.execute(delete_sql)
-        self.db_conn.commit()
+    #     cur.execute(delete_sql)
+    #     self.db_conn.commit()
 
     def store_mps_plays(self, table_name, generated): 
 
