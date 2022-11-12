@@ -15,7 +15,8 @@ class databaseConn(object):
         host=creds['host'],
         port=creds['port'])
 
-
+    ''' functions for Fantasy 
+    '''
     def get_fantasy_data(self):
 
         select_sql = f'''
@@ -65,98 +66,152 @@ class databaseConn(object):
 
         return winners_select
 
+    def check_fantasy_winner(self, numbers):
 
+        cur = self.db_conn.cursor()
 
-    # def get_fantasy_stats(self, order):
+        select_sql = f'''
+        select draw_date from fantasy_five
+        where numa = {numbers[0]}
+        and numb = {numbers[1]}
+        and numc = {numbers[2]}
+        and numd = {numbers[3]}
+        and nume = {numbers[4]}
+        '''
 
-    #     table = 'fantasy_five'
+        cur.execute(select_sql)
 
-    #     select = f'''
-    #     select A.num, sum(A.tot)
-    #     from (
-    #         select numa as num, count(*) as tot from {table} group by numa
-    #         union
-    #         select numb as num, count(*) as tot from {table} group by numb
-    #         union
-    #         select numc as num, count(*) as tot from {table} group by numc
-    #         union
-    #         select numd as num, count(*) as tot from {table} group by numd
-    #         union
-    #         select nume as num, count(*) as tot from {table} group by nume
-    #         ) A
+        return True if cur.fetchall() else False
 
-    #     group by A.num
-    #     order by sum(A.tot)
-    #     '''
+    def check_close_fantasy_winner(self, numbers):
 
-    #     if order == 0:
-    #         select += ' desc'
-    #     else:
-    #         select += ' asc'
+        select_list = "({}, {}, {}, {}, {})".format(numbers[0], numbers[1], numbers[2], numbers[3], numbers[4])
+        last_date = (datetime.now() - timedelta(2000)).strftime("%Y-%m-%d")
 
-    #     cur = self.db_conn.cursor()
+        cur = self.db_conn.cursor()
 
-    #     cur.execute(select)
+        select_sql = f'''
+        select to_char(draw_date, 'YYYY-MM-DD'), numa, numb, numc, numd, nume
+        from fantasy_five
+        where (numa in {select_list}
+        or numb in {select_list}
+        or numc in {select_list}
+        or numd in {select_list}
+        or nume in {select_list})
+        and draw_date > '{last_date}'
+        order by draw_date
+        '''
 
-    #     number_counts = cur.fetchall()
+        cur.execute(select_sql)
+        winners = cur.fetchall()
+        cur.close()
 
-    #     number_counts = [[n, int(c)] for n, c in number_counts]
+        ''' convert to list before comparing
+        '''
+        winners = [list(w) for w in winners]
 
-    #     cur.close()
+        win_select = [w for w in winners if len(set(w[1:]).intersection(set(numbers))) in [4,5]]
 
-    #     return number_counts
+        return True if len(win_select) == 0  else False
 
-    # def get_super_data(self, table_name):
+    def store_fantasy_plays(self, generated):
 
-    #     select_sql = f'''
-    #     select to_char(draw_date, 'YYYY-MM-DD'), numa, numb, numc, numd, nume, numx
-    #     from {table_name}
-    #     order by draw_date desc
-    #     '''
+        play_date = (datetime.now()).strftime("%Y-%m-%d")
 
-    #     cur = self.db_conn.cursor()
+        cur = self.db_conn.cursor()
 
-    #     cur.execute(select_sql)
+        '''
+        get sequence number with today's date
+        '''
 
-    #     winners = cur.fetchall()
+        select_sql = f'''
+        select max(seq_num)
+        from fantasy_five_bets
+        where play_date = '{play_date}'
+        '''
 
-    #     cur.close()
+        cur.execute(select_sql)
+        seq_num = cur.fetchall()[0][0]
+        if seq_num:
+            seq_num += 1
+        else:
+            seq_num = 1
 
-    #     return winners
+        saved_ind = False
 
-    # def get_super_filtered(self, table_name, selected):
+        for gen in generated:
 
-    #     select_list = "({}, {}, {}, {}, {})".format(selected[0], selected[1], selected[2], selected[3], selected[4])
-    #     super_num = selected[5]
+            '''
+            insert
+            '''
 
-    #     select_sql = f'''
-    #     select to_char(draw_date, 'YYYY-MM-DD'), numa, numb, numc, numd, nume, numx
-    #     from {table_name}
-    #     where numa in {select_list}
-    #     or numb in {select_list}
-    #     or numc in {select_list}
-    #     or numd in {select_list}
-    #     or nume in {select_list}
-    #     or numx = {super_num}
-    #     order by draw_date desc
-    #     '''
+            insert_sql = f'''
+            insert into fantasy_five_bets
+            (numa, numb, numc, numd, nume, play_date, seq_num, saved_ind)
+            values ({gen[0]}, {gen[1]}, {gen[2]}, {gen[3]},  \
+                    {gen[4]}, '{play_date}', {seq_num}, {saved_ind}) '''
 
-    #     cur = self.db_conn.cursor()
+            cur.execute(insert_sql)
+            self.db_conn.commit()
 
-    #     cur.execute(select_sql)
+        cur.close()
 
-    #     winners = cur.fetchall()
+    def save_fantasy_plays(self):
 
-    #     cur.close()
+        play_date = (datetime.now()).strftime("%Y-%m-%d")
 
-    #     # select only those that have four or more matches
-    #     winners_select = []
-    #     for win in winners:
-    #         if len(set(win[1:6]).intersection(set(selected))) >= 4:
-    #             winners_select.append(win)
+        cur = self.db_conn.cursor()
 
-    #     return winners_select
+        '''
+        get sequence number with today's date
+        '''
 
+        select_sql = f'''
+        select max(seq_num)
+        from fantasy_five_bets
+        where play_date = '{play_date}'
+        '''
+
+        cur.execute(select_sql)
+        seq_num = cur.fetchall()[0][0]
+        '''
+        update
+        '''
+
+        saved_ind = True
+
+        update_sql = f'''
+        update fantasy_five_bets
+        set saved_ind = {saved_ind}
+        where play_date = '{play_date}'
+        and seq_num = {seq_num}
+        '''
+
+        cur.execute(update_sql)
+        self.db_conn.commit()
+
+        cur.close()
+
+    def delete_fantasy_plays(self):
+
+        cur = self.db_conn.cursor()
+
+        saved_ind = False
+
+        '''
+        delete all rows that does not have saved indicator set
+        '''
+        delete_sql = f'''
+        delete from fantasy_five_bets
+        where saved_ind = {saved_ind}
+        '''
+
+        cur.execute(delete_sql)
+        self.db_conn.commit()
+        cur.close()
+
+    ''' functions for Mega, Powerball and Super
+    '''
     def get_mps_data(self, table_name):
 
         select_sql = f'''
@@ -208,6 +263,119 @@ class databaseConn(object):
 
         return winners_select
 
+    def check_mps_winner(self, table_name, numbers):
+
+        cur = self.db_conn.cursor()
+
+        select_sql = f'''
+        select draw_date from {table_name}
+        where numa = {numbers[0]}
+        and numb = {numbers[1]}
+        and numc = {numbers[2]}
+        and numd = {numbers[3]}
+        and nume = {numbers[4]}
+        '''
+
+        cur.execute(select_sql)
+
+        return True if cur.fetchall() else False
+
+    def store_mps_plays(self, table_name, generated): 
+
+        play_date = (datetime.now()).strftime("%Y-%m-%d")
+
+        cur = self.db_conn.cursor()
+
+        '''
+        get sequence number with today's date
+        '''
+
+        select_sql = f'''
+        select max(seq_num)
+        from {table_name}
+        where play_date = '{play_date}'
+        '''
+
+        cur.execute(select_sql)
+        seq_num = cur.fetchall()[0][0]
+        if seq_num:
+            seq_num += 1
+        else:
+            seq_num = 1
+
+        saved_ind = False
+
+        for gen in generated:
+
+            '''
+            insert
+            '''
+
+            insert_sql = f'''
+            insert into {table_name}
+            (numa, numb, numc, numd, nume, numx, play_date, seq_num, saved_ind)
+            values ({gen[0]}, {gen[1]}, {gen[2]}, {gen[3]}, {gen[4]},  \
+                    {gen[5]}, '{play_date}', {seq_num}, {saved_ind}) '''
+
+            cur.execute(insert_sql)
+            self.db_conn.commit()
+
+        cur.close()
+
+    def save_mps_plays(self, table_name):
+
+        play_date = (datetime.now()).strftime("%Y-%m-%d")
+
+        cur = self.db_conn.cursor()
+
+        '''
+        get sequence number with today's date
+        '''
+
+        select_sql = f'''
+        select max(seq_num)
+        from {table_name}
+        where play_date = '{play_date}'
+        '''
+
+        cur.execute(select_sql)
+        seq_num = cur.fetchall()[0][0]
+        '''
+        update
+        '''
+        saved_ind = True
+
+        update_sql = f'''
+        update {table_name}
+        set saved_ind = {saved_ind}
+        where play_date = '{play_date}'
+        and seq_num = {seq_num}
+        '''
+
+        cur.execute(update_sql)
+        self.db_conn.commit()
+
+        cur.close()
+
+    def delete_mps_plays(self, table_name):
+
+        cur = self.db_conn.cursor()
+
+        saved_ind = False
+
+        '''
+        delete all rows that does not have saved indicator set
+        '''
+        delete_sql = f'''
+        delete from {table_name}
+        where saved_ind = {saved_ind}
+        '''
+
+        cur.execute(delete_sql)
+        self.db_conn.commit()
+
+    ''' functions for Fantasy, Mega, Powerball and Super
+    '''
     def get_number_stats(self, table_name, order):
 
         if order == 0 or order == 1:
@@ -339,403 +507,6 @@ class databaseConn(object):
         number_count = [n for n, c in number_count]
 
         return number_count[:top]
-
-    def check_fantasy_winner(self, numbers):
-
-        cur = self.db_conn.cursor()
-
-        select_sql = f'''
-        select draw_date from fantasy_five
-        where numa = {numbers[0]}
-        and numb = {numbers[1]}
-        and numc = {numbers[2]}
-        and numd = {numbers[3]}
-        and nume = {numbers[4]}
-        '''
-
-        cur.execute(select_sql)
-
-        return True if cur.fetchall() else False
-
-    def check_close_fantasy_winner(self, numbers):
-
-        select_list = "({}, {}, {}, {}, {})".format(numbers[0], numbers[1], numbers[2], numbers[3], numbers[4])
-        last_date = (datetime.now() - timedelta(2000)).strftime("%Y-%m-%d")
-
-        cur = self.db_conn.cursor()
-
-        select_sql = f'''
-        select to_char(draw_date, 'YYYY-MM-DD'), numa, numb, numc, numd, nume
-        from fantasy_five
-        where (numa in {select_list}
-        or numb in {select_list}
-        or numc in {select_list}
-        or numd in {select_list}
-        or nume in {select_list})
-        and draw_date > '{last_date}'
-        order by draw_date
-        '''
-
-        cur.execute(select_sql)
-        winners = cur.fetchall()
-        cur.close()
-
-        ''' convert to list before comparing
-        '''
-        winners = [list(w) for w in winners]
-
-        win_select = [w for w in winners if len(set(w[1:]).intersection(set(numbers))) in [4,5]]
-
-        return True if len(win_select) == 0  else False
-
-    def store_fantasy_plays(self, generated):
-
-        play_date = (datetime.now()).strftime("%Y-%m-%d")
-
-        cur = self.db_conn.cursor()
-
-        '''
-        get sequence number with today's date
-        '''
-
-        select_sql = f'''
-        select max(seq_num)
-        from fantasy_five_bets
-        where play_date = '{play_date}'
-        '''
-
-        cur.execute(select_sql)
-        seq_num = cur.fetchall()[0][0]
-        if seq_num:
-            seq_num += 1
-        else:
-            seq_num = 1
-
-        saved_ind = False
-
-        for gen in generated:
-
-            '''
-            insert
-            '''
-
-            insert_sql = f'''
-            insert into fantasy_five_bets
-            (numa, numb, numc, numd, nume, play_date, seq_num, saved_ind)
-            values ({gen[0]}, {gen[1]}, {gen[2]}, {gen[3]},  \
-                    {gen[4]}, '{play_date}', {seq_num}, {saved_ind}) '''
-
-            cur.execute(insert_sql)
-            self.db_conn.commit()
-
-        cur.close()
-
-    def save_fantasy_plays(self):
-
-        play_date = (datetime.now()).strftime("%Y-%m-%d")
-
-        cur = self.db_conn.cursor()
-
-        '''
-        get sequence number with today's date
-        '''
-
-        select_sql = f'''
-        select max(seq_num)
-        from fantasy_five_bets
-        where play_date = '{play_date}'
-        '''
-
-        cur.execute(select_sql)
-        seq_num = cur.fetchall()[0][0]
-        '''
-        update
-        '''
-
-        saved_ind = True
-
-        update_sql = f'''
-        update fantasy_five_bets
-        set saved_ind = {saved_ind}
-        where play_date = '{play_date}'
-        and seq_num = {seq_num}
-        '''
-
-        cur.execute(update_sql)
-        self.db_conn.commit()
-
-        cur.close()
-
-
-    def delete_fantasy_plays(self):
-
-        cur = self.db_conn.cursor()
-
-        saved_ind = False
-
-        '''
-        delete all rows that does not have saved indicator set
-        '''
-        delete_sql = f'''
-        delete from fantasy_five_bets
-        where saved_ind = {saved_ind}
-        '''
-
-        cur.execute(delete_sql)
-        self.db_conn.commit()
-        cur.close()
-
-    # def check_super_winner(self, numbers):
-
-    #     cur = self.db_conn.cursor()
-
-    #     select_sql = f'''
-    #     select draw_date from super_lotto
-    #     where numa = {numbers[0]}
-    #     and numb = {numbers[1]}
-    #     and numc = {numbers[2]}
-    #     and numd = {numbers[3]}
-    #     and nume = {numbers[4]}
-    #     '''
-
-    #     cur.execute(select_sql)
-
-    #     return True if cur.fetchall() else False
-
-    def check_mps_winner(self, table_name, numbers):
-
-        cur = self.db_conn.cursor()
-
-        select_sql = f'''
-        select draw_date from {table_name}
-        where numa = {numbers[0]}
-        and numb = {numbers[1]}
-        and numc = {numbers[2]}
-        and numd = {numbers[3]}
-        and nume = {numbers[4]}
-        '''
-
-        cur.execute(select_sql)
-
-        return True if cur.fetchall() else False
-
-    # def check_close_super_winner(self, numbers):
-
-    #     select_list = "({}, {}, {}, {}, {})".format(numbers[0], numbers[1], numbers[2], numbers[3], numbers[4])
-    #     last_date = (datetime.now() - timedelta(1000)).strftime("%Y-%m-%d")
-
-    #     cur = self.db_conn.cursor()
-
-    #     select_sql = f'''
-    #     select to_char(draw_date, 'YYYY-MM-DD'), numa, numb, numc, numd, nume
-    #     from super_lotto
-    #     where (numa in {select_list}
-    #     or numb in {select_list}
-    #     or numc in {select_list}
-    #     or numd in {select_list}
-    #     or nume in {select_list})
-    #     order by draw_date
-    #     '''
-
-    #     cur.execute(select_sql)
-    #     winners = cur.fetchall()
-    #     cur.close()
-
-    #     ''' convert to list before comparing
-    #     '''
-    #     winners = [list(w) for w in winners]
-
-    #     win_select = [w for w in winners if len(set(w[1:]).intersection(set(numbers))) in [4,5]]
-
-    #     return True if len(win_select) == 0  else False
-
-    # def store_super_plays(self, generated):
-
-    #     play_date = (datetime.now()).strftime("%Y-%m-%d")
-
-    #     cur = self.db_conn.cursor()
-
-    #     '''
-    #     get sequence number with today's date
-    #     '''
-
-    #     select_sql = f'''
-    #     select max(seq_num)
-    #     from super_lotto_bets
-    #     where play_date = '{play_date}'
-    #     '''
-
-    #     cur.execute(select_sql)
-    #     seq_num = cur.fetchall()[0][0]
-    #     if seq_num:
-    #         seq_num += 1
-    #     else:
-    #         seq_num = 1
-
-    #     saved_ind = False
-
-    #     for gen in generated:
-
-    #         '''
-    #         insert
-    #         '''
-
-    #         insert_sql = f'''
-    #         insert into super_lotto_bets
-    #         (numa, numb, numc, numd, nume, numx, play_date, seq_num, saved_ind)
-    #         values ({gen[0]}, {gen[1]}, {gen[2]}, {gen[3]}, {gen[4]},  \
-    #                 {gen[5]}, '{play_date}', {seq_num}, {saved_ind}) '''
-
-    #         cur.execute(insert_sql)
-    #         self.db_conn.commit()
-
-    #     cur.close()
-
-    # def save_super_plays(self):
-
-    #     play_date = (datetime.now()).strftime("%Y-%m-%d")
-
-    #     cur = self.db_conn.cursor()
-
-    #     '''
-    #     get sequence number with today's date
-    #     '''
-
-    #     select_sql = f'''
-    #     select max(seq_num)
-    #     from super_lotto_bets
-    #     where play_date = '{play_date}'
-    #     '''
-
-    #     cur.execute(select_sql)
-    #     seq_num = cur.fetchall()[0][0]
-    #     '''
-    #     update
-    #     '''
-    #     saved_ind = True
-
-    #     update_sql = f'''
-    #     update super_lotto_bets
-    #     set saved_ind = {saved_ind}
-    #     where play_date = '{play_date}'
-    #     and seq_num = {seq_num}
-    #     '''
-
-    #     cur.execute(update_sql)
-    #     self.db_conn.commit()
-
-    #     cur.close()
-
-    # def delete_super_plays(self):
-
-    #     cur = self.db_conn.cursor()
-
-    #     saved_ind = False
-
-    #     '''
-    #     delete all rows that does not have saved indicator set
-    #     '''
-    #     delete_sql = f'''
-    #     delete from super_lotto_bets
-    #     where saved_ind = {saved_ind}
-    #     '''
-
-    #     cur.execute(delete_sql)
-    #     self.db_conn.commit()
-
-    def store_mps_plays(self, table_name, generated): 
-
-        play_date = (datetime.now()).strftime("%Y-%m-%d")
-
-        cur = self.db_conn.cursor()
-
-        '''
-        get sequence number with today's date
-        '''
-
-        select_sql = f'''
-        select max(seq_num)
-        from {table_name}
-        where play_date = '{play_date}'
-        '''
-
-        cur.execute(select_sql)
-        seq_num = cur.fetchall()[0][0]
-        if seq_num:
-            seq_num += 1
-        else:
-            seq_num = 1
-
-        saved_ind = False
-
-        for gen in generated:
-
-            '''
-            insert
-            '''
-
-            insert_sql = f'''
-            insert into {table_name}
-            (numa, numb, numc, numd, nume, numx, play_date, seq_num, saved_ind)
-            values ({gen[0]}, {gen[1]}, {gen[2]}, {gen[3]}, {gen[4]},  \
-                    {gen[5]}, '{play_date}', {seq_num}, {saved_ind}) '''
-
-            cur.execute(insert_sql)
-            self.db_conn.commit()
-
-        cur.close()
-
-    def save_mps_plays(self, table_name):
-
-        play_date = (datetime.now()).strftime("%Y-%m-%d")
-
-        cur = self.db_conn.cursor()
-
-        '''
-        get sequence number with today's date
-        '''
-
-        select_sql = f'''
-        select max(seq_num)
-        from {table_name}
-        where play_date = '{play_date}'
-        '''
-
-        cur.execute(select_sql)
-        seq_num = cur.fetchall()[0][0]
-        '''
-        update
-        '''
-        saved_ind = True
-
-        update_sql = f'''
-        update {table_name}
-        set saved_ind = {saved_ind}
-        where play_date = '{play_date}'
-        and seq_num = {seq_num}
-        '''
-
-        cur.execute(update_sql)
-        self.db_conn.commit()
-
-        cur.close()
-
-    def delete_mps_plays(self, table_name):
-
-        cur = self.db_conn.cursor()
-
-        saved_ind = False
-
-        '''
-        delete all rows that does not have saved indicator set
-        '''
-        delete_sql = f'''
-        delete from {table_name}
-        where saved_ind = {saved_ind}
-        '''
-
-        cur.execute(delete_sql)
-        self.db_conn.commit()
 
     def get_latest_winner(self, table_name):
 
