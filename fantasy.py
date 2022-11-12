@@ -533,52 +533,6 @@ class Application(Frame):
             if count == 500:
                 break
 
-
-        # top_combos = list(self.set_iterator(numbers[:25], t_count))
-        # bot_combos = list(self.set_iterator(numbers[25:], l_count))
-
-        # all_combos = []
-
-        # for tc in top_combos:
-        #     for bc in bot_combos:
-        #         tcl = list(tc)
-        #         bcl = list(bc)
-        #         tcl.extend(bcl)
-        #         all_combos.append(sorted(tcl))
-
-        # print(len(all_combos))
-        # # iterator = self.set_iterator(numbers)
-        # # combis = list(iterator)
-
-        # combi_sets = []
-        # combi_set = []
-    
-        # count = 0
-
-        # while True:
-
-        #     random.shuffle(all_combos)
-
-        #     for idx, combi in enumerate(all_combos):
-
-        #         comb = list(sorted(combi))
-
-        #         if self.check_numbers(combi_set, comb):
-        #             combi_set.append(comb)
-
-        #         if len(combi_set) == 5:
-        #             combi_sets.append(combi_set)
-        #             combi_set = []
-
-        #     combi_set = []
-        #     count += 1
-
-        #     if count > 800:
-        #         break
-            
-        #     if len(combi_sets) >= 200:
-        #         break
-
         end = datetime.now()
         print(end)
         print("Time elapsed: ", end - start)
@@ -606,43 +560,6 @@ class Application(Frame):
         for i in range(5):
             win = self.dataconn.check_fantasy_winner(generated[i])
             self.dGen[i].changeTopStyle(generated[i], win)
-
-
-    # def check_numbers(self, generated, num_set):
-
-    #     # check if any of the numbers were selected before
-    #     for gen in generated:
-    #         check = [n for n in num_set if n not in gen]
-
-    #         if len(check) < 5:
-    #             return False
-
-    #     # check that consecutives do not exceed 1
-    #     # con_count = 0
-    #     # for i in range(len(num_set) - 1):
-    #     #     if num_set[i] == num_set[i+1] - 1:
-    #     #         con_count += 1
-
-    #     # if self.noCon.get() == 1:
-    #     #     if con_count > 0:
-    #     #         return False
-    #     # else:
-    #     #     if con_count > 1:
-    #     #         return False
-
-    #     if self.noClose.get():
-    #         if self.dataconn.check_close_fantasy_winner(num_set):
-    #             pass
-    #         else:
-    #             return False
-
-    #     if self.pattern.get() == 1:
-    #         if self.check_pattern(num_set):
-    #             pass
-    #         else:
-    #             return False
-
-    #     return True
 
     def check_consecutives(self, num_set):
 
