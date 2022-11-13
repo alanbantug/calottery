@@ -444,14 +444,6 @@ class Application(Frame):
         if self.skipWinner.get() == 1:
             all_numbers = [n for n in all_numbers if n not in list(self.dataconn.get_latest_winner('power_ball')[0])[1:]]
 
-        # top_numbers = all_numbers[:25]
-        # low_numbers = all_numbers[25:]
-
-        # random.shuffle(top_numbers)
-        # random.shuffle(low_numbers)
-
-        # use_numbers = top_numbers[:t_count] + low_numbers[:l_count]
-
         self.generate_sets(all_numbers, t_count)
 
         self.progressBar.stop()
