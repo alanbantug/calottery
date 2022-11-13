@@ -6,7 +6,7 @@ class databaseConn(object):
 
     def __init__(self):
 
-        with open("credentials.json", "r") as credentials:
+        with open(r"c:\users\alan\creds\credentials.json", "r") as credentials:
             creds = json.loads(credentials.read())
 
         self.db_conn = psycopg2.connect(database=creds['database'],
