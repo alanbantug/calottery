@@ -653,7 +653,7 @@ class Application(Frame):
     def save_generated(self):
 
         self.dataconn.save_mps_plays('super_lotto_bets')
-        messagebox.info('Saved', 'Combination set save in database')
+        messagebox.showinfo('Saved', 'Combination set save in database')
 
     def getCountLimits(self):
 

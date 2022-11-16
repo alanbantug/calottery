@@ -598,6 +598,7 @@ class Application(Frame):
     def save_generated(self):
 
         self.dataconn.save_fantasy_plays()
+        messagebox.showinfo('Saved', 'Combination set save in database')
 
     def getCountLimits(self):
 
