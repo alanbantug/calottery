@@ -35,6 +35,34 @@ class databaseConn(object):
 
         return winners
 
+    def get_fantasy_select(self, count):
+
+        ''' This function will get only the last N winners
+        '''
+
+        select_sql = f'''
+        select to_char(draw_date, 'YYYY-MM-DD'), numa, numb, numc, numd, nume
+        from fantasy_five
+        order by draw_date desc
+        limit {count}
+        '''
+
+        cur = self.db_conn.cursor()
+
+        cur.execute(select_sql)
+
+        winners = cur.fetchall()
+
+        cur.close()
+
+        ''' convert to list and get only the numbers before returning
+        '''
+        winners = [list(w) for w in winners]
+        
+        winners = [w[1:] for w in winners]
+
+        return winners
+
     def get_fantasy_filtered(self, selected):
 
         select_list = "({}, {}, {}, {}, {})".format(selected[0], selected[1], selected[2], selected[3], selected[4])
@@ -227,6 +255,34 @@ class databaseConn(object):
         winners = cur.fetchall()
 
         cur.close()
+
+        return winners
+
+    def get_mps_select(self, table_name, count):
+
+        ''' This function will get only the last N winners
+        '''
+
+        select_sql = f'''
+        select to_char(draw_date, 'YYYY-MM-DD'), numa, numb, numc, numd, nume
+        from {table_name}
+        order by draw_date desc
+        limit {count}
+        '''
+
+        cur = self.db_conn.cursor()
+
+        cur.execute(select_sql)
+
+        winners = cur.fetchall()
+
+        cur.close()
+
+        ''' convert to list and get only the numbers before returning
+        '''
+        winners = [list(w) for w in winners]
+        
+        winners = [w[1:] for w in winners]
 
         return winners
 
