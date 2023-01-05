@@ -523,6 +523,22 @@ class Application(Frame):
                 except:
                     break
 
+            winners_list = self.dataconn.get_mps_select('super_lotto', 100)
+
+            combos_all = self.set_iterator(selected)
+            selected = []
+
+            while True:
+
+                try:
+                    combo = next(combos_all)
+                    if self.check_last_select(combo, winners_list): 
+                        pass 
+                    else:
+                        selected.append(combo)
+                except:
+                    break
+
         combo_sets = []
         combo_set = []
         skipped = []
@@ -637,6 +653,14 @@ class Application(Frame):
             return True
         else:
             return False
+
+    def check_last_select(self, num_set, winners_list):
+
+        match_check = [len(set(winner).intersection(set(num_set))) for winner in winners_list]
+        
+        match_check = [match for match in match_check if match in [0,1]]
+        
+        return True if len(match_check) >= 90   else False
 
     def clear_generated(self):
 
