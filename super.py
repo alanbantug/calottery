@@ -525,6 +525,9 @@ class Application(Frame):
 
             winners_list = self.dataconn.get_mps_select('super_lotto', 100)
 
+            ''' the code below compares combinations against the last 100 winners
+                making sure there is no close match 
+            '''
             combos_all = self.set_iterator(selected)
             selected = []
 
@@ -538,6 +541,22 @@ class Application(Frame):
                         selected.append(combo)
                 except:
                     break
+
+            ''' Add code here to check each combination if it has 1 or less from each range 
+            '''
+            # combos_all = self.set_iterator(selected)
+            # selected = []
+
+            # while True:
+
+            #     try:
+            #         combo = next(combos_all)
+            #         if self.check_last_select(combo, winners_list): 
+            #             pass 
+            #         else:
+            #             selected.append(combo)
+            #     except:
+            #         break
 
         combo_sets = []
         combo_set = []
@@ -660,7 +679,7 @@ class Application(Frame):
         
         match_check = [match for match in match_check if match in [0,1]]
         
-        return True if len(match_check) >= 90   else False
+        return True if len(match_check) in range(89, 95) else False
 
     def clear_generated(self):
 

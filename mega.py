@@ -525,7 +525,7 @@ class Application(Frame):
             ''' The filter logic below will check that no combination will have more than 1
                 intersection with the 100 prior winners. 
             '''
-
+            print(len(selected))
             winners_list = self.dataconn.get_mps_select('mega_lotto', 100)
 
             combos_all = self.set_iterator(selected)
@@ -541,6 +541,8 @@ class Application(Frame):
                         selected.append(combo)
                 except:
                     break
+            
+            print(len(selected))
 
         combo_sets = []
         combo_set = []
@@ -664,7 +666,7 @@ class Application(Frame):
         
         match_check = [match for match in match_check if match in [0,1]]
         
-        return True if len(match_check) >= 95   else False
+        return True if len(match_check) == 100 else False
 
     def clear_generated(self):
 
