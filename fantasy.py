@@ -323,6 +323,8 @@ class Application(Frame):
 
             plt.figure(figsize=(3,3))
             plt.plot(df['TOP'][:50])
+            plt.grid(which="minor")
+            plt.minorticks_on()
             plt.savefig('fantasy.jpg')
 
         image = Image.open("fantasy.jpg")

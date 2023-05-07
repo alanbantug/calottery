@@ -679,7 +679,8 @@ class Application(Frame):
         
         match_check = [match for match in match_check if match in [0,1]]
         
-        return True if len(match_check) in range(89, 95) else False
+        #return True if len(match_check) in range(89, 95) else False
+        return True if len(match_check) >= 89 else False
 
     def clear_generated(self):
 

@@ -314,8 +314,11 @@ class databaseConn(object):
         # select only those that have four or more matches
         winners_select = []
         for win in winners:
-            if len(set(win[1:6]).intersection(set(selected))) >= 4:
-                winners_select.append(win)
+            int_len = len(set(win[1:6]).intersection(set(selected)))
+            if int_len >= 2:
+                win_data = list(win)
+                win_data.append(int_len)
+                winners_select.append(win_data)
 
         return winners_select
 
