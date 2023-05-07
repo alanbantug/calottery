@@ -1,4 +1,4 @@
-# calottey
+# My CA lottery
 
 Lottery stuff
 
