@@ -323,8 +323,7 @@ class Application(Frame):
 
             plt.figure(figsize=(3,3))
             plt.plot(df['TOP'][:50])
-            plt.grid(which="minor")
-            plt.minorticks_on()
+            plt.grid()
             plt.savefig('fantasy.jpg')
 
         image = Image.open("fantasy.jpg")
@@ -442,7 +441,8 @@ class Application(Frame):
                     selected.append(list(combo))
             except:
                 break
-
+        
+        print(f'After top count filter : {len(selected)}')
         if self.noCon.get():
 
             combos_all = self.set_iterator(selected)
@@ -456,7 +456,8 @@ class Application(Frame):
                         selected.append(combo)
                 except:
                     break
-
+        
+        print(f'After consecutive filter : {len(selected)}')
         if self.pattern.get():
 
             combos_all = self.set_iterator(selected)
@@ -470,9 +471,9 @@ class Application(Frame):
                         selected.append(combo)
                 except:
                     break
-
+        
+        print(f'After pattern filter : {len(selected)}')
         if self.noClose.get():
-            print(len(selected))
             combos_all = self.set_iterator(selected)
             selected = []
 
@@ -486,11 +487,13 @@ class Application(Frame):
                         selected.append(combo)
                 except:
                     break
-
+            
+            print(f'After winner filter : {len(selected)}')
+            
             ''' The filter logic below will check that no combination will have more than 1
                 intersection with the 100 prior winners. 
             '''
-            print(len(selected))
+
             winners_list = self.dataconn.get_fantasy_select(100)
 
             combos_all = self.set_iterator(selected)
@@ -501,12 +504,11 @@ class Application(Frame):
                 try:
                     combo = next(combos_all)
                     if self.check_last_select(combo, winners_list): 
-                        pass 
-                    else:
                         selected.append(combo)
                 except:
                     break
-            print(len(selected))
+            
+            print(f'After last check filter : {len(selected)}')
 
         combo_sets = []
         combo_set = []
@@ -544,21 +546,27 @@ class Application(Frame):
                 except:
                     break
 
+            if combo_set:
+                for c in combo_set:
+                    if c not in skipped:
+                        skipped.append(c)
+            
+            count += 1
+            
+            if count == 2000:
+                break
+            
             random.shuffle(skipped)
             combos_all = self.set_iterator(skipped)
             combo_set = []
             skipped = []
             numbers = []
 
-            count += 1
-            
-            if count == 500:
-                break
-
         end = datetime.now()
         print(end)
         print("Time elapsed: ", end - start)
-        print(len(combo_sets))
+        print(f'Skipped count : {len(skipped)}')
+        print(f'Combo sets    : {len(combo_sets)}')
 
         self.generated = combo_sets
         self.genSet['text'] = 'NEXT'
@@ -576,6 +584,7 @@ class Application(Frame):
 
     def get_a_set(self):
 
+        random.shuffle(self.generated)
         generated = self.generated.pop(0)
         self.dataconn.store_fantasy_plays(generated)
         
