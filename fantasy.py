@@ -442,7 +442,7 @@ class Application(Frame):
             except:
                 break
         
-        print(f'After top count filter : {len(selected)}')
+        print(f'After top count filter  : {len(selected)}')
         if self.noCon.get():
 
             combos_all = self.set_iterator(selected)
@@ -472,7 +472,7 @@ class Application(Frame):
                 except:
                     break
         
-        print(f'After pattern filter : {len(selected)}')
+        print(f'After pattern filter     : {len(selected)}')
         if self.noClose.get():
             combos_all = self.set_iterator(selected)
             selected = []
@@ -488,7 +488,7 @@ class Application(Frame):
                 except:
                     break
             
-            print(f'After winner filter : {len(selected)}')
+            print(f'After winner filter      : {len(selected)}')
             
             ''' The filter logic below will check that no combination will have more than 1
                 intersection with the 100 prior winners. 
@@ -508,7 +508,7 @@ class Application(Frame):
                 except:
                     break
             
-            print(f'After last check filter : {len(selected)}')
+            print(f'After last check filter  : {len(selected)}')
 
         combo_sets = []
         combo_set = []

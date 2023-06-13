@@ -479,6 +479,8 @@ class Application(Frame):
                     selected.append(list(combo))
             except:
                 break
+        
+        print(f'After top number filter  : {len(selected)}')
 
         if self.noCon.get():
             combos_all = self.set_iterator(selected)
@@ -492,6 +494,8 @@ class Application(Frame):
                         selected.append(combo)
                 except:
                     break
+        
+        print(f'After consecutive filter : {len(selected)}')
 
         if self.pattern.get():
 
@@ -506,6 +510,8 @@ class Application(Frame):
                         selected.append(combo)
                 except:
                     break
+
+        print(f'After pattern filter     : {len(selected)}')
 
         if self.noClose.get():
 
@@ -522,6 +528,8 @@ class Application(Frame):
                         selected.append(combo)
                 except:
                     break
+            
+            print(f'After winner filter      : {len(selected)}')
 
             winners_list = self.dataconn.get_mps_select('super_lotto', 100)
 
@@ -542,6 +550,8 @@ class Application(Frame):
                 except:
                     break
 
+            print(f'After last check filter  : {len(selected)}')
+
             ''' Add code here to check each combination if it has 1 or less from each range 
             '''
             # combos_all = self.set_iterator(selected)
@@ -557,6 +567,8 @@ class Application(Frame):
             #             selected.append(combo)
             #     except:
             #         break
+
+            
 
         combo_sets = []
         combo_set = []
@@ -599,21 +611,29 @@ class Application(Frame):
                 except:
                     break
 
+            if combo_set:
+                for c in combo_set:
+                    c.pop()  # pop the super added
+                    if c not in skipped:
+                        skipped.append(c)
+
+            count += 1
+            
+            if count == 4000:
+                break
+
             random.shuffle(skipped)
             combos_all = self.set_iterator(skipped)
             combo_set = []
             skipped = []
             numbers = []
 
-            count += 1
-            
-            if count == 400:
-                break
 
         end = datetime.now()
         print(end)
         print("Time elapsed: ", end - start)
-        print(len(combo_sets), count)
+        print(f'Skipped count : {len(skipped)}')
+        print(f'Combo sets    : {len(combo_sets)}')
 
         self.generated = combo_sets
         self.genSet['text'] = 'NEXT'
@@ -633,6 +653,7 @@ class Application(Frame):
 
     def get_a_set(self):
 
+        random.shuffle(self.generated)
         generated = self.generated.pop(0)
         self.dataconn.store_mps_plays('super_lotto_bets', generated)
         
@@ -680,7 +701,7 @@ class Application(Frame):
         match_check = [match for match in match_check if match in [0,1]]
         
         #return True if len(match_check) in range(89, 95) else False
-        return True if len(match_check) >= 89 else False
+        return True if len(match_check) in range(88, 96) else False
 
     def clear_generated(self):
 
