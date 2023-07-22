@@ -537,7 +537,7 @@ class databaseConn(object):
 
         return number_counts
 
-    def get_top_stats_by_date(self, draw_date, top, table_name):
+    def get_top_stats_by_date(self, draw_date, table_name):
 
         select = f'''
         select A.num, sum(A.tot)
@@ -565,7 +565,7 @@ class databaseConn(object):
 
         number_count = [n for n, c in number_count]
 
-        return number_count[:top]
+        return number_count
 
     def get_latest_winner(self, table_name):
 

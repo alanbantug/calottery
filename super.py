@@ -48,7 +48,8 @@ class Application(Frame):
         self.generated = []
 
         self.varCountLimit = StringVar()
-        self.limitList = ['5', '5', '4', '3', '2']
+        self.limitList = ['0', '0', '5', '10', '15']
+        # self.limitList = ['Top 25', 'Top 25', 'Mid 25', 'Bot 25']
         rfont = font.Font(family='Verdana', size=8)
         lfont = font.Font(family='Verdana', size=8, slant="italic")
         bfont = font.Font(family='Verdana', size=16, weight="bold")
@@ -163,7 +164,7 @@ class Application(Frame):
         '''
         self.genOpt = LabelFrame(self.generateTab, text='Generate Options', style="O.TLabelframe")
         # self.topNumsOnly = Checkbutton(self.genOpt, text="Top numbers only", style="B.TCheckbutton", variable=self.topNumbers)
-        self.offsetLabel = Label(self.genOpt, text="Top number count : ", style="T.TLabel")
+        self.offsetLabel = Label(self.genOpt, text="Top number offset : ", style="T.TLabel")
         self.topOffset = Entry(self.genOpt, textvariable=self.offset, width="8")
         self.topCountList = OptionMenu(self.genOpt, self.varCountLimit, *self.limitList)
         self.topCountList.config(width=12)
@@ -219,7 +220,7 @@ class Application(Frame):
         self.noCon.set(0)
         self.pattern.set(0)
 
-        self.varCountLimit.set('5')
+        self.varCountLimit.set('0')
 
         self.loadData()
         self.loadStats()
@@ -355,14 +356,14 @@ class Application(Frame):
         
         self.progressBar.stop()
 
-    def check_top_n(self, data, top):
+    def check_top_n(self, data, start):
 
         dd, na, nb, nc, nd, ne = data
 
         num_set = [na, nb, nc, nd, ne]
 
         # get the top numbers prior to the draw date passed
-        top_numbers = self.dataconn.get_top_stats_by_date(dd, top, 'super_lotto')
+        top_numbers = self.dataconn.get_top_stats_by_date(dd, 'super_lotto')[start:start+25]
 
         return len([num for num in num_set if num in top_numbers])
 
@@ -375,7 +376,12 @@ class Application(Frame):
         cols = ['Draw Date', 'A', 'B', 'C', 'D', 'E', 'M']
         df = pd.DataFrame.from_records(winners, columns=cols)
 
-        df['TOP'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_top_n, args=(25, ), axis=1)
+        dt_arg = int(self.varCountLimit.get())
+        # for sval, ival in zip(['Top 25', 'Mid 25', 'Bot 25'], [0, 11, 22]):
+        #     if sval == self.varCountLimit.get():
+        #         dt_arg = ival
+
+        df['TOP'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_top_n, args=(dt_arg, ), axis=1)
 
         plt.figure(figsize=(5,3))
         plt.plot(df['TOP'][:50])
@@ -440,6 +446,10 @@ class Application(Frame):
         self.progressBar.start()
         t_count = int(self.varCountLimit.get())
 
+        # for sval, ival in zip(['Top 25', 'Mid 25', 'Bot 25'], [0, 11, 22]):
+        #     if sval == self.varCountLimit.get():
+        #         t_count = ival
+
         all_numbers = [n[0] for n in self.dataconn.get_number_stats('super_lotto', 0)]
 
         if self.skipWinner.get() == 1:
@@ -454,9 +464,9 @@ class Application(Frame):
         start = datetime.now()
         print(start)
         print(len(all_numbers))
-        top_numbers = all_numbers[:25]
+        top_numbers = all_numbers[t_count:t_count+25]
 
-        combos_all = self.set_generator(all_numbers, 5)
+        combos_all = self.set_generator(top_numbers, 5)
         selected = []
 
         while True:
@@ -468,19 +478,19 @@ class Application(Frame):
                 break
 
         combos_all = self.set_iterator(selected)
-        print(len(selected))
-        selected = []
+        # print(len(selected))
+        # selected = []
 
-        while True:
+        # while True:
 
-            try:
-                combo = next(combos_all)
-                if len(set(top_numbers).intersection(set(combo))) == t_count:
-                    selected.append(list(combo))
-            except:
-                break
+        #     try:
+        #         combo = next(combos_all)
+        #         if len(set(top_numbers).intersection(set(combo))) == t_count:
+        #             selected.append(list(combo))
+        #     except:
+        #         break
         
-        print(f'After top number filter  : {len(selected)}')
+        # print(f'After top number filter  : {len(selected)}')
 
         if self.noCon.get():
             combos_all = self.set_iterator(selected)
@@ -536,21 +546,21 @@ class Application(Frame):
             ''' the code below compares combinations against the last 100 winners
                 making sure there is no close match 
             '''
-            combos_all = self.set_iterator(selected)
-            selected = []
+            # combos_all = self.set_iterator(selected)
+            # selected = []
 
-            while True:
+            # while True:
 
-                try:
-                    combo = next(combos_all)
-                    if self.check_last_select(combo, winners_list): 
-                        pass 
-                    else:
-                        selected.append(combo)
-                except:
-                    break
+            #     try:
+            #         combo = next(combos_all)
+            #         if self.check_last_select(combo, winners_list): 
+            #             pass 
+            #         else:
+            #             selected.append(combo)
+            #     except:
+            #         break
 
-            print(f'After last check filter  : {len(selected)}')
+            # print(f'After last check filter  : {len(selected)}')
 
             ''' Add code here to check each combination if it has 1 or less from each range 
             '''
@@ -602,7 +612,6 @@ class Application(Frame):
                         numbers.extend(combo)
                         combo.append(self.get_a_super())
                         combo_set.append(combo)
-                        
                         
                     if len(combo_set) == 5:
                         combo_sets.append(combo_set)
@@ -657,6 +666,11 @@ class Application(Frame):
         generated = self.generated.pop(0)
         self.dataconn.store_mps_plays('super_lotto_bets', generated)
         
+        # check_nums = []
+        # for gen in generated:
+        #     check_nums.extend(gen[:5])
+        # print(sorted(check_nums))
+
         for i in range(5):
             win = self.dataconn.check_mps_winner('super_lotto', generated[i])
             self.dGen[i].changeTopStyle(generated[i], win)

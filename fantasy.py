@@ -47,7 +47,8 @@ class Application(Frame):
         self.generated = [] 
 
         self.varCountLimit = StringVar()
-        self.limitList = ['5', '5', '4', '3']
+        self.limitList = ['Top 0', '0', '5', '10']
+        # self.limitList = ['Top 25', 'Top 25', 'Mid 25', 'Bot 25']
         rfont = font.Font(family='Verdana', size=8)
         lfont = font.Font(family='Verdana', size=8, slant="italic")
         bfont = font.Font(family='Verdana', size=16, weight="bold")
@@ -149,7 +150,7 @@ class Application(Frame):
         '''
         self.genOpt = LabelFrame(self.generateTab, text='Generate Options', style="O.TLabelframe")
         self.topNumsOnly = Checkbutton(self.genOpt, text="Top numbers only", style="B.TCheckbutton", variable=self.topNumbers)
-        self.offsetLabel = Label(self.genOpt, text="Top number count :", style="T.TLabel")
+        self.offsetLabel = Label(self.genOpt, text="Top number start :", style="T.TLabel")
         self.topOffset = Entry(self.genOpt, textvariable=self.offset, width="8")
         self.topCountList = OptionMenu(self.genOpt, self.varCountLimit, *self.limitList)
         self.topCountList.config(width=12)
@@ -208,7 +209,7 @@ class Application(Frame):
         self.skipWinner.set(0)
         self.pattern.set(0)
 
-        self.varCountLimit.set('5')
+        self.varCountLimit.set('0')
 
         self.loadData()
         self.loadStats()
@@ -314,7 +315,13 @@ class Application(Frame):
             cols = ['Draw Date', 'A', 'B', 'C', 'D', 'E']
             df = pd.DataFrame.from_records(winners, columns=cols)
 
-            df['TOP'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_top_n, args=(25, ), axis=1)
+            df_arg = int(self.varCountLimit.get())
+
+            # for sval, ival in zip(['Top 25', 'Mid 25', 'Bot 25'], [0, 5, 14]):
+            #     if sval == self.varCountLimit.get():
+            #         df_arg = ival
+
+            df['TOP'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_top_n, args=(df_arg, ), axis=1)
 
             try:
                 os.remove('fantasy.jpg')
@@ -336,14 +343,14 @@ class Application(Frame):
 
         self.trendPlot['style'] = 'DT.TLabel'
 
-    def check_top_n(self, data, top):
+    def check_top_n(self, data, start):
 
         dd, na, nb, nc, nd, ne = data
 
         num_set = [na, nb, nc, nd, ne]
 
         # get the top numbers prior to the draw date passed
-        top_numbers = self.dataconn.get_top_stats_by_date(dd, top, 'fantasy_five')
+        top_numbers = self.dataconn.get_top_stats_by_date(dd, 'fantasy_five')[start:start + 25]
 
         return len([num for num in num_set if num in top_numbers])
 
@@ -375,10 +382,10 @@ class Application(Frame):
 
         else: 
 
-            if self.skipWinner.get() == 1:
-                if int(self.varCountLimit.get()) == 3:
-                    messagebox.showinfo('Invalid option combination', 'Count will be set to 5 before skipping last winner')
-                    self.varCountLimit.set('5')
+            # if self.skipWinner.get() == 1:
+            #     if int(self.varCountLimit.get()) == 3:
+            #         messagebox.showinfo('Invalid option combination', 'Count will be set to 5 before skipping last winner')
+            #         self.varCountLimit.set('5')
 
             if self.genSet['text'] == 'GENERATE':
                 resp = messagebox.askyesno('Generating combinations', 'Generation will take some time. Continue?')
@@ -400,6 +407,11 @@ class Application(Frame):
         '''
 
         self.progressBar.start()
+
+        # for sval, ival in zip(['Top 25', 'Mid 25', 'Bot 25'], [0, 5, 14]):
+        #     if sval == self.varCountLimit.get():
+        #         t_count = ival
+
         t_count = int(self.varCountLimit.get())
 
         all_numbers = [n[0] for n in self.dataconn.get_number_stats('fantasy_five', 0)]
@@ -416,10 +428,10 @@ class Application(Frame):
         start = datetime.now()
         print(start)
 
-        top_numbers = all_numbers[:25]
-        bot_numbers = all_numbers[25:]
+        top_numbers = all_numbers[t_count:t_count + 25]
+        # bot_numbers = all_numbers[25:]
 
-        combos_all = self.set_generator(all_numbers, 5)
+        combos_all = self.set_generator(top_numbers, 5)
         selected = []
 
         while True:
@@ -431,18 +443,18 @@ class Application(Frame):
                  break
 
         combos_all = self.set_iterator(selected)
-        selected = []
+        # selected = []
 
-        while True:
+        # while True:
 
-            try:
-                combo = next(combos_all)
-                if len(set(top_numbers).intersection(set(combo))) == t_count:
-                    selected.append(list(combo))
-            except:
-                break
+        #     try:
+        #         combo = next(combos_all)
+        #         if len(set(top_numbers).intersection(set(combo))) == t_count:
+        #             selected.append(list(combo))
+        #     except:
+        #         break
         
-        print(f'After top count filter  : {len(selected)}')
+        # print(f'After top count filter  : {len(selected)}')
         if self.noCon.get():
 
             combos_all = self.set_iterator(selected)
@@ -588,6 +600,10 @@ class Application(Frame):
         generated = self.generated.pop(0)
         self.dataconn.store_fantasy_plays(generated)
         
+        # check_nums = []
+        # for gen in generated:
+        #     check_nums.extend(gen)
+        # print(sorted(check_nums))
         for i in range(5):
             win = self.dataconn.check_fantasy_winner(generated[i])
             self.dGen[i].changeTopStyle(generated[i], win)

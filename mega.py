@@ -48,7 +48,7 @@ class Application(Frame):
         self.generated = []
 
         self.varCountLimit = StringVar()
-        self.limitList = ['5', '5', '4', '3', '2']
+        self.limitList = ['0', '0', '5', '10', '15']
         rfont = font.Font(family='Verdana', size=8)
         lfont = font.Font(family='Verdana', size=8, slant="italic")
         bfont = font.Font(family='Verdana', size=16, weight="bold")
@@ -163,7 +163,7 @@ class Application(Frame):
         define widgets for generator tab
         '''
         self.genOpt = LabelFrame(self.generateTab, text='Generate Options', style="O.TLabelframe")
-        self.offsetLabel = Label(self.genOpt, text="Top number count : ", style="T.TLabel")
+        self.offsetLabel = Label(self.genOpt, text="Top number offset : ", style="T.TLabel")
         self.topOffset = Entry(self.genOpt, textvariable=self.offset, width="8")
         self.topCountList = OptionMenu(self.genOpt, self.varCountLimit, *self.limitList)
         self.topCountList.config(width=12)
@@ -218,7 +218,7 @@ class Application(Frame):
         self.noCon.set(0)
         self.pattern.set(0)
 
-        self.varCountLimit.set('5')
+        self.varCountLimit.set('0')
 
         self.loadData()
         self.loadStats()
@@ -354,14 +354,15 @@ class Application(Frame):
         
         self.progressBar.stop()
 
-    def check_top_n(self, data, top):
+    def check_top_n(self, data, start):
 
         dd, na, nb, nc, nd, ne = data
 
         num_set = [na, nb, nc, nd, ne]
 
         # get the top numbers prior to the draw date passed
-        top_numbers = self.dataconn.get_top_stats_by_date(dd, top, 'mega_lotto')
+        top_numbers = self.dataconn.get_top_stats_by_date(dd, 'mega_lotto')[start:start+25]
+
 
         return len([num for num in num_set if num in top_numbers])
 
@@ -371,10 +372,12 @@ class Application(Frame):
 
         winners = self.dataconn.get_mps_data('mega_lotto')
 
+        dt_arg = int(self.varCountLimit.get())
+        
         cols = ['Draw Date', 'A', 'B', 'C', 'D', 'E', 'M']
         df = pd.DataFrame.from_records(winners, columns=cols)
 
-        df['TOP'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_top_n, args=(25, ), axis=1)
+        df['TOP'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_top_n, args=(dt_arg, ), axis=1)
 
         plt.figure(figsize=(5,3))
         plt.plot(df['TOP'][:50])
@@ -453,9 +456,9 @@ class Application(Frame):
         start = datetime.now()
         print(start)
         print(len(all_numbers))
-        top_numbers = all_numbers[:25]
+        top_numbers = all_numbers[t_count:t_count+25]
 
-        combos_all = self.set_generator(all_numbers, 5)
+        combos_all = self.set_generator(top_numbers, 5)
         selected = []
 
         while True:
@@ -466,18 +469,19 @@ class Application(Frame):
             except Exception as e:
                 break
 
+        print(f'All combinations         : {len(selected)}')
+
         combos_all = self.set_iterator(selected)
-        print(len(selected))
-        selected = []
+        # selected = []
 
-        while True:
+        # while True:
 
-            try:
-                combo = next(combos_all)
-                if len(set(top_numbers).intersection(set(combo))) == t_count:
-                    selected.append(list(combo))
-            except:
-                break
+        #     try:
+        #         combo = next(combos_all)
+        #         if len(set(top_numbers).intersection(set(combo))) == t_count:
+        #             selected.append(list(combo))
+        #     except:
+        #         break
 
         if self.noCon.get():
             combos_all = self.set_iterator(selected)
@@ -492,6 +496,8 @@ class Application(Frame):
                 except:
                     break
 
+        print(f'After consecutive filter : {len(selected)}')
+
         if self.pattern.get():
 
             combos_all = self.set_iterator(selected)
@@ -505,6 +511,8 @@ class Application(Frame):
                         selected.append(combo)
                 except:
                     break
+
+        print(f'After pattern filter     : {len(selected)}')
 
         if self.noClose.get():
 
@@ -522,27 +530,7 @@ class Application(Frame):
                 except:
                     break
 
-            ''' The filter logic below will check that no combination will have more than 1
-                intersection with the 100 prior winners. 
-            '''
-            print(len(selected))
-            winners_list = self.dataconn.get_mps_select('mega_lotto', 100)
-
-            combos_all = self.set_iterator(selected)
-            selected = []
-
-            while True:
-
-                try:
-                    combo = next(combos_all)
-                    if self.check_last_select(combo, winners_list): 
-                        pass 
-                    else:
-                        selected.append(combo)
-                except:
-                    break
-            
-            print(len(selected))
+        print(f'After winner filter      : {len(selected)}')
 
         combo_sets = []
         combo_set = []
@@ -553,7 +541,7 @@ class Application(Frame):
             This will ensure that combinations will not be selected again
         '''
         random.shuffle(selected)
-        print('For grouping : ', len(selected))
+        print(f'For grouping             : {len(selected)}')
         combos_all = self.set_iterator(selected)
         count = 0
 
@@ -584,6 +572,12 @@ class Application(Frame):
                         numbers = []
                 except:
                     break
+
+            if combo_set:
+                for c in combo_set:
+                    c.pop()  # pop the super added
+                    if c not in skipped:
+                        skipped.append(c)
 
             random.shuffle(skipped)
             combos_all = self.set_iterator(skipped)
