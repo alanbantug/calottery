@@ -361,7 +361,7 @@ class Application(Frame):
         num_set = [na, nb, nc, nd, ne]
 
         # get the top numbers prior to the draw date passed
-        top_numbers = self.dataconn.get_top_stats_by_date(dd, 'mega_lotto')[start:start+25]
+        top_numbers = self.dataconn.get_top_stats_by_date(dd, 'mega_lotto')[start:start+35]
 
 
         return len([num for num in num_set if num in top_numbers])
@@ -456,7 +456,7 @@ class Application(Frame):
         start = datetime.now()
         print(start)
         print(len(all_numbers))
-        top_numbers = all_numbers[t_count:t_count+25]
+        top_numbers = all_numbers[t_count:t_count+35]
 
         combos_all = self.set_generator(top_numbers, 5)
         selected = []
