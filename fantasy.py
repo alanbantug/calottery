@@ -157,7 +157,6 @@ class Application(Frame):
         self.avoidClose = Checkbutton(self.genOpt, text="No past winners", style="B.TCheckbutton", variable=self.noClose)
         self.noConsec = Checkbutton(self.genOpt, text="No Consecutives", style="B.TCheckbutton", variable=self.noCon)
         self.skipLastWin = Checkbutton(self.genOpt, text="Skip last winner", style="B.TCheckbutton", variable=self.skipWinner)
-        self.nonUniqueNums = Label(self.genOpt, text="", style="T.TLabel")
         self.commonPattern = Checkbutton(self.genOpt, text="Common patterns", style="B.TCheckbutton", variable=self.pattern)
 
         # self.genPat = LabelFrame(self.generateTab, text='Pattern Options', style="O.TLabelframe")
@@ -183,8 +182,7 @@ class Application(Frame):
 
         self.offsetLabel.grid(row=0, column=0, padx=5, pady=5, sticky="W")
         self.topCountList.grid(row=0, column=0, padx=(160,0), pady=5, sticky="W")
-        # self.skipLastWin.grid(row=0, column=0, padx=(320,0), pady=5, sticky="W")
-        self.nonUniqueNums.grid(row=0, column=0, padx=(320,0), pady=5, sticky="W")
+        self.skipLastWin.grid(row=0, column=0, padx=(320,0), pady=5, sticky="W")
         self.avoidClose.grid(row=1, column=0, padx=5, pady=5, sticky="W")
         self.noConsec.grid(row=1, column=0, padx=(160,0), pady=5, sticky="W")
         self.commonPattern.grid(row=1, column=0, padx=(320,0), pady=5, sticky="W")
@@ -546,22 +544,20 @@ class Application(Frame):
                 try:
                     combo = next(combos_all)
 
-                    # if numbers:
-                    #     if len(set(numbers).intersection(set(combo))) == 0:
-                    #         combo_set.append(combo)
-                    #         numbers.extend(combo)
-                    #     else:
-                    #         skipped.append(combo)
-                    # else:
-                    #     combo_set.append(combo)
-                    #     numbers.extend(combo)
+                    if numbers:
+                        if len(set(numbers).intersection(set(combo))) == 0:
+                            combo_set.append(combo)
+                            numbers.extend(combo)
+                        else:
+                            skipped.append(combo)
+                    else:
+                        combo_set.append(combo)
+                        numbers.extend(combo)
                     
-                    combo_set.append(combo)
-
                     if len(combo_set) == 5:
                         combo_sets.append(combo_set)
                         combo_set = []
-                        # numbers = []
+                        numbers = []
                 except:
                     break
 
@@ -614,26 +610,6 @@ class Application(Frame):
         generated = self.generated.pop(0)
         self.dataconn.store_fantasy_plays(generated)
         
-        numbs = []
-        dups = 0
-        for gen in generated:
-            if numbs:
-                for g in gen:
-                    if g in numbs:
-                        dups += 1
-                    else:
-                        numbs.append(g)
-            else:
-                numbs.extend(gen)
-
-        print(numbs)
-        self.nonUniqueNums['text'] = f'Duplicates : {dups}'
-
-        # check_nums = []
-        # for gen in generated:
-        #     check_nums.extend(gen)
-        # print(sorted(check_nums))
-
         for i in range(5):
             win = self.dataconn.check_fantasy_winner(generated[i])
             self.dGen[i].changeTopStyle(generated[i], win)
