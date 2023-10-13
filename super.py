@@ -44,11 +44,15 @@ class Application(Frame):
         self.skipWinner = IntVar()
         self.noCon = IntVar()
         self.pattern = IntVar()
+        self.baseOption =IntVar()
 
         self.generated = []
 
         self.varCountLimit = StringVar()
-        self.limitList = ['0', '0', '5', '10', '15']
+        self.limitList = ['5', '5', '4', '3', '2']
+        self.varClassList = StringVar()
+        self.classList = ['0', '0', '1']
+
         # self.limitList = ['Top 25', 'Top 25', 'Mid 25', 'Bot 25']
         rfont = font.Font(family='Verdana', size=8)
         lfont = font.Font(family='Verdana', size=8, slant="italic")
@@ -162,16 +166,19 @@ class Application(Frame):
         '''
         define widgets for generator tab
         '''
-        self.genOpt = LabelFrame(self.generateTab, text='Generate Options', style="O.TLabelframe")
-        # self.topNumsOnly = Checkbutton(self.genOpt, text="Top numbers only", style="B.TCheckbutton", variable=self.topNumbers)
-        self.offsetLabel = Label(self.genOpt, text="Top number offset : ", style="T.TLabel")
-        self.topOffset = Entry(self.genOpt, textvariable=self.offset, width="8")
-        self.topCountList = OptionMenu(self.genOpt, self.varCountLimit, *self.limitList)
-        self.topCountList.config(width=12)
-        self.avoidClose = Checkbutton(self.genOpt, text="No past winners", style="B.TCheckbutton", variable=self.noClose)
-        self.skipLastWin = Checkbutton(self.genOpt, text="Skip last winner", style="B.TCheckbutton", variable=self.skipWinner)
-        self.noConsec = Checkbutton(self.genOpt, text="No consecutives", style="B.TCheckbutton", variable=self.noCon)
-        self.commonPattern = Checkbutton(self.genOpt, text="Common patterns", style="B.TCheckbutton", variable=self.pattern)
+        self.mainOptions = LabelFrame(self.generateTab, text='Options', style="O.TLabelframe")
+        self.topsOption = Radiobutton(self.mainOptions, text="Top numbers", style="B.TRadiobutton", variable=self.baseOption, value=1)
+        self.classOption = Radiobutton(self.mainOptions, text="Class", style="B.TRadiobutton", variable=self.baseOption, value=2)
+        self.topCountList = OptionMenu(self.mainOptions, self.varCountLimit, *self.limitList)
+        self.topCountList.config(width=15)
+        self.classOptList = OptionMenu(self.mainOptions, self.varClassList, *self.classList)
+        self.classOptList.config(width=15)
+
+        self.filterOptions = LabelFrame(self.generateTab, text='Filters', style="O.TLabelframe")
+        self.avoidClose = Checkbutton(self.filterOptions, text="No past winners", style="B.TCheckbutton", variable=self.noClose)
+        self.skipLastWin = Checkbutton(self.filterOptions, text="Skip last winner", style="B.TCheckbutton", variable=self.skipWinner)
+        self.noConsec = Checkbutton(self.filterOptions, text="No consecutives", style="B.TCheckbutton", variable=self.noCon)
+        self.commonPattern = Checkbutton(self.filterOptions, text="Common patterns", style="B.TCheckbutton", variable=self.pattern)
 
         self.h_sep_ga = Separator(self.generateTab, orient=HORIZONTAL)
         self.h_sep_gb = Separator(self.generateTab, orient=HORIZONTAL)
@@ -190,14 +197,17 @@ class Application(Frame):
         self.genSave = Button(self.generateTab, text="SAVE", style="F.TButton", command=self.save_generated)
         self.genClear = Button(self.generateTab, text="CLEAR", style="F.TButton", command=self.clear_generated)
 
-        self.offsetLabel.grid(row=0, column=0, padx=5, pady=5, sticky="NSEW")
-        self.topCountList.grid(row=0, column=0, padx=(170,0), pady=5, sticky="W")
-        self.avoidClose.grid(row=1, column=0, padx=5, pady=5, sticky="W")
-        self.noConsec.grid(row=1, column=0, padx=(170,0), pady=5, sticky="W")
-        self.skipLastWin.grid(row=1, column=0, padx=(320,0), pady=5, sticky='W')
-        self.commonPattern.grid(row=1, column=0, padx=(460,0), pady=5, sticky="NSEW")
+        self.topsOption.grid(row=0, column=0, padx=5, pady=5, sticky='NSEW')
+        self.topCountList.grid(row=0, column=1, padx=5, pady=5, sticky="NSEW")
+        self.classOption.grid(row=1, column=0, padx=5, pady=5, sticky='NSEW')
+        self.classOptList.grid(row=1, column=1, padx=5, pady=5, sticky="NSEW")
+        self.mainOptions.grid(row=0, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
 
-        self.genOpt.grid(row=3, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
+        self.avoidClose.grid(row=0, column=0, padx=5, pady=5, sticky="NSEW")
+        self.noConsec.grid(row=1, column=0, padx=5, pady=5, sticky="NSEW")
+        self.skipLastWin.grid(row=0, column=1, padx=5, pady=5, sticky='NSEW')
+        self.commonPattern.grid(row=1, column=1, padx=5, pady=5, sticky="NSEW")
+        self.filterOptions.grid(row=0, column=2, columnspan=3, padx=5, pady=5, sticky='NSEW')
 
         self.h_sep_ga.grid(row=4, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
 
@@ -219,13 +229,17 @@ class Application(Frame):
         self.skipWinner.set(0)
         self.noCon.set(0)
         self.pattern.set(0)
-
-        self.varCountLimit.set('0')
+        self.baseOption.set(1)
+        
+        self.varCountLimit.set('5')
+        self.varClassList.set('0')
 
         self.loadData()
         self.loadStats()
         self.loadSuperStats()
         self.loadTrend()
+
+        self.game_mean = int(1533939/2)
 
     def loadData(self):
 
@@ -338,23 +352,12 @@ class Application(Frame):
 
     def loadTrend(self):
 
-        self.progressBar.start()
         if os.path.exists('super.jpg'):
-            pass
+            self.loadImage()
         else:
-            self.loadTrendFromData()
+            t = threading.Thread(None, self.loadTrendFromData, ())
+            t.start()
 
-        image = Image.open("super.jpg")
-        image = image.resize((440,360))
-        results_fig = ImageTk.PhotoImage(image)
-
-        # Define a style
-        root.results_fig = results_fig
-        Style().configure("DT.TLabel", image=results_fig, background="white", anchor="left", font="Verdana 2")
-
-        self.trendPlot['style'] = 'DT.TLabel'
-        
-        self.progressBar.stop()
 
     def check_top_n(self, data, start):
 
@@ -363,7 +366,7 @@ class Application(Frame):
         num_set = [na, nb, nc, nd, ne]
 
         # get the top numbers prior to the draw date passed
-        top_numbers = self.dataconn.get_top_stats_by_date(dd, 'super_lotto')[start:start+25]
+        top_numbers = self.dataconn.get_top_stats_by_date(dd, 'super_lotto')[:start]
 
         return len([num for num in num_set if num in top_numbers])
 
@@ -376,18 +379,35 @@ class Application(Frame):
         cols = ['Draw Date', 'A', 'B', 'C', 'D', 'E', 'M']
         df = pd.DataFrame.from_records(winners, columns=cols)
 
-        dt_arg = int(self.varCountLimit.get())
-        # for sval, ival in zip(['Top 25', 'Mid 25', 'Bot 25'], [0, 11, 22]):
-        #     if sval == self.varCountLimit.get():
-        #         dt_arg = ival
-
-        df['TOP'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_top_n, args=(dt_arg, ), axis=1)
+        df['TOP'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_top_n, args=(25, ), axis=1)
+        df['IDX'] = df[['A', 'B', 'C', 'D', 'E']].apply(self.check_index_class, axis=1)
 
         plt.figure(figsize=(5,3))
-        plt.plot(df['TOP'][:50])
+        plt.plot(df['TOP'][:50], 'x-', label='T25', color='blue', alpha=0.5)
+        plt.plot(df['IDX'][:50], 'o-', label='IDX', color='green', alpha=0.5)
+        plt.grid(axis='both', color='grey', alpha=0.5)
+        plt.legend(title='Labels', loc='upper right')
         plt.savefig('super.jpg')
 
         self.progressBar.stop()
+        
+        self.loadImage()
+        messagebox.showinfo('Reloaded', 'Trend graph has been reloaded.')
+
+        return 
+    
+    def loadImage(self):
+
+        image = Image.open("super.jpg")
+        image = image.resize((440,360))
+        results_fig = ImageTk.PhotoImage(image)
+
+        # Define a style
+        root.results_fig = results_fig
+        Style().configure("DT.TLabel", image=results_fig, background="white", anchor="left", font="Verdana 2")
+
+        self.trendPlot['style'] = 'DT.TLabel'
+
 
     def reload(self):
 
@@ -446,27 +466,27 @@ class Application(Frame):
         self.progressBar.start()
         t_count = int(self.varCountLimit.get())
 
-        # for sval, ival in zip(['Top 25', 'Mid 25', 'Bot 25'], [0, 11, 22]):
-        #     if sval == self.varCountLimit.get():
-        #         t_count = ival
-
         all_numbers = [n[0] for n in self.dataconn.get_number_stats('super_lotto', 0)]
+        top_numbers = all_numbers[:25]
 
         if self.skipWinner.get() == 1:
             all_numbers = [n for n in all_numbers if n not in list(self.dataconn.get_latest_winner('super_lotto')[0])[1:]]
+            top_numbers = [n for n in top_numbers if n not in list(self.dataconn.get_latest_winner('super_lotto')[0])[1:]]
 
-        self.generate_sets(all_numbers, t_count)
+        self.generate_sets(all_numbers, top_numbers, t_count)
 
         self.progressBar.stop()
 
-    def generate_sets(self, all_numbers, t_count):
+        return
+
+    def generate_sets(self, all_numbers, top_numbers, t_count):
 
         start = datetime.now()
         print(start)
-        print(len(all_numbers))
-        top_numbers = all_numbers[t_count:t_count+25]
 
-        combos_all = self.set_generator(top_numbers, 5)
+        self.count_limit = 2000
+
+        combos_all = self.set_generator(all_numbers, 5)
         selected = []
 
         while True:
@@ -477,20 +497,7 @@ class Application(Frame):
             except Exception as e:
                 break
 
-        combos_all = self.set_iterator(selected)
-        # print(len(selected))
-        # selected = []
-
-        # while True:
-
-        #     try:
-        #         combo = next(combos_all)
-        #         if len(set(top_numbers).intersection(set(combo))) == t_count:
-        #             selected.append(list(combo))
-        #     except:
-        #         break
-        
-        # print(f'After top number filter  : {len(selected)}')
+        print(f'All combinations         : {len(selected)}')
 
         if self.noCon.get():
             combos_all = self.set_iterator(selected)
@@ -539,13 +546,13 @@ class Application(Frame):
                 except:
                     break
             
-            print(f'After winner filter      : {len(selected)}')
+        print(f'After winner filter      : {len(selected)}')
 
-            winners_list = self.dataconn.get_mps_select('super_lotto', 100)
+            # winners_list = self.dataconn.get_mps_select('super_lotto', 100)
 
-            ''' the code below compares combinations against the last 100 winners
-                making sure there is no close match 
-            '''
+            # ''' the code below compares combinations against the last 100 winners
+            #     making sure there is no close match 
+            # '''
             # combos_all = self.set_iterator(selected)
             # selected = []
 
@@ -562,8 +569,8 @@ class Application(Frame):
 
             # print(f'After last check filter  : {len(selected)}')
 
-            ''' Add code here to check each combination if it has 1 or less from each range 
-            '''
+            # ''' Add code here to check each combination if it has 1 or less from each range 
+            # '''
             # combos_all = self.set_iterator(selected)
             # selected = []
 
@@ -578,7 +585,39 @@ class Application(Frame):
             #     except:
             #         break
 
+        if self.baseOption.get() ==  1:
+
+            combos_all = self.set_iterator(selected)
+            selected = []
+
+            while True:
+
+                try:
+                    combo = next(combos_all)
+                    if len(set(top_numbers).intersection(set(combo))) == t_count:
+                        selected.append(list(combo))
+                except:
+                    break
+
+        print(f'After top numbers filter : {len(selected)}')
+
+        if self.baseOption.get() ==  2:
             
+            self.count_limit = 100
+
+            combos_all = self.set_iterator(selected)
+            selected = []
+
+            while True:
+
+                try:
+                    combo = next(combos_all)
+                    if self.check_index_class(combo) == int(self.varClassList.get()):
+                        selected.append(list(combo))
+                except:
+                    break
+
+        print(f'After class filter       : {len(selected)}')
 
         combo_sets = []
         combo_set = []
@@ -589,7 +628,8 @@ class Application(Frame):
             This will ensure that combinations will not be selected again
         '''
         random.shuffle(selected)
-        print('For grouping : ', len(selected))
+        print(f'For grouping             : {len(selected)}' )
+
         combos_all = self.set_iterator(selected)
         count = 0
 
@@ -628,7 +668,7 @@ class Application(Frame):
 
             count += 1
             
-            if count == 4000:
+            if count == self.count_limit:
                 break
 
             random.shuffle(skipped)
@@ -682,6 +722,14 @@ class Application(Frame):
         random.shuffle(sups)
 
         return sups.pop()
+
+    def check_index_class(self, num_set):
+
+        idx_key = ''.join(['{:02d}'.format(int(num)) for num in num_set])
+
+        idx_val = self.dataconn.get_combo_index(idx_key, 'sl_index')
+        
+        return 1 if idx_val > self.game_mean else 0
 
     def check_consecutives(self, num_set):
 

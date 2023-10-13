@@ -47,7 +47,7 @@ class Application(Frame):
         self.generated = [] 
 
         self.varCountLimit = StringVar()
-        self.limitList = ['Top 0', '0', '5', '10']
+        self.limitList = ['Top 0', '0', '5', '10', '14']
         # self.limitList = ['Top 25', 'Top 25', 'Mid 25', 'Bot 25']
         rfont = font.Font(family='Verdana', size=8)
         lfont = font.Font(family='Verdana', size=8, slant="italic")
@@ -307,31 +307,41 @@ class Application(Frame):
     def loadTrend(self):
 
         if os.path.exists('fantasy.jpg'):
-            pass
+            self.loadImage()
         else:
+            t = threading.Thread(None, self.loadTrendFromData, ())
+            t.start()
 
-            winners = self.dataconn.get_fantasy_data()
+    def loadTrendFromData(self):
+        
+        self.progressBar.start()
+        
+        winners = self.dataconn.get_fantasy_data()
 
-            cols = ['Draw Date', 'A', 'B', 'C', 'D', 'E']
-            df = pd.DataFrame.from_records(winners, columns=cols)
+        cols = ['Draw Date', 'A', 'B', 'C', 'D', 'E']
+        df = pd.DataFrame.from_records(winners, columns=cols)
 
-            df_arg = int(self.varCountLimit.get())
+        df_arg = int(self.varCountLimit.get())
 
-            # for sval, ival in zip(['Top 25', 'Mid 25', 'Bot 25'], [0, 5, 14]):
-            #     if sval == self.varCountLimit.get():
-            #         df_arg = ival
+        # for sval, ival in zip(['Top 25', 'Mid 25', 'Bot 25'], [0, 5, 14]):
+        #     if sval == self.varCountLimit.get():
+        #         df_arg = ival
 
-            df['TOP'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_top_n, args=(df_arg, ), axis=1)
+        df['TOP'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_top_n, args=(df_arg, ), axis=1)
 
-            try:
-                os.remove('fantasy.jpg')
-            except:
-                pass
+        plt.figure(figsize=(3,3))
+        plt.plot(df['TOP'][:50])
+        plt.grid()
+        plt.savefig('fantasy.jpg')
 
-            plt.figure(figsize=(3,3))
-            plt.plot(df['TOP'][:50])
-            plt.grid()
-            plt.savefig('fantasy.jpg')
+        self.progressBar.stop()
+
+        self.loadImage()
+        messagebox.showinfo('Reloaded', 'Trend graph has been reloaded.')
+
+        return 
+    
+    def loadImage(self):
 
         image = Image.open("fantasy.jpg")
         image = image.resize((300,270))

@@ -585,3 +585,21 @@ class databaseConn(object):
         cur.close()
 
         return winners
+    
+    def get_combo_index(self, idx_key, table_name):
+
+        select_sql = f'''
+        select idx_value
+        from {table_name}
+        where idx_key = '{idx_key}'
+        '''
+
+        cur = self.db_conn.cursor()
+
+        cur.execute(select_sql)
+
+        idx_key_list = cur.fetchall()
+
+        cur.close()
+
+        return idx_key_list[0][0]
