@@ -12,6 +12,9 @@ from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib 
+matplotlib.use('agg')
+
 
 import threading
 import random
@@ -208,9 +211,9 @@ class Application(Frame):
         self.mainOptions.grid(row=1, column=0, columnspan=1, padx=5, pady=5, sticky='NSEW')
 
         self.avoidClose.grid(row=0, column=0, columnspan=2, padx=5, pady=5, sticky="NSEW")
-        self.noConsec.grid(row=1, column=0, columnspan=2, padx=5, pady=5, sticky="NSEW")
-        self.skipLastWin.grid(row=0, column=2, columnspan=2, padx=(100,0), pady=5, sticky='NSEW')
-        self.commonPattern.grid(row=1, column=2, columnspan=2, padx=(100,0), pady=5, sticky="NSEW")
+        self.skipLastWin.grid(row=0, column=2, columnspan=2, padx=(90,0), pady=5, sticky='NSEW')
+        self.noConsec.grid(row=1, column=0, columnspan=2, padx=5, pady=(12,5), sticky="NSEW")
+        self.commonPattern.grid(row=1, column=2, columnspan=2, padx=(90,0), pady=(12,5), sticky="NSEW")
 
         self.genOpt.grid(row=1, column=1, columnspan=4, padx=5, pady=5, sticky='NSEW')
 
@@ -372,14 +375,11 @@ class Application(Frame):
         dt_arg = int(self.varCountLimit.get())
 
         df['TOPS'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_top_n, args=(25, ), axis=1)
-        # df['T20'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_top_n, args=(20, ), axis=1)
-        # df['T15'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_top_n, args=(15, ), axis=1)
         df['CIDX'] = df[['A', 'B', 'C', 'D', 'E']].apply(self.check_index_class, axis=1)
 
         plt.figure(figsize=(5,3))
         plt.plot(df['TOPS'][:50], label='TOPS', color='blue')
         plt.plot(df['CIDX'][:50], 'o--', label='CIDX', color='green', alpha=0.5)
-        # plt.plot(df['T15'][:80], label='T15', alpha=0.6)
         plt.grid(axis='both', color='grey', alpha=0.5)
         plt.legend(title='Label', loc='upper right')
         plt.savefig('power.jpg')
@@ -467,21 +467,22 @@ class Application(Frame):
     def generateThread(self):
 
         self.progressBar.start()
-        t_count = int(self.varCountLimit.get())
-        i_class = int(self.varClassList.get())
 
         all_numbers = [n[0] for n in self.dataconn.get_number_stats('power_ball', 0)]
         top_numbers = all_numbers[:25]
 
         if self.skipWinner.get() == 1:
-            all_numbers = [n for n in all_numbers if n not in list(self.dataconn.get_latest_winner('power_ball')[0])[1:]]
-            top_numbers = [n for n in top_numbers if n not in list(self.dataconn.get_latest_winner('power_ball')[0])[1:]]
+            if self.baseOption.get() ==  1 and int(self.varCountLimit.get()) == 5:
+                self.skipWinner.set(0)
+            else:
+                all_numbers = [n for n in all_numbers if n not in list(self.dataconn.get_latest_winner('power_ball')[0])[1:]]
+                top_numbers = [n for n in top_numbers if n not in list(self.dataconn.get_latest_winner('power_ball')[0])[1:]]
 
-        self.generate_sets(all_numbers, top_numbers, t_count, i_class)
+        self.generate_sets(all_numbers, top_numbers)
 
         self.progressBar.stop()
 
-    def generate_sets(self, all_numbers, top_numbers, t_count, i_class):
+    def generate_sets(self, all_numbers, top_numbers):
 
         start = datetime.now()
         print(start)
@@ -557,7 +558,7 @@ class Application(Frame):
 
                 try:
                     combo = next(combos_all)
-                    if len(set(top_numbers).intersection(set(combo))) == t_count:
+                    if len(set(top_numbers).intersection(set(combo))) == int(self.varCountLimit.get()):
                         selected.append(list(combo))
                 except:
                     break
@@ -573,7 +574,7 @@ class Application(Frame):
 
                 try:
                     combo = next(combos_all)
-                    if self.check_index_class(combo) == i_class:
+                    if self.check_index_class(combo) == int(self.varClassList.get()):
                         selected.append(list(combo))
                 except:
                     break
@@ -677,9 +678,9 @@ class Application(Frame):
 
     def check_index_class(self, num_set):
 
-        idx_key = ''.join(['{:02d}'.format(int(num)) for num in num_set])
+        combo_key = ''.join(['{:02d}'.format(int(num)) for num in num_set])
 
-        idx_val = self.dataconn.get_combo_index(idx_key, 'pb_index')
+        idx_val = self.dataconn.get_combo_index(combo_key, 'power_combos')
         
         return 1 if idx_val > self.game_mean else 0
 

@@ -12,6 +12,9 @@ from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib 
+matplotlib.use('agg')
+
 
 import threading
 import random
@@ -204,9 +207,9 @@ class Application(Frame):
         self.mainOptions.grid(row=0, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
 
         self.avoidClose.grid(row=0, column=0, padx=5, pady=5, sticky="NSEW")
-        self.noConsec.grid(row=1, column=0, padx=5, pady=5, sticky="NSEW")
         self.skipLastWin.grid(row=0, column=1, padx=5, pady=5, sticky='NSEW')
-        self.commonPattern.grid(row=1, column=1, padx=5, pady=5, sticky="NSEW")
+        self.noConsec.grid(row=1, column=0, padx=5, pady=(12,5), sticky="NSEW")
+        self.commonPattern.grid(row=1, column=1, padx=5, pady=(12,5), sticky="NSEW")
         self.filterOptions.grid(row=0, column=2, columnspan=3, padx=5, pady=5, sticky='NSEW')
 
         self.h_sep_ga.grid(row=4, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
@@ -464,27 +467,29 @@ class Application(Frame):
     def generateThread(self):
 
         self.progressBar.start()
-        t_count = int(self.varCountLimit.get())
 
         all_numbers = [n[0] for n in self.dataconn.get_number_stats('super_lotto', 0)]
         top_numbers = all_numbers[:25]
 
         if self.skipWinner.get() == 1:
-            all_numbers = [n for n in all_numbers if n not in list(self.dataconn.get_latest_winner('super_lotto')[0])[1:]]
-            top_numbers = [n for n in top_numbers if n not in list(self.dataconn.get_latest_winner('super_lotto')[0])[1:]]
+            if self.baseOption.get() ==  1 and int(self.varCountLimit.get()) == 5:
+                self.skipWinner.set(0)
+            else:
+                all_numbers = [n for n in all_numbers if n not in list(self.dataconn.get_latest_winner('super_lotto')[0])[1:]]
+                top_numbers = [n for n in top_numbers if n not in list(self.dataconn.get_latest_winner('super_lotto')[0])[1:]]
 
-        self.generate_sets(all_numbers, top_numbers, t_count)
+        self.generate_sets(all_numbers, top_numbers)
 
         self.progressBar.stop()
 
         return
 
-    def generate_sets(self, all_numbers, top_numbers, t_count):
+    def generate_sets(self, all_numbers, top_numbers):
 
         start = datetime.now()
         print(start)
 
-        self.count_limit = 2000
+        self.count_limit = 4000
 
         combos_all = self.set_generator(all_numbers, 5)
         selected = []
@@ -498,6 +503,22 @@ class Application(Frame):
                 break
 
         print(f'All combinations         : {len(selected)}')
+
+        if self.baseOption.get() ==  1:
+
+            combos_all = self.set_iterator(selected)
+            selected = []
+
+            while True:
+
+                try:
+                    combo = next(combos_all)
+                    if len(set(top_numbers).intersection(set(combo))) == int(self.varCountLimit.get()):
+                        selected.append(list(combo))
+                except:
+                    break
+
+        print(f'After top numbers filter : {len(selected)}')
 
         if self.noCon.get():
             combos_all = self.set_iterator(selected)
@@ -584,22 +605,6 @@ class Application(Frame):
             #             selected.append(combo)
             #     except:
             #         break
-
-        if self.baseOption.get() ==  1:
-
-            combos_all = self.set_iterator(selected)
-            selected = []
-
-            while True:
-
-                try:
-                    combo = next(combos_all)
-                    if len(set(top_numbers).intersection(set(combo))) == t_count:
-                        selected.append(list(combo))
-                except:
-                    break
-
-        print(f'After top numbers filter : {len(selected)}')
 
         if self.baseOption.get() ==  2:
             
@@ -725,9 +730,9 @@ class Application(Frame):
 
     def check_index_class(self, num_set):
 
-        idx_key = ''.join(['{:02d}'.format(int(num)) for num in num_set])
+        combo_key = ''.join(['{:02d}'.format(int(num)) for num in num_set])
 
-        idx_val = self.dataconn.get_combo_index(idx_key, 'sl_index')
+        idx_val = self.dataconn.get_combo_index(combo_key, 'super_combos')
         
         return 1 if idx_val > self.game_mean else 0
 

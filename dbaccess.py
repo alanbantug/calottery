@@ -586,12 +586,12 @@ class databaseConn(object):
 
         return winners
     
-    def get_combo_index(self, idx_key, table_name):
+    def get_combo_index(self, combo_key, table_name):
 
         select_sql = f'''
-        select idx_value
+        select combo_idx
         from {table_name}
-        where idx_key = '{idx_key}'
+        where combo_key = '{combo_key}'
         '''
 
         cur = self.db_conn.cursor()
