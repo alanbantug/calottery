@@ -451,7 +451,7 @@ class Application(Frame):
         start = datetime.now()
         print(start)
 
-        self.count_limit = 2000
+        self.count_limit = 5000
 
         combos_all = self.set_generator(all_numbers, 5)
         selected = []
@@ -530,29 +530,7 @@ class Application(Frame):
             
         print(f'After winner filter      : {len(selected)}')
     
-            # ''' The filter logic below will check that no combination will have more than 1
-            #     intersection with the 100 prior winners. 
-            # '''
-
-            # winners_list = self.dataconn.get_fantasy_select(100)
-
-            # combos_all = self.set_iterator(selected)
-            # selected = []
-
-            # while True:
-
-            #     try:
-            #         combo = next(combos_all)
-            #         if self.check_last_select(combo, winners_list): 
-            #             selected.append(combo)
-            #     except:
-            #         break
-            
-            # print(f'After last check filter  : {len(selected)}')
-
         if self.baseOption.get() == 2:
-
-            self.count_limit = 500
 
             combos_all = self.set_iterator(selected)
             selected = []
@@ -581,62 +559,96 @@ class Application(Frame):
         combos_all = self.set_iterator(selected)
         count = 0
 
+        # while True:
+
+        #     while True:
+
+        #         try:
+        #             combo = next(combos_all)
+
+        #             if numbers:
+        #                 if len(set(numbers).intersection(set(combo))) == 0:
+        #                     combo_set.append(combo)
+        #                     numbers.extend(combo)
+        #                 else:
+        #                     skipped.append(combo)
+        #             else:
+        #                 combo_set.append(combo)
+        #                 numbers.extend(combo)
+                    
+        #             if len(combo_set) == 5:
+        #                 combo_sets.append(combo_set)
+        #                 combo_set = []
+        #                 numbers = []
+        #         except:
+        #             break
+
+        #     if combo_set:
+        #         for c in combo_set:
+        #             if c not in skipped:
+        #                 skipped.append(c)
+            
+        #     count += 1
+            
+        #     if count == self.count_limit:
+        #         break
+            
+        #     random.shuffle(skipped)
+        #     combos_all = self.set_iterator(skipped)
+        #     combo_set = []
+        #     skipped = []
+        #     numbers = []
+
         while True:
 
-            while True:
-
-                try:
-                    combo = next(combos_all)
-
-                    if numbers:
-                        if len(set(numbers).intersection(set(combo))) == 0:
-                            combo_set.append(combo)
-                            numbers.extend(combo)
-                        else:
-                            skipped.append(combo)
-                    else:
-                        combo_set.append(combo)
-                        numbers.extend(combo)
+            try:
+                combo = next(combos_all)
+                added = False
+                
+                if combo_sets:
+                    for combo_set in combo_sets:
+                        if len(combo_set) < 25:
+                            if len(set(combo_set).intersection(set(combo))) == 0:
+                                combo_set.extend(combo)
+                                added = True
+                                break
+                            
+                    if not added:
+                        combo_sets.append(combo)
+                        
+                else:
+                    combo_sets.append(combo)
                     
-                    if len(combo_set) == 5:
-                        combo_sets.append(combo_set)
-                        combo_set = []
-                        numbers = []
-                except:
+                count += 1
+                
+                if count == self.count_limit:
                     break
-
-            if combo_set:
-                for c in combo_set:
-                    if c not in skipped:
-                        skipped.append(c)
-            
-            count += 1
-            
-            if count == self.count_limit:
+            except:
                 break
-            
-            random.shuffle(skipped)
-            combos_all = self.set_iterator(skipped)
-            combo_set = []
-            skipped = []
-            numbers = []
 
         end = datetime.now()
         print(end)
         print("Time elapsed: ", end - start)
-        print(f'Skipped count : {len(skipped)}')
+        
+        self.generated = [self.format_sets(n_set) for n_set in combo_sets if len(n_set) == 25]
+        
         print(f'Combo sets    : {len(combo_sets)}')
+        print(f'Combo sets 1  : {len([n_set for n_set in combo_sets if len(n_set) == 5])}')
+        print(f'Combo sets 2  : {len([n_set for n_set in combo_sets if len(n_set) == 10])}')
+        print(f'Combo sets 3  : {len([n_set for n_set in combo_sets if len(n_set) == 15])}')
+        print(f'Combo sets 4  : {len([n_set for n_set in combo_sets if len(n_set) == 20])}')
+        print(f'Complete sets : {len(self.generated)}')
 
-        # if [1,14,26,27,32] in skipped:
-        #     print('Found combination in skipped!')
-
-        # for c_set in combo_sets:
-        #     if [1,14,26,27,32] in c_set:
-        #         print('Found combination in combos!')
-
-        self.generated = combo_sets
         self.genSet['text'] = 'NEXT'
         self.get_a_set()
+
+    def format_sets(self, number_set):
+
+        c_set = []
+        for i in range(0,25,5):
+            c_set.append(number_set[i:i+5])
+        
+        return c_set
 
     def set_generator(self, nums, count):
 
@@ -652,6 +664,7 @@ class Application(Frame):
 
         random.shuffle(self.generated)
         generated = self.generated.pop(0)
+        random.shuffle(generated)
         self.dataconn.store_fantasy_plays(generated)
         
         for i in range(5):

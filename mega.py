@@ -486,6 +486,8 @@ class Application(Frame):
         start = datetime.now()
         print(start)
 
+        self.count_limit = 2000
+        
         combos_all = self.set_generator(all_numbers, 5)
         selected = []
 
@@ -565,6 +567,8 @@ class Application(Frame):
         
         if self.baseOption.get() == 2:
 
+            self.count_limit = 1000
+
             combos_all = self.set_iterator(selected)
             selected = []
 
@@ -634,7 +638,7 @@ class Application(Frame):
 
             count += 1
             
-            if count == 400:
+            if count == self.count_limit:
                 break
 
         end = datetime.now()

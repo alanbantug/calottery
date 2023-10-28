@@ -608,7 +608,7 @@ class Application(Frame):
 
         if self.baseOption.get() ==  2:
             
-            self.count_limit = 100
+            self.count_limit = 1000
 
             combos_all = self.set_iterator(selected)
             selected = []
