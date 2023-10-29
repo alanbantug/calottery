@@ -56,7 +56,6 @@ class Application(Frame):
         self.varClassList = StringVar()
         self.classList = ['0', '0', '1']
 
-        # self.limitList = ['Top 25', 'Top 25', 'Mid 25', 'Bot 25']
         rfont = font.Font(family='Verdana', size=8)
         lfont = font.Font(family='Verdana', size=8, slant="italic")
         bfont = font.Font(family='Verdana', size=16, weight="bold")
@@ -227,7 +226,6 @@ class Application(Frame):
 
         self.sortOrder.set(0)
 
-        # self.topNumbers.set(0)
         self.noClose.set(0)
         self.skipWinner.set(0)
         self.noCon.set(0)
@@ -608,8 +606,6 @@ class Application(Frame):
 
         if self.baseOption.get() ==  2:
             
-            self.count_limit = 1000
-
             combos_all = self.set_iterator(selected)
             selected = []
 
@@ -626,8 +622,6 @@ class Application(Frame):
 
         combo_sets = []
         combo_set = []
-        skipped = []
-        numbers = []
 
         ''' The logic below will select combinations and remove them from succeeding iterations
             This will ensure that combinations will not be selected again
@@ -638,62 +632,98 @@ class Application(Frame):
         combos_all = self.set_iterator(selected)
         count = 0
 
+        # while True:
+
+        #     while True:
+
+        #         try:
+        #             combo = next(combos_all)
+
+        #             if numbers:
+        #                 if len(set(numbers).intersection(set(combo))) == 0:
+        #                     numbers.extend(combo)
+        #                     combo.append(self.get_a_super())
+        #                     combo_set.append(combo)
+                            
+        #                 else:
+        #                     skipped.append(combo)
+        #             else:
+        #                 numbers.extend(combo)
+        #                 combo.append(self.get_a_super())
+        #                 combo_set.append(combo)
+                        
+        #             if len(combo_set) == 5:
+        #                 combo_sets.append(combo_set)
+        #                 combo_set = []
+        #                 numbers = []
+        #         except:
+        #             break
+
+        #     if combo_set:
+        #         for c in combo_set:
+        #             c.pop()  # pop the super added
+        #             if c not in skipped:
+        #                 skipped.append(c)
+
+        #     count += 1
+            
+        #     if count == self.count_limit:
+        #         break
+
+        #     random.shuffle(skipped)
+        #     combos_all = self.set_iterator(skipped)
+        #     combo_set = []
+        #     skipped = []
+        #     numbers = []
+
         while True:
 
-            while True:
-
-                try:
-                    combo = next(combos_all)
-
-                    if numbers:
-                        if len(set(numbers).intersection(set(combo))) == 0:
-                            numbers.extend(combo)
-                            combo.append(self.get_a_super())
-                            combo_set.append(combo)
+            try:
+                combo = next(combos_all)
+                added = False
+                
+                if combo_sets:
+                    for combo_set in combo_sets:
+                        if len(combo_set) < 25:
+                            if len(set(combo_set).intersection(set(combo))) == 0:
+                                combo_set.extend(combo)
+                                added = True
+                                break
                             
-                        else:
-                            skipped.append(combo)
-                    else:
-                        numbers.extend(combo)
-                        combo.append(self.get_a_super())
-                        combo_set.append(combo)
+                    if not added:
+                        combo_sets.append(combo)
                         
-                    if len(combo_set) == 5:
-                        combo_sets.append(combo_set)
-                        combo_set = []
-                        numbers = []
-                except:
+                else:
+                    combo_sets.append(combo)
+                    
+                count += 1
+                
+                if count == self.count_limit:
                     break
-
-            if combo_set:
-                for c in combo_set:
-                    c.pop()  # pop the super added
-                    if c not in skipped:
-                        skipped.append(c)
-
-            count += 1
-            
-            if count == self.count_limit:
+            except:
                 break
-
-            random.shuffle(skipped)
-            combos_all = self.set_iterator(skipped)
-            combo_set = []
-            skipped = []
-            numbers = []
-
 
         end = datetime.now()
         print(end)
         print("Time elapsed: ", end - start)
-        print(f'Skipped count : {len(skipped)}')
         print(f'Combo sets    : {len(combo_sets)}')
 
-        self.generated = combo_sets
+        self.generated = [self.format_sets(n_set) for n_set in combo_sets if len(n_set) == 25]
+
+        print(f'Complete sets : {len(self.generated)}')
+
         self.genSet['text'] = 'NEXT'
         self.get_a_set()
 
         # return combi_sets
+
+    def format_sets(self, number_set):
+
+        c_set = []
+        for i in range(0,25,5):
+            c_set.append(number_set[i:i+5])
+        
+        return c_set
 
     def set_generator(self, nums, count):
 
@@ -709,13 +739,12 @@ class Application(Frame):
 
         random.shuffle(self.generated)
         generated = self.generated.pop(0)
+
+        for gen in generated:
+            gen.append(self.get_a_super())
+
         self.dataconn.store_mps_plays('super_lotto_bets', generated)
         
-        # check_nums = []
-        # for gen in generated:
-        #     check_nums.extend(gen[:5])
-        # print(sorted(check_nums))
-
         for i in range(5):
             win = self.dataconn.check_mps_winner('super_lotto', generated[i])
             self.dGen[i].changeTopStyle(generated[i], win)
