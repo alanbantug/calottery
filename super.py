@@ -625,10 +625,10 @@ class Application(Frame):
         end = datetime.now()
         print(end)
         print("Time elapsed: ", end - start)
-        print(f'Combo sets    : {len(combo_sets)}')
 
         self.generated = [self.format_sets(n_set) for n_set in combo_sets if len(n_set) == 25]
 
+        print(f'Combo sets    : {len(combo_sets)}')
         print(f'Complete sets : {len(self.generated)}')
 
         self.genSet['text'] = 'NEXT'
@@ -658,6 +658,7 @@ class Application(Frame):
 
         random.shuffle(self.generated)
         generated = self.generated.pop(0)
+        random.shuffle(generated)
 
         for gen in generated:
             gen.append(self.get_a_super())
