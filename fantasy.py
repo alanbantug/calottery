@@ -168,10 +168,6 @@ class Application(Frame):
         self.skipLastWin = Checkbutton(self.filterOptions, text="Skip last winner", style="B.TCheckbutton", variable=self.skipWinner)
         self.commonPattern = Checkbutton(self.filterOptions, text="Common patterns", style="B.TCheckbutton", variable=self.pattern)
 
-        # self.genPat = LabelFrame(self.generateTab, text='Pattern Options', style="O.TLabelframe")
-        # self.noPattern = Radiobutton(self.genPat, text="Likely patterns ", style="B.TRadiobutton", variable=self.pattern, value=1)
-        # self.oddEven = Radiobutton(self.genPat, text="Any pattern", style="B.TRadiobutton", variable=self.pattern, value=0)
-
         self.h_sep_ga = Separator(self.generateTab, orient=HORIZONTAL)
         self.h_sep_gb = Separator(self.generateTab, orient=HORIZONTAL)
         self.h_sep_gc = Separator(self.generateTab, orient=HORIZONTAL)
@@ -426,10 +422,6 @@ class Application(Frame):
 
         self.progressBar.start()
 
-        # for sval, ival in zip(['Top 25', 'Mid 25', 'Bot 25'], [0, 5, 14]):
-        #     if sval == self.varCountLimit.get():
-        #         t_count = ival
-
         all_numbers = [n[0] for n in self.dataconn.get_number_stats('fantasy_five', 0)]
         top_numbers = all_numbers[:25]
 
@@ -558,46 +550,6 @@ class Application(Frame):
         random.shuffle(selected)
         combos_all = self.set_iterator(selected)
         count = 0
-
-        # while True:
-
-        #     while True:
-
-        #         try:
-        #             combo = next(combos_all)
-
-        #             if numbers:
-        #                 if len(set(numbers).intersection(set(combo))) == 0:
-        #                     combo_set.append(combo)
-        #                     numbers.extend(combo)
-        #                 else:
-        #                     skipped.append(combo)
-        #             else:
-        #                 combo_set.append(combo)
-        #                 numbers.extend(combo)
-                    
-        #             if len(combo_set) == 5:
-        #                 combo_sets.append(combo_set)
-        #                 combo_set = []
-        #                 numbers = []
-        #         except:
-        #             break
-
-        #     if combo_set:
-        #         for c in combo_set:
-        #             if c not in skipped:
-        #                 skipped.append(c)
-            
-        #     count += 1
-            
-        #     if count == self.count_limit:
-        #         break
-            
-        #     random.shuffle(skipped)
-        #     combos_all = self.set_iterator(skipped)
-        #     combo_set = []
-        #     skipped = []
-        #     numbers = []
 
         while True:
 

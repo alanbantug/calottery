@@ -567,43 +567,6 @@ class Application(Frame):
             
         print(f'After winner filter      : {len(selected)}')
 
-            # winners_list = self.dataconn.get_mps_select('super_lotto', 100)
-
-            # ''' the code below compares combinations against the last 100 winners
-            #     making sure there is no close match 
-            # '''
-            # combos_all = self.set_iterator(selected)
-            # selected = []
-
-            # while True:
-
-            #     try:
-            #         combo = next(combos_all)
-            #         if self.check_last_select(combo, winners_list): 
-            #             pass 
-            #         else:
-            #             selected.append(combo)
-            #     except:
-            #         break
-
-            # print(f'After last check filter  : {len(selected)}')
-
-            # ''' Add code here to check each combination if it has 1 or less from each range 
-            # '''
-            # combos_all = self.set_iterator(selected)
-            # selected = []
-
-            # while True:
-
-            #     try:
-            #         combo = next(combos_all)
-            #         if self.check_last_select(combo, winners_list): 
-            #             pass 
-            #         else:
-            #             selected.append(combo)
-            #     except:
-            #         break
-
         if self.baseOption.get() ==  2:
             
             combos_all = self.set_iterator(selected)
@@ -631,50 +594,6 @@ class Application(Frame):
 
         combos_all = self.set_iterator(selected)
         count = 0
-
-        # while True:
-
-        #     while True:
-
-        #         try:
-        #             combo = next(combos_all)
-
-        #             if numbers:
-        #                 if len(set(numbers).intersection(set(combo))) == 0:
-        #                     numbers.extend(combo)
-        #                     combo.append(self.get_a_super())
-        #                     combo_set.append(combo)
-                            
-        #                 else:
-        #                     skipped.append(combo)
-        #             else:
-        #                 numbers.extend(combo)
-        #                 combo.append(self.get_a_super())
-        #                 combo_set.append(combo)
-                        
-        #             if len(combo_set) == 5:
-        #                 combo_sets.append(combo_set)
-        #                 combo_set = []
-        #                 numbers = []
-        #         except:
-        #             break
-
-        #     if combo_set:
-        #         for c in combo_set:
-        #             c.pop()  # pop the super added
-        #             if c not in skipped:
-        #                 skipped.append(c)
-
-        #     count += 1
-            
-        #     if count == self.count_limit:
-        #         break
-
-        #     random.shuffle(skipped)
-        #     combos_all = self.set_iterator(skipped)
-        #     combo_set = []
-        #     skipped = []
-        #     numbers = []
 
         while True:
 
@@ -796,7 +715,6 @@ class Application(Frame):
         
         match_check = [match for match in match_check if match in [0,1]]
         
-        #return True if len(match_check) in range(89, 95) else False
         return True if len(match_check) in range(88, 96) else False
 
     def clear_generated(self):
