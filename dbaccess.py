@@ -603,3 +603,16 @@ class databaseConn(object):
         cur.close()
 
         return idx_key_list[0][0]
+    
+    def execute_select(self, select_sql):
+
+        cur = self.db_conn.cursor()
+
+        cur.execute(select_sql)
+
+        select_data = cur.fetchall()
+
+        cur.close()
+
+        return select_data
+
