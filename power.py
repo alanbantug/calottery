@@ -487,102 +487,16 @@ class Application(Frame):
         start = datetime.now()
         print(start)
 
-        self.count_limit = 2000
-
-        combos_all = self.set_generator(all_numbers, 5)
-        selected = []
-
-        while True:
-
-            try:
-                combo = next(combos_all)
-                selected.append(sorted(list(combo)))
-            except Exception as e:
-                break
-
-        print(f'All combinations         : {len(selected)}')
-
-        if self.noCon.get():
-            combos_all = self.set_iterator(selected)
-            selected = []
-
-            while True:
-
-                try:
-                    combo = next(combos_all)
-                    if self.check_consecutives(combo):
-                        selected.append(combo)
-                except:
-                    break
-
-        print(f'After consecutive filter : {len(selected)}')
-
-        if self.pattern.get():
-
-            combos_all = self.set_iterator(selected)
-            selected = []
-
-            while True:
-
-                try:
-                    combo = next(combos_all)
-                    if self.check_pattern(combo):
-                        selected.append(combo)
-                except:
-                    break
-
-        print(f'After pattern filter     : {len(selected)}')
-
-        if self.noClose.get():
-
-            combos_all = self.set_iterator(selected)
-            selected = []
-
-            while True:
-
-                try:
-                    combo = next(combos_all)
-                    if self.dataconn.check_mps_winner('power_ball', combo): # if winner, bypass 
-                        pass 
-                    else:
-                        selected.append(combo)
-                except:
-                    break
-
-        print(f'After winner filter      : {len(selected)}')
+        self.count_limit = 4000
 
         if self.baseOption.get() == 1:
 
-            combos_all = self.set_iterator(selected)
-            selected = []
-
-            while True:
-
-                try:
-                    combo = next(combos_all)
-                    if len(set(top_numbers).intersection(set(combo))) == int(self.varCountLimit.get()):
-                        selected.append(list(combo))
-                except:
-                    break
-
-        print(f'After top numbers filter : {len(selected)}')
+            selected = self.generate_and_filter(all_numbers, top_numbers)
 
         if self.baseOption.get() == 2:
 
-            combos_all = self.set_iterator(selected)
-            selected = []
+            selected = self.retrieve_qualified_combos()
 
-            while True:
-
-                try:
-                    combo = next(combos_all)
-                    if self.check_index_class(combo) == int(self.varClassList.get()):
-                        selected.append(list(combo))
-                except:
-                    break
-
-        print(f'After class filter       : {len(selected)}')
-            
         ''' The logic below will select combinations and remove them from succeeding iterations
             This will ensure that combinations will not be selected again
         '''
@@ -633,6 +547,127 @@ class Application(Frame):
         self.genSet['text'] = 'NEXT'
         self.get_a_set()
 
+    def generate_and_filter(self, all_numbers, top_numbers):
+
+        combos_all = self.set_generator(all_numbers, 5)
+        selected = []
+
+        while True:
+
+            try:
+                combo = next(combos_all)
+                selected.append(sorted(list(combo)))
+            except Exception as e:
+                break
+
+        print(f'All combinations         : {len(selected)}')
+
+        combos_all = self.set_iterator(selected)
+        selected = []
+
+        while True:
+
+            try:
+                combo = next(combos_all)
+                if len(set(top_numbers).intersection(set(combo))) == int(self.varCountLimit.get()):
+                    selected.append(list(combo))
+            except:
+                break
+
+        print(f'After top numbers filter : {len(selected)}')
+
+        if self.noCon.get():
+            combos_all = self.set_iterator(selected)
+            selected = []
+
+            while True:
+
+                try:
+                    combo = next(combos_all)
+                    if self.check_consecutives(combo):
+                        selected.append(combo)
+                except:
+                    break
+
+        print(f'After consecutive filter : {len(selected)}')
+
+        if self.pattern.get():
+
+            combos_all = self.set_iterator(selected)
+            selected = []
+
+            while True:
+
+                try:
+                    combo = next(combos_all)
+                    if self.check_pattern(combo):
+                        selected.append(combo)
+                except:
+                    break
+
+        print(f'After pattern filter     : {len(selected)}')
+
+        if self.noClose.get():
+
+            combos_all = self.set_iterator(selected)
+            selected = []
+
+            while True:
+
+                try:
+                    combo = next(combos_all)
+                    if self.dataconn.check_mps_winner('power_ball', combo): # if winner, bypass 
+                        pass 
+                    else:
+                        selected.append(combo)
+                except:
+                    break
+
+        print(f'After winner filter      : {len(selected)}') 
+
+        return selected 
+    
+    def retrieve_qualified_combos(self):
+        
+        select_sql = f'''
+        select combo_idx from power_combos
+        order by combo_idx desc
+        limit 1'''
+
+        hi_count = self.dataconn.execute_select(select_sql)
+
+        game_mean = int(hi_count[0][0]/2)
+
+        print(game_mean)
+
+        select_sql = f'''
+        select combo_key
+        from power_combos'''
+
+        if int(self.varClassList.get()) == 0:
+            select_sql += f''' where combo_idx <= {game_mean}'''
+        else: 
+            select_sql += f''' where combo_idx >  {game_mean}'''
+
+        if self.noClose.get():
+            select_sql += ''' and win_count = 0'''
+
+        if self.noCon.get():
+            select_sql += ''' and con_count = 0'''
+        else:
+            select_sql += ''' and con_count < 3'''
+
+        if self.pattern.get():
+            select_sql += ''' and odd_count in (4,3,2,1)''' 
+
+        combo_keys = self.dataconn.execute_select(select_sql)
+
+        selected = [self.split_key(combo_key[0]) for combo_key in combo_keys]
+
+        print(f'Qualified combinations   : {len(selected)}')
+
+        return selected  
+
     def format_sets(self, number_set):
 
         c_set = []
@@ -640,6 +675,14 @@ class Application(Frame):
             c_set.append(number_set[i:i+5])
         
         return c_set
+
+    def split_key(self, combo_key):
+        
+        numbers = []
+        for i in range(0,10,2):
+            numbers.append(int(combo_key[i:i+2]))
+    
+        return numbers
 
     def set_generator(self, nums, count):
 
