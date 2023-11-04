@@ -85,9 +85,12 @@ class Application(Frame):
         self.dataTab = Frame(self.parentTab)   # first page, which would get widgets gridded into it
         self.statTab = Frame(self.parentTab)   # second page
         self.generateTab = Frame(self.parentTab)   # second page
+        self.betsTab = Frame(self.parentTab)   # second page
+
         self.parentTab.add(self.dataTab, text='   Data     ')
         self.parentTab.add(self.statTab, text='   Stats     ')
         self.parentTab.add(self.generateTab, text=' Generate   ')
+        self.parentTab.add(self.betsTab, text=' Bets   ')
 
         self.dataDisplay = LabelFrame(self.dataTab, text=' Winners', style="O.TLabelframe")
         self.dataCheck = LabelFrame(self.dataTab, text=' Combination Check', style="O.TLabelframe")
@@ -208,6 +211,25 @@ class Application(Frame):
         self.genSave.grid(row=17, column=3, columnspan=1, padx=5, pady=(5, 2), sticky='NSEW')
         self.genClear.grid(row=17, column=4, columnspan=1, padx=5, pady=(5, 2), sticky='NSEW')
 
+        ''' add widgets for bets tab
+        '''
+
+        self.betsDisplay = LabelFrame(self.betsTab, text=' Plays', style="O.TLabelframe")
+        
+        self.betsscroller = Scrollbar(self.betsDisplay, orient=VERTICAL)
+        self.betsSelect = Listbox(self.betsDisplay, yscrollcommand=self.betsscroller.set, width=70, height=15)
+        self.checkWins = Button(self.betsDisplay, text="Check for winners", style="F.TButton", command = lambda : self.checkBetWinners())
+        self.resetBetList = Button(self.betsDisplay, text="Reset", style="F.TButton", command = lambda : self.loadBets())
+
+        ''' display widgets for bets tab
+        '''
+
+        self.betsSelect.grid(row=0, column=0, padx=(10,0), pady=5, sticky='NSEW')
+        self.betsscroller.grid(row=0, column=1, padx=(10,0), pady=5, sticky='NSEW')
+        self.checkWins.grid(row=1, column=0, columnspan=5, padx=(10,5), pady=5, sticky='NSEW')
+        self.resetBetList.grid(row=2, column=0, columnspan=5, padx=(10,5), pady=5, sticky='NSEW')
+        self.betsDisplay.grid(row=7, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
+
         self.dataconn = db.databaseConn()
 
         self.sortOrder.set(0)
@@ -224,6 +246,7 @@ class Application(Frame):
         self.loadData()
         self.loadStats()
         self.loadTrend()
+        self.loadBets()
 
         self.game_mean = int(575757/2)
 
@@ -287,6 +310,35 @@ class Application(Frame):
             self.dataSelect.insert(END, 'No data found')
 
         self.dscroller.config(command=self.dataSelect.yview)
+
+    def loadBets(self):
+
+        winners = self.dataconn.get_plays('fantasy_five_bets', False)
+
+        self.betsSelect.delete(0, END)
+
+        for winner in winners:
+
+            formatted = self.formatBetsLine(winner)
+
+            self.betsSelect.insert(END, formatted)
+
+        self.betsscroller.config(command=self.betsSelect.yview)
+
+    def formatBetsLine(self, winner):
+
+        winner_data = list(winner)
+
+        play_date = winner_data[0]
+        numbers = winner_data[1:]
+
+        winner_data[1:] = ['{:02d}'.format(int(num)) for num in winner_data[1:]]
+
+        if self.dataconn.check_fantasy_winner(numbers, play_date):
+            winner_data.append('W')
+
+        return "     -     ".join(winner_data)
+
 
     def formatDataLine(self, winner):
 

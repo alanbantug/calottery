@@ -94,7 +94,7 @@ class databaseConn(object):
 
         return winners_select
 
-    def check_fantasy_winner(self, numbers):
+    def check_fantasy_winner(self, numbers, play_date=''):
 
         cur = self.db_conn.cursor()
 
@@ -106,6 +106,9 @@ class databaseConn(object):
         and numd = {numbers[3]}
         and nume = {numbers[4]}
         '''
+
+        if play_date:
+            select_sql = select_sql + f'''and draw_date >= '{play_date}' '''
 
         cur.execute(select_sql)
 
@@ -415,6 +418,32 @@ class databaseConn(object):
         self.db_conn.commit()
 
         cur.close()
+
+    def get_plays(self, table_name, extra):
+
+        if extra:
+            select_sql = f'''
+            select to_char(play_date, 'YYYY-MM-DD'), numa, numb, numc, numd, nume, numx
+            from {table_name}
+            order by play_date desc, seq_num desc
+            '''
+        else:
+            select_sql = f'''
+            select to_char(play_date, 'YYYY-MM-DD'), numa, numb, numc, numd, nume
+            from {table_name}
+            order by play_date desc, seq_num desc
+            '''
+
+        cur = self.db_conn.cursor()
+
+        cur.execute(select_sql)
+
+        winners = cur.fetchall()
+
+        cur.close()
+
+        return winners
+
 
     def delete_mps_plays(self, table_name):
 
