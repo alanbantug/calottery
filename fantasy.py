@@ -90,7 +90,7 @@ class Application(Frame):
         self.parentTab.add(self.dataTab, text='   Data     ')
         self.parentTab.add(self.statTab, text='   Stats     ')
         self.parentTab.add(self.generateTab, text=' Generate   ')
-        self.parentTab.add(self.betsTab, text=' Bets   ')
+        self.parentTab.add(self.betsTab, text=' Plays   ')
 
         self.dataDisplay = LabelFrame(self.dataTab, text=' Winners', style="O.TLabelframe")
         self.dataCheck = LabelFrame(self.dataTab, text=' Combination Check', style="O.TLabelframe")
@@ -217,17 +217,13 @@ class Application(Frame):
         self.betsDisplay = LabelFrame(self.betsTab, text=' Plays', style="O.TLabelframe")
         
         self.betsscroller = Scrollbar(self.betsDisplay, orient=VERTICAL)
-        self.betsSelect = Listbox(self.betsDisplay, yscrollcommand=self.betsscroller.set, width=70, height=15)
-        self.checkWins = Button(self.betsDisplay, text="Check for winners", style="F.TButton", command = lambda : self.checkBetWinners())
-        self.resetBetList = Button(self.betsDisplay, text="Reset", style="F.TButton", command = lambda : self.loadBets())
+        self.betsSelect = Listbox(self.betsDisplay, yscrollcommand=self.betsscroller.set, width=70, height=19)
 
         ''' display widgets for bets tab
         '''
 
         self.betsSelect.grid(row=0, column=0, padx=(10,0), pady=5, sticky='NSEW')
         self.betsscroller.grid(row=0, column=1, padx=(10,0), pady=5, sticky='NSEW')
-        self.checkWins.grid(row=1, column=0, columnspan=5, padx=(10,5), pady=5, sticky='NSEW')
-        self.resetBetList.grid(row=2, column=0, columnspan=5, padx=(10,5), pady=5, sticky='NSEW')
         self.betsDisplay.grid(row=7, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
 
         self.dataconn = db.databaseConn()
