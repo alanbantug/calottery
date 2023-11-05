@@ -85,12 +85,12 @@ class Application(Frame):
         self.dataTab = Frame(self.parentTab)   # first page, which would get widgets gridded into it
         self.statTab = Frame(self.parentTab)   # second page
         self.generateTab = Frame(self.parentTab)   # second page
-        self.betsTab = Frame(self.parentTab)   # second page
+        self.playsTab = Frame(self.parentTab)   # second page
 
         self.parentTab.add(self.dataTab, text='   Data     ')
         self.parentTab.add(self.statTab, text='   Stats     ')
         self.parentTab.add(self.generateTab, text=' Generate   ')
-        self.parentTab.add(self.betsTab, text=' Plays   ')
+        self.parentTab.add(self.playsTab, text=' Plays   ')
 
         self.dataDisplay = LabelFrame(self.dataTab, text=' Winners', style="O.TLabelframe")
         self.dataCheck = LabelFrame(self.dataTab, text=' Combination Check', style="O.TLabelframe")
@@ -214,17 +214,17 @@ class Application(Frame):
         ''' add widgets for bets tab
         '''
 
-        self.betsDisplay = LabelFrame(self.betsTab, text=' Plays', style="O.TLabelframe")
+        self.playsDisplay = LabelFrame(self.playsTab, text='', style="O.TLabelframe")
         
-        self.betsscroller = Scrollbar(self.betsDisplay, orient=VERTICAL)
-        self.betsSelect = Listbox(self.betsDisplay, yscrollcommand=self.betsscroller.set, width=70, height=19)
+        self.playsscroller = Scrollbar(self.playsDisplay, orient=VERTICAL)
+        self.playsSelect = Listbox(self.playsDisplay, yscrollcommand=self.playsscroller.set, width=70, height=19)
 
         ''' display widgets for bets tab
         '''
 
-        self.betsSelect.grid(row=0, column=0, padx=(10,0), pady=5, sticky='NSEW')
-        self.betsscroller.grid(row=0, column=1, padx=(10,0), pady=5, sticky='NSEW')
-        self.betsDisplay.grid(row=7, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
+        self.playsSelect.grid(row=0, column=0, padx=(10,0), pady=5, sticky='NSEW')
+        self.playsscroller.grid(row=0, column=1, padx=(10,0), pady=5, sticky='NSEW')
+        self.playsDisplay.grid(row=7, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
 
         self.dataconn = db.databaseConn()
 
@@ -311,15 +311,15 @@ class Application(Frame):
 
         winners = self.dataconn.get_plays('fantasy_five_bets', False)
 
-        self.betsSelect.delete(0, END)
+        self.playsSelect.delete(0, END)
 
         for winner in winners:
 
             formatted = self.formatBetsLine(winner)
 
-            self.betsSelect.insert(END, formatted)
+            self.playsSelect.insert(END, formatted)
 
-        self.betsscroller.config(command=self.betsSelect.yview)
+        self.playsscroller.config(command=self.playsSelect.yview)
 
     def formatBetsLine(self, winner):
 

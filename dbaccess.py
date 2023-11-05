@@ -325,7 +325,7 @@ class databaseConn(object):
 
         return winners_select
 
-    def check_mps_winner(self, table_name, numbers):
+    def check_mps_winner(self, table_name, numbers, play_date=''):
 
         cur = self.db_conn.cursor()
 
@@ -337,6 +337,9 @@ class databaseConn(object):
         and numd = {numbers[3]}
         and nume = {numbers[4]}
         '''
+
+        if play_date:
+            select_sql = select_sql + f'''and draw_date >= '{play_date}' '''
 
         cur.execute(select_sql)
 

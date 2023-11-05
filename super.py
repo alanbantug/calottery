@@ -86,10 +86,12 @@ class Application(Frame):
         self.parentTab = Notebook(self.main_container)
         self.dataTab = Frame(self.parentTab)   # first page, which would get widgets gridded into it
         self.statTab = Frame(self.parentTab)   # second page
-        self.generateTab = Frame(self.parentTab)   # second page
+        self.generateTab = Frame(self.parentTab)   # third page
+        self.playsTab = Frame(self.parentTab)   # third page
         self.parentTab.add(self.dataTab, text='   Data     ')
         self.parentTab.add(self.statTab, text='   Stats     ')
         self.parentTab.add(self.generateTab, text=' Generate   ')
+        self.parentTab.add(self.playsTab, text=' Plays   ')
 
         self.dataDisplay = LabelFrame(self.dataTab, text=' Winners', style="O.TLabelframe")
         self.dataCheck = LabelFrame(self.dataTab, text=' Combination Check', style="O.TLabelframe")
@@ -222,6 +224,20 @@ class Application(Frame):
         self.genSave.grid(row=21, column=3, columnspan=1, padx=5, pady=(5, 2), sticky='NSEW')
         self.genClear.grid(row=21, column=4, columnspan=1, padx=5, pady=(5, 2), sticky='NSEW')
 
+        ''' add widgets for bets tab
+        '''
+
+        self.playsDisplay = LabelFrame(self.playsTab, text='', style="O.TLabelframe")
+        self.playsscroller = Scrollbar(self.playsDisplay, orient=VERTICAL)
+        self.playsSelect = Listbox(self.playsDisplay, yscrollcommand=self.playsscroller.set, width=95, height=25)
+
+        ''' display widgets for bets tab
+        '''
+
+        self.playsSelect.grid(row=0, column=0, padx=(10,0), pady=5, sticky='NSEW')
+        self.playsscroller.grid(row=0, column=1, padx=(10,0), pady=5, sticky='NSEW')
+        self.playsDisplay.grid(row=7, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
+
         self.dataconn = db.databaseConn()
 
         self.sortOrder.set(0)
@@ -239,6 +255,7 @@ class Application(Frame):
         self.loadStats()
         self.loadSuperStats()
         self.loadTrend()
+        self.loadBets()
 
         self.game_mean = int(1533939/2)
 
@@ -306,6 +323,34 @@ class Application(Frame):
 
         self.dscroller.config(command=self.dataSelect.yview)
 
+    def loadBets(self):
+
+        winners = self.dataconn.get_plays('super_lotto_bets', True)
+
+        self.playsSelect.delete(0, END)
+
+        for winner in winners:
+
+            formatted = self.formatBetsLine(winner)
+
+            self.playsSelect.insert(END, formatted)
+
+        self.playsscroller.config(command=self.playsSelect.yview)
+
+    def formatBetsLine(self, winner):
+
+        winner_data = list(winner)
+
+        play_date = winner_data[0]
+        numbers = winner_data[1:]
+
+        winner_data[1:] = ['{:02d}'.format(int(num)) for num in winner_data[1:]]
+
+        if self.dataconn.check_mps_winner('super_lotto', numbers[:5], play_date):
+            winner_data.append('W')
+
+        return "     -     ".join(winner_data)
+    
     def formatDataLine(self, winner):
 
         winner_data = list(winner)
