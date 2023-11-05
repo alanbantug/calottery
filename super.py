@@ -87,7 +87,7 @@ class Application(Frame):
         self.dataTab = Frame(self.parentTab)   # first page, which would get widgets gridded into it
         self.statTab = Frame(self.parentTab)   # second page
         self.generateTab = Frame(self.parentTab)   # third page
-        self.playsTab = Frame(self.parentTab)   # third page
+        self.playsTab = Frame(self.parentTab)   # fourth page
         self.parentTab.add(self.dataTab, text='   Data     ')
         self.parentTab.add(self.statTab, text='   Stats     ')
         self.parentTab.add(self.generateTab, text=' Generate   ')
