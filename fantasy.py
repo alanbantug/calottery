@@ -215,9 +215,9 @@ class Application(Frame):
         '''
 
         self.playsDisplay = LabelFrame(self.playsTab, text='', style="O.TLabelframe")
-        
         self.playsscroller = Scrollbar(self.playsDisplay, orient=VERTICAL)
-        self.playsSelect = Listbox(self.playsDisplay, yscrollcommand=self.playsscroller.set, width=70, height=19)
+        self.playsSelect = Listbox(self.playsDisplay, yscrollcommand=self.playsscroller.set, width=70, height=17)
+        self.playReload = Button(self.playsDisplay, text="RELOAD", style="F.TButton", command=self.loadBets)
 
         ''' display widgets for bets tab
         '''
@@ -225,6 +225,7 @@ class Application(Frame):
         self.playsSelect.grid(row=0, column=0, padx=(10,0), pady=5, sticky='NSEW')
         self.playsscroller.grid(row=0, column=1, padx=(10,0), pady=5, sticky='NSEW')
         self.playsDisplay.grid(row=7, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
+        self.playReload.grid(row=8, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
 
         self.dataconn = db.databaseConn()
 

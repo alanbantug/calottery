@@ -231,7 +231,8 @@ class Application(Frame):
 
         self.playsDisplay = LabelFrame(self.playsTab, text='', style="O.TLabelframe")
         self.playsscroller = Scrollbar(self.playsDisplay, orient=VERTICAL)
-        self.playsSelect = Listbox(self.playsDisplay, yscrollcommand=self.playsscroller.set, width=95, height=25)
+        self.playsSelect = Listbox(self.playsDisplay, yscrollcommand=self.playsscroller.set, width=95, height=23)
+        self.playReload = Button(self.playsDisplay, text="RELOAD", style="F.TButton", command=self.loadBets)
 
         ''' display widgets for bets tab
         '''
@@ -239,6 +240,7 @@ class Application(Frame):
         self.playsSelect.grid(row=0, column=0, padx=(10,0), pady=5, sticky='NSEW')
         self.playsscroller.grid(row=0, column=1, padx=(10,0), pady=5, sticky='NSEW')
         self.playsDisplay.grid(row=7, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
+        self.playReload.grid(row=8, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
 
         self.dataconn = db.databaseConn()
 
@@ -818,6 +820,7 @@ class Application(Frame):
     def save_generated(self):
 
         self.dataconn.save_mps_plays('mega_lotto_bets')
+        messagebox.showinfo('Saved', 'Combination set save in database')
 
     def getCountLimits(self):
 

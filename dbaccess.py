@@ -205,6 +205,7 @@ class databaseConn(object):
 
         cur.execute(select_sql)
         seq_num = cur.fetchall()[0][0]
+
         '''
         update
         '''
@@ -404,7 +405,10 @@ class databaseConn(object):
         '''
 
         cur.execute(select_sql)
+        # seq_num = cur.fetchall()[0][0]
         seq_num = cur.fetchall()[0][0]
+        print(seq_num)
+
         '''
         update
         '''
@@ -424,16 +428,20 @@ class databaseConn(object):
 
     def get_plays(self, table_name, extra):
 
+        saved_ind = True
+
         if extra:
             select_sql = f'''
             select to_char(play_date, 'YYYY-MM-DD'), numa, numb, numc, numd, nume, numx
             from {table_name}
+            where saved_ind = {saved_ind}
             order by play_date desc, seq_num desc
             '''
         else:
             select_sql = f'''
             select to_char(play_date, 'YYYY-MM-DD'), numa, numb, numc, numd, nume
             from {table_name}
+            where saved_ind = {saved_ind}
             order by play_date desc, seq_num desc
             '''
 
