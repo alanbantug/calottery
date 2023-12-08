@@ -46,12 +46,16 @@ class Application(Frame):
         self.noCon = IntVar()
         self.pattern = IntVar()
         self.baseOption = IntVar()
+        self.plotTopNumbers = IntVar()
+        self.plotIdxClass = IntVar()
+        self.plotPatClass = IntVar()
 
         self.generated = [] 
 
         self.varCountLimit = StringVar()
         self.limitList = ['5', '5', '4', '3', '2']
-        self.varClassList = StringVar()
+        self.varIdxClass = StringVar()
+        self.varPatClass = StringVar()
         self.classList = ['0', '0', '1']
 
         rfont = font.Font(family='Verdana', size=8)
@@ -138,19 +142,25 @@ class Application(Frame):
         define widgets for stats tab
         '''
         self.statDisplay = LabelFrame(self.statTab, text=' Count ', style="O.TLabelframe")
-        self.trendDisplay = LabelFrame(self.statTab, text=' Top Numbers Trend ', style="O.TLabelframe")
+        self.trendDisplay = LabelFrame(self.statTab, text=' Trends ', style="O.TLabelframe")
         self.sscroller = Scrollbar(self.statDisplay, orient=VERTICAL)
         self.sortStat = Button(self.statDisplay, text="Sort", style="F.TButton", command=self.statSortOrder)
         self.statSelect = Listbox(self.statDisplay, yscrollcommand=self.sscroller.set, width=18, height=17)
         self.trendPlot = Label(self.trendDisplay)
         self.reloadTrend = Button(self.trendDisplay, text="Reload", style="F.TButton", command=self.reload)
+        self.plotTop = Checkbutton(self.trendDisplay, text="Top Numbers", style="B.TCheckbutton", variable=self.plotTopNumbers)
+        self.plotIdx = Checkbutton(self.trendDisplay, text="Index Class", style="B.TCheckbutton", variable=self.plotIdxClass)
+        self.plotPat = Checkbutton(self.trendDisplay, text="Pat Class", style="B.TCheckbutton", variable=self.plotPatClass)
 
         self.statSelect.grid(row=0, column=0, padx=(10,0), pady=5, sticky='NSEW')
         self.sscroller.grid(row=0, column=1, padx=(5,0), pady=5, sticky='NSEW')
         self.sortStat.grid(row=1, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
         self.statDisplay.grid(row=0, column=0, columnspan=1, padx=5, pady=5, sticky='NSEW')
-        self.trendPlot.grid(row=0, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
-        self.reloadTrend.grid(row=1, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
+        self.plotTop.grid(row=0, column=0, padx=5, pady=5, sticky='NSEW')
+        self.plotIdx.grid(row=0, column=0, padx=(110,5), pady=5, sticky='NSEW')
+        self.plotPat.grid(row=0, column=0, padx=(220,5), pady=5, sticky='NSEW')
+        self.trendPlot.grid(row=1, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
+        self.reloadTrend.grid(row=2, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
         self.trendDisplay.grid(row=0, column=1, columnspan=4, padx=5, pady=5, sticky='NSEW')
 
         '''
@@ -161,8 +171,10 @@ class Application(Frame):
         self.classOption = Radiobutton(self.mainOptions, text="Class", style="B.TRadiobutton", variable=self.baseOption, value=2)
         self.topCountList = OptionMenu(self.mainOptions, self.varCountLimit, *self.limitList)
         self.topCountList.config(width=5)
-        self.classOptList = OptionMenu(self.mainOptions, self.varClassList, *self.classList)
-        self.classOptList.config(width=5)
+        self.idxClassList = OptionMenu(self.mainOptions, self.varIdxClass, *self.classList)
+        self.patClassList = OptionMenu(self.mainOptions, self.varPatClass, *self.classList)
+        self.idxClassList.config(width=5)
+        self.patClassList.config(width=5)
 
         self.filterOptions = LabelFrame(self.generateTab, text='Filters', style="O.TLabelframe")
         self.topNumsOnly = Checkbutton(self.filterOptions, text="Top numbers only", style="B.TCheckbutton", variable=self.topNumbers)
@@ -191,14 +203,15 @@ class Application(Frame):
         self.topsOption.grid(row=0, column=0, padx=5, pady=5, sticky="NSEW")
         self.topCountList.grid(row=0, column=1, padx=5, pady=5, sticky="NSEW")
         self.classOption.grid(row=1, column=0, padx=5, pady=5, sticky="NSEW")
-        self.classOptList.grid(row=1, column=1, padx=5, pady=5, sticky="NSEW")
-        self.mainOptions.grid(row=0, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
+        self.idxClassList.grid(row=1, column=1, padx=5, pady=5, sticky="NSEW")
+        self.patClassList.grid(row=1, column=2, padx=5, pady=5, sticky="NSEW")
+        self.mainOptions.grid(row=0, column=0, columnspan=3, padx=5, pady=2, sticky='NSEW')
 
         self.noConsec.grid(row=0, column=0, padx=5, pady=5, sticky="NSEW")
-        self.skipLastWin.grid(row=0, column=1, padx=5, pady=5, sticky="NSEW")
-        self.avoidClose.grid(row=1, column=1, padx=5, pady=(12,5), sticky="NSEW")
-        self.commonPattern.grid(row=1, column=0, padx=5, pady=(12,5), sticky="NSEW")
-        self.filterOptions.grid(row=0, column=2, columnspan=3, padx=5, pady=5, sticky='NSEW')
+        # self.skipLastWin.grid(row=0, column=1, padx=5, pady=5, sticky="NSEW")
+        self.avoidClose.grid(row=1, column=0, padx=5, pady=5, sticky="NSEW")
+        # self.commonPattern.grid(row=0, column=2, padx=5, pady=5, sticky="NSEW")
+        self.filterOptions.grid(row=0, column=3, columnspan=2, padx=5, pady=2, sticky='NSEW')
 
         self.h_sep_ga.grid(row=4, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
 
@@ -238,6 +251,7 @@ class Application(Frame):
         self.pattern.set(0)
 
         self.varCountLimit.set('5')
+        self.plotTopNumbers.set(1)
         self.baseOption.set(1)
 
         self.loadData()
@@ -382,14 +396,22 @@ class Application(Frame):
         cols = ['Draw Date', 'A', 'B', 'C', 'D', 'E']
         df = pd.DataFrame.from_records(winners, columns=cols)
 
-        df['TOP'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_top_n, args=(25, ), axis=1)
-        df['IDX'] = df[['A', 'B', 'C', 'D', 'E']].apply(self.check_index_class, axis=1)
+        plt.figure(figsize=(4,3))
 
-        plt.figure(figsize=(3,3))
-        plt.plot(df['TOP'][:40], 'x-', label='T25', color='blue', alpha=0.5)
-        plt.plot(df['IDX'][:40], 'o-', label='IDX', color='green', alpha=0.5)
+        if self.plotTopNumbers.get():
+            df['TOP'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_top_n, args=(25, ), axis=1)
+            plt.plot(df['TOP'][:40], 'x-', label='T25', color='black', alpha=0.5)
+        if self.plotIdxClass.get():
+            df['CLS'] = df[['A', 'B', 'C', 'D', 'E']].apply(self.check_index_class, axis=1)
+            plt.plot(df['CLS'][:40], 'o-', label='IDX', color='green', alpha=0.5)
+        if self.plotPatClass.get():
+            df['PAT'] = df[['A', 'B', 'C', 'D', 'E']].apply(self.check_pattern_class, axis=1)
+            plt.plot(df['PAT'][:40], 'o-', label='PAT', color='blue', alpha=0.5)
+
         plt.grid(axis='both', color='grey', alpha=0.5)
-        plt.legend(title='Labels', loc='upper right')
+        plt.legend(title='Labels', loc='center right')
+        ax = plt.gca()
+        ax.set_yticks([5,4,3,2,1,0])
         plt.savefig('fantasy.jpg')
 
         self.progressBar.stop()
@@ -402,7 +424,7 @@ class Application(Frame):
     def loadImage(self):
 
         image = Image.open("fantasy.jpg")
-        image = image.resize((300,270))
+        image = image.resize((300,240))
         results_fig = ImageTk.PhotoImage(image)
 
         # Define a style
@@ -648,7 +670,7 @@ class Application(Frame):
         select combo_key
         from fantasy_combos'''
 
-        if int(self.varClassList.get()) == 0:
+        if int(self.varIdxClass.get()) == 0:
             select_sql += f''' where combo_idx <= {game_mean}'''
         else: 
             select_sql += f''' where combo_idx >  {game_mean}'''
@@ -661,8 +683,10 @@ class Application(Frame):
         else:
             select_sql += ''' and con_count < 3'''
 
-        if self.pattern.get():
-            select_sql += ''' and odd_count in (4,3,2,1)''' 
+        if int(self.varPatClass.get()) == 0:
+            select_sql += ''' and odd_count < 3''' 
+        else:
+            select_sql += ''' and odd_count >= 3''' 
 
         combo_keys = self.dataconn.execute_select(select_sql)
 
@@ -716,6 +740,12 @@ class Application(Frame):
         idx_val = self.dataconn.get_combo_index(combo_key, 'fantasy_combos')
         
         return 1 if idx_val > self.game_mean else 0
+
+    def check_pattern_class(self, num_set):
+
+        count = len([num for num in num_set if num % 2 > 0])
+
+        return 1 if count > 2 else 0
 
     def check_consecutives(self, num_set):
 
