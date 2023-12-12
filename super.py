@@ -449,8 +449,8 @@ class Application(Frame):
             plt.plot(df['TOP'][:50], 'x-', label='T25', color='black', alpha=0.5)
         
         if self.plotIdxClass.get():
-            df['CLS'] = df[['A', 'B', 'C', 'D', 'E']].apply(self.check_index_class, axis=1)
-            plt.plot(df['CLS'][:50], 'o-', label='IDX', color='green', alpha=0.5)
+            df['IDX'] = df[['A', 'B', 'C', 'D', 'E']].apply(self.check_index_class, axis=1)
+            plt.plot(df['IDX'][:50], 'o-', label='IDX', color='green', alpha=0.5)
 
         if self.plotPatClass.get():
             df['PAT'] = df[['A', 'B', 'C', 'D', 'E']].apply(self.check_pattern_class, axis=1)
