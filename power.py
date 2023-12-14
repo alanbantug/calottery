@@ -48,6 +48,9 @@ class Application(Frame):
         self.noCon = IntVar()
         self.pattern = IntVar()
         self.baseOption = IntVar()
+        self.plotTopNumbers = IntVar()
+        self.plotIdxClass = IntVar()
+        self.plotPatClass = IntVar()
 
         self.generated = []
 
@@ -154,6 +157,9 @@ class Application(Frame):
 
         self.trendPlot = Label(self.trendDisplay)
         self.reloadTrend = Button(self.trendDisplay, text="Reload", style="F.TButton", command=self.reload)
+        self.plotTop = Checkbutton(self.trendDisplay, text="Top Numbers", style="B.TCheckbutton", variable=self.plotTopNumbers)
+        self.plotIdx = Checkbutton(self.trendDisplay, text="Index Class", style="B.TCheckbutton", variable=self.plotIdxClass)
+        self.plotPat = Checkbutton(self.trendDisplay, text="Pat Class", style="B.TCheckbutton", variable=self.plotPatClass)
 
         self.statNumbers.grid(row=0, column=0, padx=(10,0), pady=5, sticky='NSEW')
         self.nscroller.grid(row=0, column=1, padx=(5,0), pady=5, sticky='NSEW')
@@ -164,8 +170,11 @@ class Application(Frame):
         self.sortPowerStat.grid(row=1, column=2, columnspan=2, padx=5, pady=(12, 5), sticky='NSEW')
         self.statDisplay.grid(row=0, column=0, columnspan=1, padx=5, pady=5, sticky='NSEW')
 
-        self.trendPlot.grid(row=0, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
-        self.reloadTrend.grid(row=1, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
+        self.plotTop.grid(row=0, column=0, padx=5, pady=5, sticky='NSEW')
+        self.plotIdx.grid(row=0, column=0, padx=(160,5), pady=5, sticky='NSEW')
+        self.plotPat.grid(row=0, column=0, padx=(320,5), pady=5, sticky='NSEW')
+        self.trendPlot.grid(row=1, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
+        self.reloadTrend.grid(row=2, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
         self.trendDisplay.grid(row=0, column=1, columnspan=4, padx=5, pady=5, sticky='NSEW')
 
         '''
@@ -414,21 +423,32 @@ class Application(Frame):
 
         self.progressBar.start()
 
+        if self.plotTopNumbers.get() == 0 and self.plotIdxClass.get() == 0 and self.plotPatClass.get() == 0:
+            self.plotTopNumbers.set(1)
+
         winners = self.dataconn.get_mps_data('power_ball')
 
         cols = ['Draw Date', 'A', 'B', 'C', 'D', 'E', 'M']
         df = pd.DataFrame.from_records(winners, columns=cols)
 
-        dt_arg = int(self.varCountLimit.get())
-
-        df['TOPS'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_top_n, args=(25, ), axis=1)
-        df['CIDX'] = df[['A', 'B', 'C', 'D', 'E']].apply(self.check_index_class, axis=1)
-
         plt.figure(figsize=(5,3))
-        plt.plot(df['TOPS'][:50], label='TOPS', color='blue')
-        plt.plot(df['CIDX'][:50], 'o--', label='CIDX', color='green', alpha=0.5)
+
+        if self.plotTopNumbers.get() == 1:
+            df['TOPS'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_top_n, args=(25, ), axis=1)
+            plt.plot(df['TOPS'][:50], 'x--', label='TOPS', color='black')
+
+        if self.plotIdxClass.get() == 1:
+            df['IDX'] = df[['A', 'B', 'C', 'D', 'E']].apply(self.check_index_class, axis=1)
+            plt.plot(df['IDX'][:50], 'o--', label='IDX', color='green', alpha=0.5)
+
+        if self.plotPatClass.get() == 1:
+            df['PAT'] = df[['A', 'B', 'C', 'D', 'E']].apply(self.check_pattern_class, axis=1)
+            plt.plot(df['PAT'][:50], 'o--', label='PAT', color='blue', alpha=0.5)
+
         plt.grid(axis='both', color='grey', alpha=0.5)
         plt.legend(title='Label', loc='upper right')
+        ax = plt.gca()
+        ax.set_yticks([5,4,3,2,1,0])
         plt.savefig('power.jpg')
 
         self.progressBar.stop()
@@ -450,7 +470,7 @@ class Application(Frame):
     def loadImage(self):
 
         image = Image.open("power.jpg")
-        image = image.resize((700,360))
+        image = image.resize((700,330))
         results_fig = ImageTk.PhotoImage(image)
 
         # Define a style
@@ -771,6 +791,12 @@ class Application(Frame):
         idx_val = self.dataconn.get_combo_index(combo_key, 'power_combos')
         
         return 1 if idx_val > self.game_mean else 0
+
+    def check_pattern_class(self, num_set):
+
+        count = len([num for num in num_set if num % 2 > 0])
+
+        return 1 if count > 2 else 0
 
     def check_consecutives(self, num_set):
 
