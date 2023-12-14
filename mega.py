@@ -43,9 +43,8 @@ class Application(Frame):
 
         self.topCount = IntVar()
         self.noClose = IntVar()
-        self.skipWinner = IntVar()
         self.noCon = IntVar()
-        self.pattern = IntVar()
+        self.leanPattern = IntVar()
         self.baseOption = IntVar()
         self.plotTopNumbers = IntVar()
         self.plotIdxClass = IntVar()
@@ -56,7 +55,6 @@ class Application(Frame):
         self.varCountLimit = StringVar()
         self.limitList = ['5', '5', '4', '3', '2']
         self.varIdxClass = StringVar()
-        self.varPatClass = StringVar()
         self.classList = ['0', '0', '1']
 
         rfont = font.Font(family='Verdana', size=8)
@@ -100,7 +98,7 @@ class Application(Frame):
         self.dataCheck = LabelFrame(self.dataTab, text=' Combination Check', style="O.TLabelframe")
 
         self.dscroller = Scrollbar(self.dataDisplay, orient=VERTICAL)
-        self.dataSelect = Listbox(self.dataDisplay, yscrollcommand=self.dscroller.set, width=95, height=17)
+        self.dataSelect = Listbox(self.dataDisplay, yscrollcommand=self.dscroller.set, width=95, height=18)
         self.reloadAll = Button(self.dataDisplay, text="Reload All", style="F.TButton", command = lambda : self.loadData())
         self.retrieveData = Button(self.dataDisplay, text="Retrieve Data", style="F.TButton")
 
@@ -150,10 +148,10 @@ class Application(Frame):
         self.trendDisplay = LabelFrame(self.statTab, text=' Top Numbers Trend ', style="O.TLabelframe")
         self.nscroller = Scrollbar(self.statDisplay, orient=VERTICAL)
         self.sortStat = Button(self.statDisplay, text="Sort", style="F.TButton", command=self.statNumberOrder)
-        self.statNumbers = Listbox(self.statDisplay, yscrollcommand=self.nscroller.set, width=22, height=22)
+        self.statNumbers = Listbox(self.statDisplay, yscrollcommand=self.nscroller.set, width=22, height=23)
         self.sscroller = Scrollbar(self.statDisplay, orient=VERTICAL)
         self.sortMegaStat = Button(self.statDisplay, text="Sort", style="F.TButton", command=self.statMegaOrder)
-        self.statMegas = Listbox(self.statDisplay, yscrollcommand=self.sscroller.set, width=22, height=22)
+        self.statMegas = Listbox(self.statDisplay, yscrollcommand=self.sscroller.set, width=22, height=23)
 
         self.trendPlot = Label(self.trendDisplay)
         self.reloadTrend = Button(self.trendDisplay, text="Reload", style="F.TButton", command=self.reload)
@@ -174,7 +172,7 @@ class Application(Frame):
         self.plotIdx.grid(row=0, column=0, padx=(160,5), pady=5, sticky='NSEW')
         self.plotPat.grid(row=0, column=0, padx=(320,5), pady=5, sticky='NSEW')
         self.trendPlot.grid(row=1, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
-        self.reloadTrend.grid(row=2, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
+        self.reloadTrend.grid(row=2, column=0, columnspan=5, padx=5, pady=(8,5), sticky='NSEW')
         self.trendDisplay.grid(row=0, column=1, columnspan=4, padx=5, pady=5, sticky='NSEW')
 
         '''
@@ -182,21 +180,21 @@ class Application(Frame):
         '''
         self.mainOptions = LabelFrame(self.generateTab, text='Options', style="O.TLabelframe")
 
-        self.topsOption = Radiobutton(self.mainOptions, text="Top numbers", style="B.TRadiobutton", variable=self.baseOption, value=1)
+        self.topsOption = Radiobutton(self.mainOptions, text="Top 25", style="B.TRadiobutton", variable=self.baseOption, value=1)
         self.topCountList = OptionMenu(self.mainOptions, self.varCountLimit, *self.limitList)
-        self.topCountList.config(width=10)
+        self.topCountList.config(width=5)
         self.classOption = Radiobutton(self.mainOptions, text="Class", style="B.TRadiobutton", variable=self.baseOption, value=2)
         self.idxClassList = OptionMenu(self.mainOptions, self.varIdxClass, *self.classList)
-        self.patClassList = OptionMenu(self.mainOptions, self.varPatClass, *self.classList)
-        self.idxClassList.config(width=10)
-        self.patClassList.config(width=10)
+        self.idxClassList.config(width=5)
 
         self.filterOptions = LabelFrame(self.generateTab, text='Filters', style="O.TLabelframe")
-
         self.avoidClose = Checkbutton(self.filterOptions, text="No past winners", style="B.TCheckbutton", variable=self.noClose)
-        self.skipLastWin = Checkbutton(self.filterOptions, text="Skip last winner", style="B.TCheckbutton", variable=self.skipWinner)
         self.noConsec = Checkbutton(self.filterOptions, text="No consecutives", style="B.TCheckbutton", variable=self.noCon)
-        self.commonPattern = Checkbutton(self.filterOptions, text="Common patterns", style="B.TCheckbutton", variable=self.pattern)
+
+        self.patternOptions = LabelFrame(self.generateTab, text='Patterns', style="O.TLabelframe")
+        self.leaningCommon = Radiobutton(self.patternOptions, text="Common ", style="B.TRadiobutton", variable=self.leanPattern, value=0)
+        self.leaningOdd = Radiobutton(self.patternOptions, text="Lean odd ", style="B.TRadiobutton", variable=self.leanPattern, value=1)
+        self.leaningEven = Radiobutton(self.patternOptions, text="Lean even ", style="B.TRadiobutton", variable=self.leanPattern, value=2)
 
         self.h_sep_ga = Separator(self.generateTab, orient=HORIZONTAL)
         self.h_sep_gb = Separator(self.generateTab, orient=HORIZONTAL)
@@ -215,20 +213,20 @@ class Application(Frame):
         self.genSave = Button(self.generateTab, text="SAVE", style="F.TButton", command=self.save_generated)
         self.genClear = Button(self.generateTab, text="CLEAR", style="F.TButton", command=self.clear_generated)
 
-        self.topsOption.grid(row=0, column=0, padx=5, pady=5, sticky="NSEW")
-        self.topCountList.grid(row=0, column=1, padx=5, pady=5, sticky="NSEW")
-        self.classOption.grid(row=1, column=0, padx=5, pady=5, sticky="NSEW")
-        self.idxClassList.grid(row=1, column=1, padx=5, pady=5, sticky="NSEW")
-        self.patClassList.grid(row=1, column=2, padx=5, pady=5, sticky="NSEW")
-
+        self.topsOption.grid(row=0, column=0, padx=5, pady=5, sticky="W")
+        self.topCountList.grid(row=0, column=0, padx=(90,5), pady=5, sticky="W")
+        self.classOption.grid(row=0, column=0, padx=(180,5), pady=5, sticky="W")
+        self.idxClassList.grid(row=0, column=0, padx=(270,5), pady=5, sticky="W")
         self.mainOptions.grid(row=0, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
 
-        self.avoidClose.grid(row=0, column=0, padx=5, pady=5, sticky="NSEW")
-        self.noConsec.grid(row=1, column=0, padx=5, pady=5, sticky="NSEW")
-        # self.skipLastWin.grid(row=0, column=2, columnspan=2, padx=(90,0), pady=(12,5), sticky='NSEW')
-        # self.commonPattern.grid(row=1, column=2, columnspan=2, padx=(90,0), pady=(12,5), sticky="NSEW")
+        self.avoidClose.grid(row=0, column=0, padx=5, pady=5, sticky="W")
+        self.noConsec.grid(row=0, column=0, padx=(180,5), pady=5, sticky="W")
+        self.filterOptions.grid(row=1, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
 
-        self.filterOptions.grid(row=0, column=2, columnspan=2, padx=5, pady=5, sticky='NSEW')
+        self.leaningCommon.grid(row=0, column=0, padx=5, pady=5, sticky="NSEW")
+        self.leaningOdd.grid(row=1, column=0, padx=5, pady=5, sticky="NSEW")
+        self.leaningEven.grid(row=2, column=0, padx=5, pady=5, sticky="NSEW")
+        self.patternOptions.grid(row=0, column=2, columnspan=1, rowspan=2, padx=5, pady=5, sticky='NSEW')
 
         self.h_sep_ga.grid(row=4, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
 
@@ -246,7 +244,7 @@ class Application(Frame):
 
         self.playsDisplay = LabelFrame(self.playsTab, text='', style="O.TLabelframe")
         self.playsscroller = Scrollbar(self.playsDisplay, orient=VERTICAL)
-        self.playsSelect = Listbox(self.playsDisplay, yscrollcommand=self.playsscroller.set, width=95, height=23)
+        self.playsSelect = Listbox(self.playsDisplay, yscrollcommand=self.playsscroller.set, width=95, height=24)
         self.playReload = Button(self.playsDisplay, text="RELOAD", style="F.TButton", command=self.loadBets)
 
         ''' display widgets for bets tab
@@ -262,9 +260,8 @@ class Application(Frame):
         self.sortOrder.set(0)
 
         self.noClose.set(0)
-        self.skipWinner.set(0)
         self.noCon.set(0)
-        self.pattern.set(0)
+        self.leanPattern.set(0)
 
         self.varCountLimit.set('5')
         self.baseOption.set(1)
@@ -462,7 +459,7 @@ class Application(Frame):
     def loadImage(self):
 
         image = Image.open("mega.jpg")
-        image = image.resize((700,330))
+        image = image.resize((700,345))
         results_fig = ImageTk.PhotoImage(image)
 
         # Define a style
@@ -540,12 +537,12 @@ class Application(Frame):
         all_numbers = [n[0] for n in self.dataconn.get_number_stats('mega_lotto', 0)]
         top_numbers = all_numbers[:25]
 
-        if self.skipWinner.get() == 1:
-            if self.baseOption.get() ==  1 and int(self.varCountLimit.get()) == 5:
-                self.skipWinner.set(0)
-            else:
-                all_numbers = [n for n in all_numbers if n not in list(self.dataconn.get_latest_winner('mega_lotto')[0])[1:]]
-                top_numbers = [n for n in top_numbers if n not in list(self.dataconn.get_latest_winner('mega_lotto')[0])[1:]]
+        # if self.skipWinner.get() == 1:
+        #     if self.baseOption.get() ==  1 and int(self.varCountLimit.get()) == 5:
+        #         self.skipWinner.set(0)
+        #     else:
+        #         all_numbers = [n for n in all_numbers if n not in list(self.dataconn.get_latest_winner('mega_lotto')[0])[1:]]
+        #         top_numbers = [n for n in top_numbers if n not in list(self.dataconn.get_latest_winner('mega_lotto')[0])[1:]]
 
         self.generate_sets(all_numbers, top_numbers)
 
@@ -664,7 +661,7 @@ class Application(Frame):
 
         print(f'After consecutive filter : {len(selected)}')
 
-        if self.pattern.get():
+        if self.leanPattern.get() == 0:
 
             combos_all = self.set_iterator(selected)
             selected = []
@@ -730,10 +727,14 @@ class Application(Frame):
         else:
             select_sql += ''' and con_count < 3'''
 
-        if int(self.varPatClass.get()) == 0:
-            select_sql += ''' and odd_count < 3''' 
-        else:
+        if int(self.leanPattern.get()) == 0:
+            select_sql += ''' and odd_count in (3,2)''' 
+
+        if int(self.leanPattern.get()) == 1:
             select_sql += ''' and odd_count >= 3''' 
+
+        if int(self.leanPattern.get()) == 2:
+            select_sql += ''' and odd_count < 3''' 
 
         combo_keys = self.dataconn.execute_select(select_sql)
 
@@ -875,7 +876,7 @@ root = Tk()
 root.title("MEGA LOTTO")
 
 # Set size
-wh = 590
+wh = 610
 ww = 1100
 
 #root.resizable(height=False, width=False)

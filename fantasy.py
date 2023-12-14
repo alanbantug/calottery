@@ -54,7 +54,6 @@ class Application(Frame):
         self.varCountLimit = StringVar()
         self.limitList = ['5', '5', '4', '3']
         self.varIdxClass = StringVar()
-        self.varPatClass = StringVar()
         self.classList = ['0', '0', '1']
 
         rfont = font.Font(family='Verdana', size=8)
@@ -166,14 +165,12 @@ class Application(Frame):
         define widgets for generator tab
         '''
         self.mainOptions = LabelFrame(self.generateTab, text='Options', style="O.TLabelframe")
-        self.topsOption = Radiobutton(self.mainOptions, text="Tops", style="B.TRadiobutton", variable=self.baseOption, value=1)
+        self.topsOption = Radiobutton(self.mainOptions, text="Top 25", style="B.TRadiobutton", variable=self.baseOption, value=1)
         self.classOption = Radiobutton(self.mainOptions, text="Class", style="B.TRadiobutton", variable=self.baseOption, value=2)
         self.topCountList = OptionMenu(self.mainOptions, self.varCountLimit, *self.limitList)
         self.topCountList.config(width=3)
         self.idxClassList = OptionMenu(self.mainOptions, self.varIdxClass, *self.classList)
-        # self.patClassList = OptionMenu(self.mainOptions, self.varPatClass, *self.classList)
         self.idxClassList.config(width=3)
-        # self.patClassList.config(width=5)
 
         self.filterOptions = LabelFrame(self.generateTab, text='Filters', style="O.TLabelframe")
         self.topNumsOnly = Checkbutton(self.filterOptions, text="Top numbers only", style="B.TCheckbutton", variable=self.topNumbers)
@@ -395,6 +392,9 @@ class Application(Frame):
         
         self.progressBar.start()
         
+        if self.plotTopNumbers.get() == 0 and self.plotIdxClass.get() == 0 and self.plotPatClass.get() == 0:
+            self.plotTopNumbers.set(1)
+
         winners = self.dataconn.get_fantasy_data()
 
         cols = ['Draw Date', 'A', 'B', 'C', 'D', 'E']
