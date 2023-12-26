@@ -407,8 +407,7 @@ class databaseConn(object):
         cur.execute(select_sql)
         # seq_num = cur.fetchall()[0][0]
         seq_num = cur.fetchall()[0][0]
-        print(seq_num)
-
+        
         '''
         update
         '''
