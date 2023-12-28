@@ -50,6 +50,7 @@ class Application(Frame):
         self.plotPatClass = IntVar()
 
         self.generated = [] 
+        self.lastWinners = []
 
         self.varCountLimit = StringVar()
         self.limitList = ['5', '5', '4', '3']
@@ -476,6 +477,8 @@ class Application(Frame):
 
         else: 
 
+            self.lastWinners = self.dataconn.get_fantasy_select(500)
+
             if self.genSet['text'] == 'GENERATE':
                 resp = messagebox.askyesno('Generating combinations', 'Generation will take some time. Continue?')
             else:
@@ -655,6 +658,20 @@ class Application(Frame):
             
         print(f'After winner filter      : {len(selected)}')
 
+        combos_all = self.set_iterator(selected)
+        selected = []
+
+        while True:
+
+            try:
+                combo = next(combos_all)
+                if self.check_max_match(combo):
+                    selected.append(combo)
+            except:
+                break
+
+        print(f'After close match filter : {len(selected)}')
+
         return selected 
     
     def retrieve_qualified_combos(self): 
@@ -699,6 +716,20 @@ class Application(Frame):
         combo_keys = self.dataconn.execute_select(select_sql)
 
         selected = [self.split_key(combo_key[0]) for combo_key in combo_keys]
+
+        print(f'Extracted combinations   : {len(selected)}')
+
+        combos_all = self.set_iterator(selected)
+        selected = []
+
+        while True:
+
+            try:
+                combo = next(combos_all)
+                if self.check_max_match(combo):
+                    selected.append(combo)
+            except:
+                break
 
         print(f'Qualified combinations   : {len(selected)}')
         
@@ -781,13 +812,11 @@ class Application(Frame):
         else:
             return False
 
-    def check_last_select(self, num_set, winners_list):
+    def check_max_match(self, select):
 
-        match_check = [len(set(winner).intersection(set(num_set))) for winner in winners_list]
+        match_check = [len(set(winner).intersection(set(select))) for winner in self.lastWinners]
         
-        match_check = [match for match in match_check if match in [0,1]]
-        
-        return True if len(match_check) in range(82, 92) else False
+        return True if max(match_check) == 3 else False
 
     def clear_generated(self):
 
