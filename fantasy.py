@@ -404,7 +404,7 @@ class Application(Frame):
         plt.figure(figsize=(4,3))
 
         if self.plotTopNumbers.get():
-            df['TOP'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_top_n, args=(25, ), axis=1)
+            df['TOP'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_top_n, axis=1)
             plt.plot(df['TOP'][:40], 'x-', label='T25', color='black', alpha=0.5)
         if self.plotIdxClass.get():
             df['CLS'] = df[['A', 'B', 'C', 'D', 'E']].apply(self.check_index_class, axis=1)
@@ -438,14 +438,14 @@ class Application(Frame):
 
         self.trendPlot['style'] = 'DT.TLabel'
 
-    def check_top_n(self, data, start):
+    def check_top_n(self, data):
 
         dd, na, nb, nc, nd, ne = data
 
         num_set = [na, nb, nc, nd, ne]
 
         # get the top numbers prior to the draw date passed
-        top_numbers = self.dataconn.get_top_stats_by_date(dd, 'fantasy_five')[start:start + 25]
+        top_numbers = self.dataconn.get_top_stats_by_date(dd, 'fantasy_five')[:25]
 
         return len([num for num in num_set if num in top_numbers])
 
@@ -817,6 +817,14 @@ class Application(Frame):
         match_check = [len(set(winner).intersection(set(select))) for winner in self.lastWinners]
         
         return True if max(match_check) == 3 else False
+
+    def check_close_match(self, select):
+
+        match_check = [len(set(winner).intersection(set(select))) for winner in self.lastWinners]
+
+        match_check = [match for match in match_check if match in [0,1]]
+
+        return True if len(match_check) >= 450 else False
 
     def clear_generated(self):
 

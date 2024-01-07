@@ -434,7 +434,7 @@ class Application(Frame):
         plt.figure(figsize=(5,3))
 
         if self.plotTopNumbers.get() == 1:
-            df['TOPS'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_top_n, args=(25, ), axis=1)
+            df['TOPS'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_top_n, axis=1)
             plt.plot(df['TOPS'][:50], 'x--', label='TOPS', color='black')
 
         if self.plotIdxClass.get() == 1:
@@ -479,14 +479,14 @@ class Application(Frame):
 
         self.trendPlot['style'] = 'DT.TLabel'
 
-    def check_top_n(self, data, start):
+    def check_top_n(self, data):
 
         dd, na, nb, nc, nd, ne = data
 
         num_set = [na, nb, nc, nd, ne]
 
         # get the top numbers prior to the draw date passed
-        top_numbers = self.dataconn.get_top_stats_by_date(dd, 'power_ball')[:start]
+        top_numbers = self.dataconn.get_top_stats_by_date(dd, 'power_ball')[:25]
 
         return len([num for num in num_set if num in top_numbers])
 

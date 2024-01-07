@@ -432,7 +432,7 @@ class Application(Frame):
         plt.figure(figsize=(5,3))
 
         if self.plotTopNumbers.get() == 1:
-            df['TOP'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_top_n, args=(25, ), axis=1)
+            df['TOP'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_top_n, axis=1)
             plt.plot(df['TOP'][:50], 'x-', label='T25', color='black', alpha=0.5)
         
         if self.plotIdxClass.get():
@@ -475,7 +475,7 @@ class Application(Frame):
         num_set = [na, nb, nc, nd, ne]
 
         # get the top numbers prior to the draw date passed
-        top_numbers = self.dataconn.get_top_stats_by_date(dd, 'mega_lotto')[start:start+35]
+        top_numbers = self.dataconn.get_top_stats_by_date(dd, 'mega_lotto')[:25]
 
         return len([num for num in num_set if num in top_numbers])
     
