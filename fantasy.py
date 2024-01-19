@@ -261,8 +261,6 @@ class Application(Frame):
         self.loadTrend()
         self.loadBets()
 
-        self.game_mean = int(575757/2)
-
     def loadData(self):
 
         winners = self.dataconn.get_fantasy_data()
@@ -691,10 +689,9 @@ class Application(Frame):
         select combo_key
         from fantasy_combos'''
 
-        if int(self.varIdxClass.get()) == 0:
-            select_sql += f''' where combo_idx <= {game_mean}'''
-        else: 
-            select_sql += f''' where combo_idx >  {game_mean}'''
+        mod = int(self.varIdxClass.get())
+
+        select_sql += f''' where mod(combo_idx, 2) = {mod}'''
 
         if self.noClose.get():
             select_sql += ''' and win_count = 0'''
@@ -778,7 +775,7 @@ class Application(Frame):
 
         idx_val = self.dataconn.get_combo_index(combo_key, 'fantasy_combos')
         
-        return 1 if idx_val > self.game_mean else 0
+        return idx_val % 2
 
     def check_pattern_class(self, num_set):
 
