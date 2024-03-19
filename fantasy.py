@@ -45,6 +45,8 @@ class Application(Frame):
         self.leanPattern = IntVar()
         self.noCon = IntVar()
         self.baseOption = IntVar()
+        self.topBased = IntVar()
+        self.idxBased = IntVar()
         self.plotTopNumbers = IntVar()
         self.plotIdxClass = IntVar()
         self.plotPatClass = IntVar()
@@ -52,7 +54,7 @@ class Application(Frame):
         self.generated = [] 
         self.lastWinners = []
 
-        self.varCountLimit = StringVar()
+        self.varTopCount = StringVar()
         self.limitList = ['5', '5', '4', '3']
         self.varIdxClass = StringVar()
         self.classList = ['0', '0', '1']
@@ -166,9 +168,12 @@ class Application(Frame):
         define widgets for generator tab
         '''
         self.mainOptions = LabelFrame(self.generateTab, text='Options', style="O.TLabelframe")
-        self.topsOption = Radiobutton(self.mainOptions, text="Top 25", style="B.TRadiobutton", variable=self.baseOption, value=1)
-        self.classOption = Radiobutton(self.mainOptions, text="Class", style="B.TRadiobutton", variable=self.baseOption, value=2)
-        self.topCountList = OptionMenu(self.mainOptions, self.varCountLimit, *self.limitList)
+        # self.topsOption = Radiobutton(self.mainOptions, text="Top 25", style="B.TRadiobutton", variable=self.baseOption, value=1)
+        # self.classOption = Radiobutton(self.mainOptions, text="Class", style="B.TRadiobutton", variable=self.baseOption, value=2)
+        self.topsOption = Checkbutton(self.mainOptions, text="Top 25", style="B.TCheckbutton", variable=self.topBased)
+        self.classOption = Checkbutton(self.mainOptions, text="Class", style="B.TCheckbutton", variable=self.idxBased)
+
+        self.topCountList = OptionMenu(self.mainOptions, self.varTopCount, *self.limitList)
         self.topCountList.config(width=3)
         self.idxClassList = OptionMenu(self.mainOptions, self.varIdxClass, *self.classList)
         self.idxClassList.config(width=3)
@@ -252,9 +257,11 @@ class Application(Frame):
         # self.skipWinner.set(0)
         # self.pattern.set(0)
 
-        self.varCountLimit.set('5')
+        self.varTopCount.set('5')
         self.plotTopNumbers.set(1)
         self.baseOption.set(1)
+        self.topBased.set(0)
+        self.idxBased.set(0)
 
         self.loadData()
         self.loadStats()
@@ -519,15 +526,15 @@ class Application(Frame):
         start = datetime.now()
         print(start)
 
-        self.count_limit = 5000
+        self.count_limit = 10000
 
-        if self.baseOption.get() == 1:
+        # if self.baseOption.get() == 1:
 
-            selected = self.generate_and_filter(all_numbers, top_numbers)
+        #     selected = self.generate_and_filter(all_numbers, top_numbers)
 
-        if self.baseOption.get() == 2:
+        # if self.baseOption.get() == 2:
 
-            selected = self.retrieve_qualified_combos()
+        selected = self.retrieve_qualified_combos()
 
         ''' The logic below will select combinations and remove them from succeeding iterations
             This will ensure that combinations will not be selected again
@@ -600,7 +607,7 @@ class Application(Frame):
 
             try:
                 combo = next(combos_all)
-                if len(set(top_numbers).intersection(set(combo))) == int(self.varCountLimit.get()):
+                if len(set(top_numbers).intersection(set(combo))) == int(self.varTopCount.get()):
                     selected.append(list(combo))
             except:
                 break
@@ -674,24 +681,35 @@ class Application(Frame):
     
     def retrieve_qualified_combos(self): 
 
-        select_sql = f'''
-        select combo_idx from fantasy_combos
-        order by combo_idx desc
-        limit 1'''
+        # select_sql = f'''
+        # select combo_idx from fantasy_combos
+        # order by combo_idx desc
+        # limit 1'''
 
-        hi_count = self.dataconn.execute_select(select_sql)
+        # hi_count = self.dataconn.execute_select(select_sql)
 
-        game_mean = int(hi_count[0][0]/2)
+        # game_mean = int(hi_count[0][0]/2)
 
-        print(game_mean)
+        # print(game_mean)
 
         select_sql = f'''
         select combo_key
-        from fantasy_combos'''
+        from fantasy_combos
+        where'''
 
-        mod = int(self.varIdxClass.get())
+        if self.topBased.get():
 
-        select_sql += f''' where mod(combo_idx, 2) = {mod}'''
+            tops = int(self.varTopCount.get())
+            select_sql += f''' top_count = {tops}'''
+
+        if self.idxBased.get():
+
+            mod = int(self.varIdxClass.get())
+
+            if select_sql.endswith('where'):
+                select_sql += f''' mod(combo_idx, 2) = {mod}'''
+            else:
+                select_sql += f''' and mod(combo_idx, 2) = {mod}'''
 
         if self.noClose.get():
             select_sql += ''' and win_count = 0'''
@@ -710,6 +728,7 @@ class Application(Frame):
         if int(self.leanPattern.get()) == 2:
             select_sql += ''' and odd_count < 3''' 
 
+        print(select_sql)
         combo_keys = self.dataconn.execute_select(select_sql)
 
         selected = [self.split_key(combo_key[0]) for combo_key in combo_keys]
@@ -842,7 +861,7 @@ class Application(Frame):
         menu.delete(0, 'end')
 
         for lim in [25, 20, 15]:
-            menu.add_command(label=lim, command=lambda value=lim: self.varCountLimit.set(value))
+            menu.add_command(label=lim, command=lambda value=lim: self.varTopCount.set(value))
 
     def exitRoutine(self):
 
