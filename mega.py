@@ -46,6 +46,8 @@ class Application(Frame):
         self.noCon = IntVar()
         self.leanPattern = IntVar()
         self.baseOption = IntVar()
+        self.topBased = IntVar()
+        self.idxBased = IntVar()
         self.plotTopNumbers = IntVar()
         self.plotIdxClass = IntVar()
         self.plotPatClass = IntVar()
@@ -180,10 +182,12 @@ class Application(Frame):
         '''
         self.mainOptions = LabelFrame(self.generateTab, text='Options', style="O.TLabelframe")
 
-        self.topsOption = Radiobutton(self.mainOptions, text="Top 25", style="B.TRadiobutton", variable=self.baseOption, value=1)
+        # self.topsOption = Radiobutton(self.mainOptions, text="Top 25", style="B.TRadiobutton", variable=self.baseOption, value=1)
+        self.topsOption = Checkbutton(self.mainOptions, text="Top 25", style="B.TCheckbutton", variable=self.topBased)
         self.topCountList = OptionMenu(self.mainOptions, self.varCountLimit, *self.limitList)
         self.topCountList.config(width=5)
-        self.classOption = Radiobutton(self.mainOptions, text="Class", style="B.TRadiobutton", variable=self.baseOption, value=2)
+        # self.classOption = Radiobutton(self.mainOptions, text="Class", style="B.TRadiobutton", variable=self.baseOption, value=2)
+        self.classOption = Checkbutton(self.mainOptions, text="Class", style="B.TCheckbutton", variable=self.idxBased)
         self.idxClassList = OptionMenu(self.mainOptions, self.varIdxClass, *self.classList)
         self.idxClassList.config(width=5)
 
@@ -466,7 +470,7 @@ class Application(Frame):
 
         self.trendPlot['style'] = 'DT.TLabel'
 
-    def check_top_n(self, data, start):
+    def check_top_n(self, data):
 
         dd, na, nb, nc, nd, ne = data
 
@@ -553,15 +557,15 @@ class Application(Frame):
         start = datetime.now()
         print(start)
 
-        self.count_limit = 4000
+        self.count_limit = 10000
         
-        if self.baseOption.get() == 1:
+        # if self.baseOption.get() == 1:
 
-            selected = self.generate_and_filter(all_numbers, top_numbers)
+        #     selected = self.generate_and_filter(all_numbers, top_numbers)
 
-        if self.baseOption.get() == 2:
+        # if self.baseOption.get() == 2:
 
-            selected = self.retrieve_qualified_combos()
+        selected = self.retrieve_qualified_combos()
 
         ''' The logic below will select combinations and remove them from succeeding iterations
             This will ensure that combinations will not be selected again
@@ -697,24 +701,35 @@ class Application(Frame):
 
     def retrieve_qualified_combos(self):
 
-        select_sql = f'''
-        select combo_idx from mega_combos
-        order by combo_idx desc
-        limit 1'''
+        # select_sql = f'''
+        # select combo_idx from mega_combos
+        # order by combo_idx desc
+        # limit 1'''
 
-        hi_count = self.dataconn.execute_select(select_sql)
+        # hi_count = self.dataconn.execute_select(select_sql)
 
-        game_mean = int(hi_count[0][0]/2)
+        # game_mean = int(hi_count[0][0]/2)
 
-        print(game_mean)
+        # print(game_mean)
 
         select_sql = f'''
         select combo_key
-        from mega_combos'''
+        from mega_combos
+        where'''
 
-        mod = int(self.varIdxClass.get())
+        if self.topBased.get():
 
-        select_sql += f''' where mod(combo_idx,2) = {mod}'''
+            tops = int(self.varCountLimit.get())
+            select_sql += f''' top_count = {tops}'''
+
+        if self.idxBased.get():
+
+            mod = int(self.varIdxClass.get())
+
+            if select_sql.endswith('where'):
+                select_sql += f''' mod(combo_idx, 2) = {mod}'''
+            else:
+                select_sql += f''' and mod(combo_idx, 2) = {mod}'''
 
         if self.noClose.get():
             select_sql += ''' and win_count = 0'''
