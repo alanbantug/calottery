@@ -578,6 +578,9 @@ class Application(Frame):
         combos_all = self.set_iterator(selected)
         count = 0
 
+        inter_count = 0
+        max_count = 0
+
         combo_sets = []
 
         while True:
@@ -588,8 +591,10 @@ class Application(Frame):
                 
                 if combo_sets:
                     for combo_set in combo_sets:
+                        if len(combo_set) > max_count:
+                            max_count = len(combo_set)
                         if len(combo_set) < 25:
-                            if len(set(combo_set).intersection(set(combo))) == 0:
+                            if len(set(combo_set).intersection(set(combo))) <= inter_count:
                                 combo_set.extend(combo)
                                 added = True
                                 break
@@ -606,7 +611,8 @@ class Application(Frame):
                     break
             except:
                 break
-
+        
+        print(max_count)
         end = datetime.now()
         print(end)
         print("Time elapsed: ", end - start)
@@ -740,12 +746,12 @@ class Application(Frame):
             select_sql += ''' and con_count < 3'''
 
         if self.leanPattern.get() == 0:
-            select_sql += ''' and odd_count in (3,2)''' 
+            select_sql += ''' and odd_count in (4,3,2,1)''' 
 
         if self.leanPattern.get() == 1:
             select_sql += ''' and odd_count > 2''' 
 
-        if self.leanPattern.get() == 0:
+        if self.leanPattern.get() == 2:
             select_sql += ''' and odd_count < 3''' 
 
         combo_keys = self.dataconn.execute_select(select_sql)

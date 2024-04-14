@@ -384,7 +384,7 @@ class Application(Frame):
 
         for idx, stat in enumerate(stats):
 
-            if idx == 26:
+            if idx == 25:
                 self.statNumbers.insert(END, '==========')
 
             if self.sortOrder.get() == 2:

@@ -374,7 +374,7 @@ class Application(Frame):
 
         for idx, stat in enumerate(stats):
 
-            if idx == 26:
+            if idx == 25:
                 self.statSelect.insert(END, '==========')
 
             if self.sortOrder.get() == 2:
@@ -544,6 +544,12 @@ class Application(Frame):
         combos_all = self.set_iterator(selected)
         count = 0
 
+        inter_count = 0
+        if self.topBased.get():
+            if int(self.varTopCount.get()) == 5:
+                self.leanPattern.set(0)
+                inter_count = 1
+
         combo_sets = []
 
         while True:
@@ -555,7 +561,8 @@ class Application(Frame):
                 if combo_sets:
                     for combo_set in combo_sets:
                         if len(combo_set) < 25:
-                            if len(set(combo_set).intersection(set(combo))) == 0:
+                            if self.merge_or_not(combo_set, combo, inter_count):
+                            # if len(set(combo_set).intersection(set(combo))) == 0:
                                 combo_set.extend(combo)
                                 added = True
                                 break
@@ -584,6 +591,22 @@ class Application(Frame):
 
         self.genSet['text'] = 'NEXT'
         self.get_a_set()
+
+    def merge_or_not(self, combo_set, combo, inter_count):
+
+        temp = combo_set.copy()
+        temp.extend(combo)
+
+        dup = 0
+        fnd = []
+
+        for num in temp:
+            if num in fnd:
+                dup += 1
+            else:
+                fnd.append(num)
+        
+        return True if dup <= inter_count else False
 
     def generate_and_filter(self, all_numbers, top_numbers):
 
@@ -720,7 +743,7 @@ class Application(Frame):
             select_sql += ''' and con_count < 3'''
 
         if int(self.leanPattern.get()) == 0:
-            select_sql += ''' and odd_count in (3,2)''' 
+            select_sql += ''' and odd_count in (4,3,2,1)''' 
 
         if int(self.leanPattern.get()) == 1:
             select_sql += ''' and odd_count >= 3''' 
