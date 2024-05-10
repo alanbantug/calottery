@@ -797,7 +797,6 @@ class Application(Frame):
         if int(self.leanPattern.get()) == 2:
             select_sql += ''' and odd_count < 3 ''' 
 
-        print(select_sql)
         combo_keys = self.dataconn.execute_select(select_sql)
 
         selected = [self.split_key(combo_key[0]) for combo_key in combo_keys]

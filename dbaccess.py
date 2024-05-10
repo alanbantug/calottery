@@ -497,7 +497,7 @@ class databaseConn(object):
             '''
 
             if order == 0:
-                select += ' order by sum(A.tot) desc'
+                select += ' order by sum(A.tot) desc, A.num asc'
             else:
                 select += ' order by A.num asc'
 
@@ -593,7 +593,7 @@ class databaseConn(object):
             ) A
 
         group by A.num
-        order by sum(A.tot) desc
+        order by sum(A.tot) desc, A.num asc
         '''
 
         cur = self.db_conn.cursor()
