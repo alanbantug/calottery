@@ -77,6 +77,7 @@ class Application(Frame):
         Style().configure("B.TLabel", font=lfont, foreground="blue")
         Style().configure("O.TLabelframe.Label", font="Verdana 8", foreground="black")
         Style().configure("F.TButton", font=rfont, relief="raised", height=20)
+        Style().configure("C.TButton", font=rfont, relief="raised", width=16)
 
         # Set scale styles
         Style().configure("S.TScale", orient=HORIZONTAL, width=25)
@@ -98,20 +99,20 @@ class Application(Frame):
         self.parentTab.add(self.playsTab, text=' Plays   ')
 
         self.dataDisplay = LabelFrame(self.dataTab, text=' Winners', style="O.TLabelframe")
-        self.dataCheck = LabelFrame(self.dataTab, text=' Combination Check', style="O.TLabelframe")
+        self.dataCheck = LabelFrame(self.dataTab, text=' Numbers', style="O.TLabelframe")
 
         self.dscroller = Scrollbar(self.dataDisplay, orient=VERTICAL)
-        self.dataSelect = Listbox(self.dataDisplay, yscrollcommand=self.dscroller.set, width=70, height=12)
+        self.dataSelect = Listbox(self.dataDisplay, yscrollcommand=self.dscroller.set, width=70, height=14)
         self.reloadAll = Button(self.dataDisplay, text="Reload All", style="F.TButton", command = lambda : self.loadData())
-        self.retrieveData = Button(self.dataDisplay, text="Retrieve Data", style="F.TButton")
+        self.filterData = Button(self.dataDisplay, text="Filter Data", style="F.TButton", command = lambda : self.loadFilteredData())
+        self.enterData = Button(self.dataDisplay, text="Enter data", style="F.TButton", command = lambda : self.callEntry())
 
-        self.numA = Entry(self.dataCheck, textvariable=self.numberA, width="5")
-        self.numB = Entry(self.dataCheck, textvariable=self.numberB, width="5")
-        self.numC = Entry(self.dataCheck, textvariable=self.numberC, width="5")
-        self.numD = Entry(self.dataCheck, textvariable=self.numberD, width="5")
-        self.numE = Entry(self.dataCheck, textvariable=self.numberE, width="5")
-        self.clearSelect = Button(self.dataCheck, text="Clear", style="F.TButton", command = lambda : self.clearFilter())
-        self.checkSelect = Button(self.dataCheck, text="Check", style="F.TButton", command = lambda : self.loadFilteredData())
+        self.numA = Entry(self.dataCheck, textvariable=self.numberA, width="6")
+        self.numB = Entry(self.dataCheck, textvariable=self.numberB, width="6")
+        self.numC = Entry(self.dataCheck, textvariable=self.numberC, width="6")
+        self.numD = Entry(self.dataCheck, textvariable=self.numberD, width="6")
+        self.numE = Entry(self.dataCheck, textvariable=self.numberE, width="6")
+        self.clearSelect = Button(self.dataCheck, text="Clear", style="C.TButton", command = lambda : self.clearFilter())
 
         self.selectReturn = Button(self.main_container, text="EXIT", style="E.TButton",command=self.exitRoutine)
         self.progressBar = Progressbar(self.main_container, orient="horizontal", mode="indeterminate", length=280)
@@ -121,23 +122,23 @@ class Application(Frame):
         self.headerB.grid(row=1, column=0, padx=5, pady=1, sticky='NSEW')
         self.parentTab.grid(row=2, column=0, padx=5, pady=5, sticky='NSEW')
 
-        self.dataSelect.grid(row=0, column=0, padx=(10,0), pady=5, sticky='NSEW')
-        self.dscroller.grid(row=0, column=1, padx=(10,0), pady=5, sticky='NSEW')
-        self.reloadAll.grid(row=1, column=0, columnspan=5, padx=(10,5), pady=5, sticky='NSEW')
-        self.retrieveData.grid(row=2, column=0, columnspan=5, padx=(10,5), pady=5, sticky='NSEW')
+        self.dataSelect.grid(row=0, column=0, columnspan=3,padx=(10,0), pady=5, sticky='NSEW')
+        self.dscroller.grid(row=0, column=3, columnspan=1, padx=(10,0), pady=5, sticky='NSEW')
+        self.enterData.grid(row=1, column=0, columnspan=1, padx=5, pady=5, sticky='NSEW')
+        self.filterData.grid(row=1, column=1, columnspan=1, padx=5, pady=5, sticky='NSEW')
+        self.reloadAll.grid(row=1, column=2, columnspan=1, padx=5, pady=5, sticky='NSEW')
         self.dataDisplay.grid(row=7, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
 
         self.numA.grid(row=0, column=0, padx=(10,0), pady=(5, 10), sticky='W')
-        self.numB.grid(row=0, column=0, padx=(60,0), pady=(5, 10), sticky='W')
-        self.numC.grid(row=0, column=0, padx=(110,0), pady=(5, 10), sticky='W')
-        self.numD.grid(row=0, column=0, padx=(160,0), pady=(5, 10), sticky='W')
-        self.numE.grid(row=0, column=0, padx=(210,0), pady=(5, 10), sticky='W')
-        self.checkSelect.grid(row=0, column=0, padx=(260,0), pady=(5,10), sticky='W')
-        self.clearSelect.grid(row=0, column=0, padx=(360,0), pady=(5,10), sticky='W')
+        self.numB.grid(row=0, column=0, padx=(70,0), pady=(5, 10), sticky='W')
+        self.numC.grid(row=0, column=0, padx=(130,0), pady=(5, 10), sticky='W')
+        self.numD.grid(row=0, column=0, padx=(190,0), pady=(5, 10), sticky='W')
+        self.numE.grid(row=0, column=0, padx=(250,0), pady=(5, 10), sticky='W')
+        self.clearSelect.grid(row=0, column=0, padx=(310,0), pady=(5,10), sticky='NSEW')
         self.dataCheck.grid(row=8, column=0, columnspan=5, padx=5, pady=2, sticky="NSEW")
 
-        self.selectReturn.grid(row=10, column=0, columnspan=5, padx=5, pady=(0,5), sticky='NSEW')
-        self.progressBar.grid(row=11, column=0, columnspan=5, padx=5, pady=(0,5), sticky='NSEW')
+        self.selectReturn.grid(row=12, column=0, columnspan=5, padx=5, pady=(0,5), sticky='NSEW')
+        self.progressBar.grid(row=13, column=0, columnspan=5, padx=5, pady=(0,5), sticky='NSEW')
 
         '''
         define widgets for stats tab
@@ -168,8 +169,6 @@ class Application(Frame):
         define widgets for generator tab
         '''
         self.mainOptions = LabelFrame(self.generateTab, text='Options', style="O.TLabelframe")
-        # self.topsOption = Radiobutton(self.mainOptions, text="Top 25", style="B.TRadiobutton", variable=self.baseOption, value=1)
-        # self.classOption = Radiobutton(self.mainOptions, text="Class", style="B.TRadiobutton", variable=self.baseOption, value=2)
         self.topsOption = Checkbutton(self.mainOptions, text="Top 25", style="B.TCheckbutton", variable=self.topBased)
         self.classOption = Checkbutton(self.mainOptions, text="Class", style="B.TCheckbutton", variable=self.idxBased)
 
@@ -208,7 +207,6 @@ class Application(Frame):
         self.topCountList.grid(row=0, column=0, padx=(70,5), pady=5, sticky="W")
         self.classOption.grid(row=0, column=0, padx=(150,5), pady=5, sticky="W")
         self.idxClassList.grid(row=0, column=0, padx=(220,5), pady=5, sticky="W")
-        # self.patClassList.grid(row=1, column=2, padx=5, pady=5, sticky="NSEW")
         self.mainOptions.grid(row=0, column=0, columnspan=3, padx=5, pady=2, sticky='NSEW')
 
         self.noConsec.grid(row=0, column=0, padx=5, pady=5, sticky="W")
@@ -218,6 +216,7 @@ class Application(Frame):
         self.leaningCommon.grid(row=0, column=0, padx=5, pady=5, sticky="NSEW")
         self.leaningOdd.grid(row=1, column=0, padx=5, pady=5, sticky="NSEW")
         self.leaningEven.grid(row=2, column=0, padx=5, pady=5, sticky="NSEW")
+
         self.patternOptions.grid(row=0, column=3, columnspan=2, rowspan=2, padx=5, pady=2, sticky='NSEW')
 
         self.h_sep_ga.grid(row=4, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
@@ -254,8 +253,6 @@ class Application(Frame):
         self.topNumbers.set(0)
         self.noClose.set(0)
         self.noCon.set(0)
-        # self.skipWinner.set(0)
-        # self.pattern.set(0)
 
         self.varTopCount.set('5')
         self.plotTopNumbers.set(1)
@@ -267,6 +264,10 @@ class Application(Frame):
         self.loadStats()
         self.loadTrend()
         self.loadBets()
+
+    def callEntry(self):
+
+        os.system('python d:\Projects\Python\data_entry\data_entry.py')
 
     def loadData(self):
 
@@ -508,13 +509,6 @@ class Application(Frame):
         all_numbers = [n[0] for n in self.dataconn.get_number_stats('fantasy_five', 0)]
         top_numbers = all_numbers[:25]
 
-        # if self.skipWinner.get() == 1:
-        #     if self.baseOption.get() == 1 and int(self.varCountLimit.get()) == 5:
-        #         self.skipWinner.set(0)
-        #     else:
-        #         all_numbers = [n for n in all_numbers if n not in list(self.dataconn.get_latest_winner('fantasy_five')[0])[1:]]
-        #         top_numbers = [n for n in all_numbers if n not in list(self.dataconn.get_latest_winner('fantasy_five')[0])[1:]]
-
         self.generate_sets(all_numbers, top_numbers)
 
         self.progressBar.stop()
@@ -527,12 +521,6 @@ class Application(Frame):
         print(start)
 
         self.count_limit = 10000
-
-        # if self.baseOption.get() == 1:
-
-        #     selected = self.generate_and_filter(all_numbers, top_numbers)
-
-        # if self.baseOption.get() == 2:
 
         selected = self.retrieve_qualified_combos()
 
@@ -562,7 +550,6 @@ class Application(Frame):
                     for combo_set in combo_sets:
                         if len(combo_set) < 25:
                             if self.merge_or_not(combo_set, combo, inter_count):
-                            # if len(set(combo_set).intersection(set(combo))) == 0:
                                 combo_set.extend(combo)
                                 added = True
                                 break
@@ -703,17 +690,6 @@ class Application(Frame):
         return selected 
     
     def retrieve_qualified_combos(self): 
-
-        # select_sql = f'''
-        # select combo_idx from fantasy_combos
-        # order by combo_idx desc
-        # limit 1'''
-
-        # hi_count = self.dataconn.execute_select(select_sql)
-
-        # game_mean = int(hi_count[0][0]/2)
-
-        # print(game_mean)
 
         select_sql = f'''
         select combo_key

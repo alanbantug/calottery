@@ -79,6 +79,7 @@ class Application(Frame):
         Style().configure("B.TLabel", font=lfont, foreground="blue")
         Style().configure("O.TLabelframe.Label", font="Verdana 8", foreground="black")
         Style().configure("F.TButton", font=rfont, relief="raised", height=20)
+        Style().configure("C.TButton", font=rfont, relief="raised", width=20)
 
         # Set scale styles
         Style().configure("S.TScale", orient=HORIZONTAL, width=25)
@@ -102,10 +103,11 @@ class Application(Frame):
         self.dataCheck = LabelFrame(self.dataTab, text=' Combination Check', style="O.TLabelframe")
 
         self.dscroller = Scrollbar(self.dataDisplay, orient=VERTICAL)
-        self.dataSelect = Listbox(self.dataDisplay, yscrollcommand=self.dscroller.set, width=95, height=18)
+        self.dataSelect = Listbox(self.dataDisplay, yscrollcommand=self.dscroller.set, width=95, height=20)
+        self.enterData = Button(self.dataDisplay, text="Enter Data", style="F.TButton", command = lambda : self.callEntry())
+        self.filterData = Button(self.dataDisplay, text="Filter Data", style="F.TButton", command = lambda : self.loadFilteredData())
         self.reloadAll = Button(self.dataDisplay, text="Reload All", style="F.TButton", command = lambda : self.loadData())
-        self.retrieveData = Button(self.dataDisplay, text="Retrieve Data", style="F.TButton")
-
+        
         self.numA = Entry(self.dataCheck, textvariable=self.numberA, width="5")
         self.numB = Entry(self.dataCheck, textvariable=self.numberB, width="5")
         self.numC = Entry(self.dataCheck, textvariable=self.numberC, width="5")
@@ -113,8 +115,7 @@ class Application(Frame):
         self.numE = Entry(self.dataCheck, textvariable=self.numberE, width="5")
         self.superLabel  = Label(self.dataCheck, text="Super", style="T.TLabel" )
         self.super = Entry(self.dataCheck, textvariable=self.numberS, width="5")
-        self.clearSelect = Button(self.dataCheck, text="Clear", style="F.TButton", command = lambda : self.clearFilter())
-        self.checkSelect = Button(self.dataCheck, text="Check", style="F.TButton", command = lambda : self.loadFilteredData())
+        self.clearSelect = Button(self.dataCheck, text="Clear", style="C.TButton", command = lambda : self.clearFilter())
 
         self.selectReturn = Button(self.main_container, text="EXIT", style="E.TButton",command=self.exitRoutine)
         self.progressBar = Progressbar(self.main_container, orient="horizontal", mode="indeterminate", length=280)
@@ -124,22 +125,22 @@ class Application(Frame):
         self.headerB.grid(row=1, column=0, padx=5, pady=1, sticky='NSEW')
         self.parentTab.grid(row=2, column=0, padx=5, pady=5, sticky='NSEW')
 
-        self.dataSelect.grid(row=0, column=0, padx=(10,0), pady=5, sticky='NSEW')
-        self.dscroller.grid(row=0, column=1, padx=(10,0), pady=5, sticky='NSEW')
-        self.reloadAll.grid(row=1, column=0, columnspan=5, padx=(10,5), pady=5, sticky='NSEW')
-        self.retrieveData.grid(row=2, column=0, columnspan=5, padx=(10,5), pady=5, sticky='NSEW')
+        self.dataSelect.grid(row=0, column=0, columnspan=3, padx=(10,0), pady=5, sticky='NSEW')
+        self.dscroller.grid(row=0, column=3, columnspan=1, padx=(10,0), pady=5, sticky='NSEW')
+        self.enterData.grid(row=1, column=0, columnspan=1, padx=5, pady=5, sticky='NSEW')
+        self.filterData.grid(row=1, column=1, columnspan=1, padx=5, pady=5, sticky='NSEW')
+        self.reloadAll.grid(row=1, column=2, columnspan=1, padx=5, pady=5, sticky='NSEW')
         self.dataDisplay.grid(row=7, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
 
         self.numA.grid(row=0, column=0, padx=(10,0), pady=(5, 10), sticky='W')
-        self.numB.grid(row=0, column=0, padx=(60,0), pady=(5, 10), sticky='W')
-        self.numC.grid(row=0, column=0, padx=(110,0), pady=(5, 10), sticky='W')
-        self.numD.grid(row=0, column=0, padx=(160,0), pady=(5, 10), sticky='W')
-        self.numE.grid(row=0, column=0, padx=(210,0), pady=(5, 10), sticky='W')
-        self.superLabel.grid(row=0, column=0, padx=(260,0), pady=(5, 10), sticky='W')
-        self.super.grid(row=0, column=0, padx=(310,0), pady=(5, 10), sticky='W')
+        self.numB.grid(row=0, column=0, padx=(70,0), pady=(5, 10), sticky='W')
+        self.numC.grid(row=0, column=0, padx=(130,0), pady=(5, 10), sticky='W')
+        self.numD.grid(row=0, column=0, padx=(190,0), pady=(5, 10), sticky='W')
+        self.numE.grid(row=0, column=0, padx=(250,0), pady=(5, 10), sticky='W')
+        self.superLabel.grid(row=0, column=0, padx=(310,0), pady=(5, 10), sticky='W')
+        self.super.grid(row=0, column=0, padx=(370,0), pady=(5, 10), sticky='W')
 
-        self.checkSelect.grid(row=0, column=0, padx=(410,0), pady=(5,10), sticky='W')
-        self.clearSelect.grid(row=0, column=0, padx=(510,0), pady=(5,10), sticky='W')
+        self.clearSelect.grid(row=0, column=0, padx=(430,0), pady=(5,10), sticky='NSEW')
         self.dataCheck.grid(row=8, column=0, columnspan=5, padx=5, pady=2, sticky="NSEW")
 
         self.selectReturn.grid(row=10, column=0, columnspan=5, padx=5, pady=(0,5), sticky='NSEW')
@@ -183,8 +184,6 @@ class Application(Frame):
         define widgets for generator tab
         '''
         self.mainOptions = LabelFrame(self.generateTab, text='Options', style="O.TLabelframe")
-        # self.topsOption = Radiobutton(self.mainOptions, text="Top 25", style="B.TRadiobutton", variable=self.baseOption, value=1)
-        # self.classOption = Radiobutton(self.mainOptions, text="Class", style="B.TRadiobutton", variable=self.baseOption, value=2)
         self.topsOption = Checkbutton(self.mainOptions, text="Top 25", style="B.TCheckbutton", variable=self.topBased)
         self.classOption = Checkbutton(self.mainOptions, text="Class", style="B.TCheckbutton", variable=self.idxBased)
 
@@ -279,6 +278,10 @@ class Application(Frame):
         self.loadSuperStats()
         self.loadTrend()
         self.loadBets()
+
+    def callEntry(self):
+
+        os.system('python d:\Projects\Python\data_entry\data_entry.py')
 
     def loadData(self):
 
