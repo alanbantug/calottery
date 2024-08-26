@@ -267,7 +267,7 @@ class Application(Frame):
 
     def callEntry(self):
 
-        os.system('python d:\Projects\Python\data_entry\data_entry.py')
+        os.system('python C:/Users/Alan/Scripts/Code/data_entry/data_entry.py')
 
     def loadData(self):
 
