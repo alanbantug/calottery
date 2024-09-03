@@ -45,7 +45,10 @@ class Application(Frame):
         self.topCount = IntVar()
         self.noClose = IntVar()
         self.noCon = IntVar()
+        self.classOpt = IntVar()
         self.leanPattern = IntVar()
+        self.oddPatterns = IntVar()
+        self.evePatterns = IntVar()
         self.baseOption =IntVar()
         self.topBased =IntVar()
         self.idxBased =IntVar()
@@ -58,8 +61,8 @@ class Application(Frame):
 
         self.varCountLimit = StringVar()
         self.limitList = ['5', '5', '4', '3', '2']
-        self.varIdxClass = StringVar()
-        self.classList = ['0', '0', '1']
+        self.varNumber = StringVar()
+        self.numberList = ['1'] + [str(n+1) for n in range(47)]
 
         rfont = font.Font(family='Verdana', size=8)
         lfont = font.Font(family='Verdana', size=8, slant="italic")
@@ -184,21 +187,22 @@ class Application(Frame):
         define widgets for generator tab
         '''
         self.mainOptions = LabelFrame(self.generateTab, text='Options', style="O.TLabelframe")
-        self.topsOption = Checkbutton(self.mainOptions, text="Top 25", style="B.TCheckbutton", variable=self.topBased)
-        self.classOption = Checkbutton(self.mainOptions, text="Class", style="B.TCheckbutton", variable=self.idxBased)
+        self.topsOption = Radiobutton(self.mainOptions, text="Top 25", style="B.TRadiobutton", variable=self.baseOption, value=0)
+        self.numOption = Radiobutton(self.mainOptions, text="Number", style="B.TRadiobutton", variable=self.baseOption, value=1)
 
         self.topCountList = OptionMenu(self.mainOptions, self.varCountLimit, *self.limitList)
         self.topCountList.config(width=5)
-        self.idxClassList = OptionMenu(self.mainOptions, self.varIdxClass, *self.classList)
-        self.idxClassList.config(width=5)
+        self.numberList = OptionMenu(self.mainOptions, self.varNumber, *self.numberList)
+        self.numberList.config(width=5)
 
         self.filterOptions = LabelFrame(self.generateTab, text='Filters', style="O.TLabelframe")
         self.avoidClose = Checkbutton(self.filterOptions, text="No past winners", style="B.TCheckbutton", variable=self.noClose)
         self.noConsec = Checkbutton(self.filterOptions, text="No consecutives", style="B.TCheckbutton", variable=self.noCon)
+        self.classOption = Checkbutton(self.filterOptions, text="Use odd idx class", style="B.TCheckbutton", variable=self.classOpt)
         self.patternOptions = LabelFrame(self.generateTab, text='Patterns', style="O.TLabelframe")
-        self.leaningCommon = Radiobutton(self.patternOptions, text="Common ", style="B.TRadiobutton", variable=self.leanPattern, value=0)
-        self.leaningOdd = Radiobutton(self.patternOptions, text="Lean odd ", style="B.TRadiobutton", variable=self.leanPattern, value=1)
-        self.leaningEven = Radiobutton(self.patternOptions, text="Lean even ", style="B.TRadiobutton", variable=self.leanPattern, value=2)
+        # self.leaningCommon = Radiobutton(self.patternOptions, text="Common ", style="B.TRadiobutton", variable=self.leanPattern, value=0)
+        self.leaningOdd = Checkbutton(self.patternOptions, text="Lean odd ", style="B.TCheckbutton", variable=self.oddPatterns, command=self.checkLeaningEven)
+        self.leaningEven = Checkbutton(self.patternOptions, text="Lean even ", style="B.TCheckbutton", variable=self.evePatterns, command=self.checkLeaningOdd)
 
 
         self.h_sep_ga = Separator(self.generateTab, orient=HORIZONTAL)
@@ -220,18 +224,19 @@ class Application(Frame):
 
         self.topsOption.grid(row=0, column=0, padx=5, pady=5, sticky='W')
         self.topCountList.grid(row=0, column=0, padx=(90,5), pady=5, sticky="W")
-        self.classOption.grid(row=0, column=0, padx=(180,5), pady=5, sticky='W')
-        self.idxClassList.grid(row=0, column=0, padx=(270,5), pady=5, sticky="W")
+        self.numOption.grid(row=0, column=0, padx=(180,5), pady=5, sticky='W')
+        self.numberList.grid(row=0, column=0, padx=(270,5), pady=5, sticky="W")
         self.mainOptions.grid(row=0, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
 
-        self.avoidClose.grid(row=0, column=0, padx=5, pady=5, sticky="W")
-        self.noConsec.grid(row=0, column=0, padx=(180,5), pady=5, sticky="W")
-        self.filterOptions.grid(row=1, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
+        # self.leaningCommon.grid(row=0, column=0, padx=5, pady=5, sticky="NSEW")
+        self.leaningOdd.grid(row=0, column=0, padx=5, pady=5, sticky="NSEW")
+        self.leaningEven.grid(row=0, column=0, padx=(180,5), pady=5, sticky="NSEW")
+        self.patternOptions.grid(row=1, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
 
-        self.leaningCommon.grid(row=0, column=0, padx=5, pady=5, sticky="NSEW")
-        self.leaningOdd.grid(row=1, column=0, padx=5, pady=5, sticky="NSEW")
-        self.leaningEven.grid(row=2, column=0, padx=5, pady=5, sticky="NSEW")
-        self.patternOptions.grid(row=0, column=3, columnspan=2, rowspan=2, padx=5, pady=5, sticky='NSEW')
+        self.avoidClose.grid(row=0, column=0, padx=5, pady=5, sticky="W")
+        self.noConsec.grid(row=1, column=0, padx=5, pady=5, sticky="W")
+        self.classOption.grid(row=2, column=0, padx=5, pady=5, sticky="W")
+        self.filterOptions.grid(row=0, column=3, columnspan=2, rowspan=2, padx=5, pady=5, sticky='NSEW')
 
         self.h_sep_ga.grid(row=4, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
 
@@ -266,12 +271,12 @@ class Application(Frame):
 
         self.noClose.set(0)
         self.noCon.set(0)
-        self.baseOption.set(1)
-        self.topBased.set(0)
-        self.idxBased.set(0)
+        self.baseOption.set(0)
+        # self.topBased.set(0)
+        # self.idxBased.set(0)
         
         self.varCountLimit.set('5')
-        self.varIdxClass.set('0')
+        self.varNumber.set('1')
 
         self.loadData()
         self.loadStats()
@@ -591,8 +596,11 @@ class Application(Frame):
         count = 0
 
         inter_count = 0
-        if self.topBased.get():
-            if int(self.varCountLimit.get()) == 5:
+        if self.baseOption.get() == 1:
+            inter_count = 4
+        else:
+            if int(self.varTopCount.get()) == 5:
+                self.leanPattern.set(0)
                 inter_count = 1
 
         combo_sets = []
@@ -657,6 +665,16 @@ class Application(Frame):
         
         return True if dup <= inter_count else False
     
+    def checkLeaningOdd(self):
+
+        if self.oddPatterns.get() == 1:
+            self.evePatterns.set(0)
+
+    def checkLeaningEven(self):
+
+        if self.evePatterns.get() == 1:
+            self.oddPatterns.set(0)
+
     def generate_and_filter(self, all_numbers, top_numbers):
 
         combos_all = self.set_generator(all_numbers, 5)
@@ -753,35 +771,32 @@ class Application(Frame):
     
     def retrieve_qualified_combos(self):
 
-        # select_sql = f'''
-        # select combo_idx from super_combos
-        # order by combo_idx desc
-        # limit 1'''
-
-        # hi_count = self.dataconn.execute_select(select_sql)
-
-        # game_mean = int(hi_count[0][0]/2)
-
-        # print(game_mean)
-
         select_sql = f'''
         select combo_key
         from super_combos
         where'''
 
-        if self.topBased.get():
+        if self.baseOption.get() == 0:
 
             tops = int(self.varCountLimit.get())
             select_sql += f''' top_count = {tops}'''
 
-        if self.idxBased.get():
+        else:
 
-            mod = int(self.varIdxClass.get())
+            num = int(self.varNumber.get())
+            num = '{:02d}'.format(num)
 
-            if select_sql.endswith('where'):
-                select_sql += f''' mod(combo_idx, 2) = {mod}'''
-            else:
-                select_sql += f''' and mod(combo_idx, 2) = {mod}'''
+            select_sql += f''' (SUBSTRING(combo_key, 1, 2) = '{num}' 
+            or SUBSTRING(combo_key, 3, 2) = '{num}' 
+            or SUBSTRING(combo_key, 5, 2) = '{num}' 
+            or SUBSTRING(combo_key, 7, 2) = '{num}' 
+            or SUBSTRING(combo_key, 9, 2) = '{num}')
+            '''
+
+        if self.classOpt.get() == 1:
+            select_sql += f''' and mod(combo_idx, 2) = 1'''
+        else:
+            select_sql += f''' and mod(combo_idx, 2) = 0'''
 
         if self.noClose.get():
             select_sql += ''' and win_count = 0'''
@@ -791,14 +806,12 @@ class Application(Frame):
         else:
             select_sql += ''' and con_count < 3'''
 
-        if int(self.leanPattern.get()) == 0:
+        if self.oddPatterns.get() == 1:
+            select_sql += ''' and odd_count >= 3''' 
+        elif self.evePatterns.get() == 1:
+            select_sql += ''' and odd_count < 3''' 
+        else:
             select_sql += ''' and odd_count in (4,3,2,1)''' 
-
-        if int(self.leanPattern.get()) == 1:
-            select_sql += ''' and odd_count >= 3 ''' 
-
-        if int(self.leanPattern.get()) == 2:
-            select_sql += ''' and odd_count < 3 ''' 
 
         combo_keys = self.dataconn.execute_select(select_sql)
 
