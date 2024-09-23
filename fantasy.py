@@ -48,6 +48,7 @@ class Application(Frame):
         self.topBased = IntVar()
         self.idxBased = IntVar()
         self.plotTopNumbers = IntVar()
+        self.plotBotNumbers = IntVar()
         self.plotIdxClass = IntVar()
         self.plotPatClass = IntVar()
 
@@ -150,17 +151,19 @@ class Application(Frame):
         self.statSelect = Listbox(self.statDisplay, yscrollcommand=self.sscroller.set, width=18, height=18)
         self.trendPlot = Label(self.trendDisplay)
         self.reloadTrend = Button(self.trendDisplay, text="Reload", style="F.TButton", command=self.reload)
-        self.plotTop = Checkbutton(self.trendDisplay, text="Top Numbers", style="B.TCheckbutton", variable=self.plotTopNumbers)
-        self.plotIdx = Checkbutton(self.trendDisplay, text="Index Class", style="B.TCheckbutton", variable=self.plotIdxClass)
-        self.plotPat = Checkbutton(self.trendDisplay, text="Pat Class", style="B.TCheckbutton", variable=self.plotPatClass)
+        self.plotTop = Checkbutton(self.trendDisplay, text="Tops ", style="B.TCheckbutton", variable=self.plotTopNumbers)
+        self.plotBot = Checkbutton(self.trendDisplay, text="Bots ", style="B.TCheckbutton", variable=self.plotBotNumbers)
+        self.plotIdx = Checkbutton(self.trendDisplay, text="Index ", style="B.TCheckbutton", variable=self.plotIdxClass)
+        self.plotPat = Checkbutton(self.trendDisplay, text="Pat ", style="B.TCheckbutton", variable=self.plotPatClass)
 
         self.statSelect.grid(row=0, column=0, padx=(10,0), pady=5, sticky='NSEW')
         self.sscroller.grid(row=0, column=1, padx=(5,0), pady=5, sticky='NSEW')
         self.sortStat.grid(row=1, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
         self.statDisplay.grid(row=0, column=0, columnspan=1, padx=5, pady=5, sticky='NSEW')
         self.plotTop.grid(row=0, column=0, padx=5, pady=5, sticky='NSEW')
-        self.plotIdx.grid(row=0, column=0, padx=(110,5), pady=5, sticky='NSEW')
-        self.plotPat.grid(row=0, column=0, padx=(220,5), pady=5, sticky='NSEW')
+        self.plotBot.grid(row=0, column=0, padx=(70,5), pady=5, sticky='NSEW')
+        self.plotIdx.grid(row=0, column=0, padx=(140,5), pady=5, sticky='NSEW')
+        self.plotPat.grid(row=0, column=0, padx=(210,5), pady=5, sticky='NSEW')
         self.trendPlot.grid(row=1, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
         self.reloadTrend.grid(row=2, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
         self.trendDisplay.grid(row=0, column=1, columnspan=4, padx=5, pady=5, sticky='NSEW')
@@ -399,7 +402,7 @@ class Application(Frame):
         
         self.progressBar.start()
         
-        if self.plotTopNumbers.get() == 0 and self.plotIdxClass.get() == 0 and self.plotPatClass.get() == 0:
+        if self.plotTopNumbers.get() == 0 and self.plotBotNumbers.get() == 0 and self.plotIdxClass.get() == 0 and self.plotPatClass.get() == 0:
             self.plotTopNumbers.set(1)
 
         winners = self.dataconn.get_fantasy_data()
@@ -412,6 +415,9 @@ class Application(Frame):
         if self.plotTopNumbers.get():
             df['TOP'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_top_n, axis=1)
             plt.plot(df['TOP'][:40], 'x-', label='T25', color='black', alpha=0.5)
+        if self.plotBotNumbers.get():
+            df['BOT'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_bot_n, axis=1)
+            plt.plot(df['BOT'][:40], 'o-', label='B25', color='black', alpha=0.5)
         if self.plotIdxClass.get():
             df['CLS'] = df[['A', 'B', 'C', 'D', 'E']].apply(self.check_index_class, axis=1)
             plt.plot(df['CLS'][:40], 'o-', label='IDX', color='green', alpha=0.5)
@@ -420,7 +426,7 @@ class Application(Frame):
             plt.plot(df['PAT'][:40], 'o-', label='PAT', color='blue', alpha=0.5)
 
         plt.grid(axis='both', color='grey', alpha=0.5)
-        plt.legend(title='Labels', loc='center right')
+        plt.legend(title='Labels', loc='lower right')
         ax = plt.gca()
         ax.set_yticks([5,4,3,2,1,0])
         plt.savefig('fantasy.jpg')
@@ -454,6 +460,17 @@ class Application(Frame):
         top_numbers = self.dataconn.get_top_stats_by_date(dd, 'fantasy_five')[:25]
 
         return len([num for num in num_set if num in top_numbers])
+
+    def check_bot_n(self, data):
+
+        dd, na, nb, nc, nd, ne = data
+
+        num_set = [na, nb, nc, nd, ne]
+
+        # get the top numbers prior to the draw date passed
+        bot_numbers = self.dataconn.get_top_stats_by_date(dd, 'fantasy_five')[14:]
+
+        return len([num for num in num_set if num in bot_numbers])
 
     def reload(self):
 
