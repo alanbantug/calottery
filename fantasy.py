@@ -563,17 +563,10 @@ class Application(Frame):
         count = 0
 
         inter_count = 0
-        if self.baseOption.get() == 0:
-            if int(self.varTopCount.get()) == 5:
-                inter_count = 1
-                if self.oddPatterns.get() or self.evenPatterns.get():
-                   inter_count = 4
-
-        else:
-            if int(self.varBotCount.get()) == 5:
-                inter_count = 1
-                if self.oddPatterns.get() or self.evenPatterns.get():
-                   inter_count = 4
+        if int(self.varTopCount.get()) == 5:
+            inter_count = 1
+            if self.oddPatterns.get() or self.evenPatterns.get():
+                inter_count = 4
 
         combo_sets = []
 
