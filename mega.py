@@ -44,20 +44,23 @@ class Application(Frame):
         self.topCount = IntVar()
         self.noClose = IntVar()
         self.noCon = IntVar()
-        self.leanPattern = IntVar()
+        # self.leanPattern = IntVar()
         self.baseOption = IntVar()
-        self.topBased = IntVar()
-        self.idxBased = IntVar()
+        # self.topBased = IntVar()
+        # self.idxBased = IntVar()
+        self.classOpt =IntVar()
+        self.oddPatterns = IntVar()
+        self.evenPatterns = IntVar()
         self.plotTopNumbers = IntVar()
+        self.plotBotNumbers = IntVar()
         self.plotIdxClass = IntVar()
         self.plotPatClass = IntVar()
 
         self.generated = []
 
-        self.varCountLimit = StringVar()
+        self.varTopCount = StringVar()
+        self.varBotCount = StringVar()
         self.limitList = ['5', '5', '4', '3', '2']
-        self.varIdxClass = StringVar()
-        self.classList = ['0', '0', '1']
 
         rfont = font.Font(family='Verdana', size=8)
         lfont = font.Font(family='Verdana', size=8, slant="italic")
@@ -167,6 +170,7 @@ class Application(Frame):
         self.trendPlot = Label(self.trendDisplay)
         self.reloadTrend = Button(self.trendDisplay, text="Reload", style="F.TButton", command=self.reload)
         self.plotTop = Checkbutton(self.trendDisplay, text="Top Numbers", style="B.TCheckbutton", variable=self.plotTopNumbers)
+        self.plotBot = Checkbutton(self.trendDisplay, text="Bot Numbers", style="B.TCheckbutton", variable=self.plotBotNumbers)
         self.plotIdx = Checkbutton(self.trendDisplay, text="Index Class", style="B.TCheckbutton", variable=self.plotIdxClass)
         self.plotPat = Checkbutton(self.trendDisplay, text="Pat Class", style="B.TCheckbutton", variable=self.plotPatClass)
 
@@ -180,8 +184,9 @@ class Application(Frame):
         self.statDisplay.grid(row=0, column=0, columnspan=1, padx=5, pady=5, sticky='NSEW')
 
         self.plotTop.grid(row=0, column=0, padx=5, pady=5, sticky='NSEW')
-        self.plotIdx.grid(row=0, column=0, padx=(160,5), pady=5, sticky='NSEW')
-        self.plotPat.grid(row=0, column=0, padx=(320,5), pady=5, sticky='NSEW')
+        self.plotBot.grid(row=0, column=0, padx=(160,5), pady=5, sticky='NSEW')
+        self.plotIdx.grid(row=0, column=0, padx=(320,5), pady=5, sticky='NSEW')
+        self.plotPat.grid(row=0, column=0, padx=(480,5), pady=5, sticky='NSEW')
         self.trendPlot.grid(row=1, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
         self.reloadTrend.grid(row=2, column=0, columnspan=5, padx=5, pady=(8,5), sticky='NSEW')
         self.trendDisplay.grid(row=0, column=1, columnspan=4, padx=5, pady=5, sticky='NSEW')
@@ -191,21 +196,21 @@ class Application(Frame):
         '''
         self.mainOptions = LabelFrame(self.generateTab, text='Options', style="O.TLabelframe")
 
-        self.topsOption = Checkbutton(self.mainOptions, text="Top 25", style="B.TCheckbutton", variable=self.topBased)
-        self.topCountList = OptionMenu(self.mainOptions, self.varCountLimit, *self.limitList)
+        self.topsOption = Radiobutton(self.mainOptions, text="Top 25", style="B.TRadiobutton", variable=self.baseOption, value=0)
+        self.topCountList = OptionMenu(self.mainOptions, self.varTopCount, *self.limitList)
         self.topCountList.config(width=5)
-        self.classOption = Checkbutton(self.mainOptions, text="Class", style="B.TCheckbutton", variable=self.idxBased)
-        self.idxClassList = OptionMenu(self.mainOptions, self.varIdxClass, *self.classList)
-        self.idxClassList.config(width=5)
+        self.botOption = Radiobutton(self.mainOptions, text="Bot 25", style="B.TRadiobutton", variable=self.baseOption, value=1)
+        self.botCountList = OptionMenu(self.mainOptions, self.varBotCount, *self.limitList)
+        self.botCountList.config(width=5)
 
         self.filterOptions = LabelFrame(self.generateTab, text='Filters', style="O.TLabelframe")
         self.avoidClose = Checkbutton(self.filterOptions, text="No past winners", style="B.TCheckbutton", variable=self.noClose)
         self.noConsec = Checkbutton(self.filterOptions, text="No consecutives", style="B.TCheckbutton", variable=self.noCon)
+        self.classOption = Checkbutton(self.filterOptions, text="Use odd idx class", style="B.TCheckbutton", variable=self.classOpt)
 
         self.patternOptions = LabelFrame(self.generateTab, text='Patterns', style="O.TLabelframe")
-        self.leaningCommon = Radiobutton(self.patternOptions, text="Common ", style="B.TRadiobutton", variable=self.leanPattern, value=0)
-        self.leaningOdd = Radiobutton(self.patternOptions, text="Lean odd ", style="B.TRadiobutton", variable=self.leanPattern, value=1)
-        self.leaningEven = Radiobutton(self.patternOptions, text="Lean even ", style="B.TRadiobutton", variable=self.leanPattern, value=2)
+        self.leaningOdd = Checkbutton(self.patternOptions, text="Lean odd ", style="B.TCheckbutton", variable=self.oddPatterns, command=self.checkLeaningEven)
+        self.leaningEven = Checkbutton(self.patternOptions, text="Lean even ", style="B.TCheckbutton", variable=self.evenPatterns, command=self.checkLeaningOdd)
 
         self.h_sep_ga = Separator(self.generateTab, orient=HORIZONTAL)
         self.h_sep_gb = Separator(self.generateTab, orient=HORIZONTAL)
@@ -226,18 +231,18 @@ class Application(Frame):
 
         self.topsOption.grid(row=0, column=0, padx=5, pady=5, sticky="W")
         self.topCountList.grid(row=0, column=0, padx=(90,5), pady=5, sticky="W")
-        self.classOption.grid(row=0, column=0, padx=(180,5), pady=5, sticky="W")
-        self.idxClassList.grid(row=0, column=0, padx=(270,5), pady=5, sticky="W")
+        self.botOption.grid(row=0, column=0, padx=(180,5), pady=5, sticky="W")
+        self.botCountList.grid(row=0, column=0, padx=(270,5), pady=5, sticky="W")
         self.mainOptions.grid(row=0, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
 
-        self.avoidClose.grid(row=0, column=0, padx=5, pady=5, sticky="W")
-        self.noConsec.grid(row=0, column=0, padx=(180,5), pady=5, sticky="W")
-        self.filterOptions.grid(row=1, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
+        self.noConsec.grid(row=0, column=0, padx=5, pady=5, sticky="W")
+        self.avoidClose.grid(row=1, column=0, padx=5, pady=5, sticky="W")
+        self.classOption.grid(row=2, column=0, padx=5, pady=5, sticky="W")
+        self.filterOptions.grid(row=0, column=2, columnspan=2, rowspan=2, padx=5, pady=2, sticky='NSEW')
 
-        self.leaningCommon.grid(row=0, column=0, padx=5, pady=5, sticky="NSEW")
-        self.leaningOdd.grid(row=1, column=0, padx=5, pady=5, sticky="NSEW")
-        self.leaningEven.grid(row=2, column=0, padx=5, pady=5, sticky="NSEW")
-        self.patternOptions.grid(row=0, column=2, columnspan=1, rowspan=2, padx=5, pady=5, sticky='NSEW')
+        self.leaningOdd.grid(row=0, column=0, padx=5, pady=5, sticky="NSEW")
+        self.leaningEven.grid(row=0, column=1, padx=(90,5), pady=5, sticky="NSEW")
+        self.patternOptions.grid(row=1, column=0, columnspan=2, padx=5, pady=2, sticky='NSEW')
 
         self.h_sep_ga.grid(row=4, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
 
@@ -259,10 +264,11 @@ class Application(Frame):
 
         self.noClose.set(0)
         self.noCon.set(0)
-        self.leanPattern.set(0)
+        # self.leanPattern.set(0)
 
-        self.varCountLimit.set('5')
-        self.baseOption.set(1)
+        self.varTopCount.set('5')
+        self.varBotCount.set('5')
+        self.baseOption.set(0)
 
         self.loadData()
         self.loadStats()
@@ -434,7 +440,11 @@ class Application(Frame):
         if self.plotTopNumbers.get() == 1:
             df['TOP'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_top_n, axis=1)
             plt.plot(df['TOP'][:50], 'x-', label='T25', color='black', alpha=0.5)
-        
+
+        if self.plotBotNumbers.get() == 1:
+            df['BOT'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_bot_n, axis=1)
+            plt.plot(df['BOT'][:50], 'o-', label='B25', color='red', alpha=0.5)
+
         if self.plotIdxClass.get():
             df['IDX'] = df[['A', 'B', 'C', 'D', 'E']].apply(self.check_index_class, axis=1)
             plt.plot(df['IDX'][:50], 'o-', label='IDX', color='green', alpha=0.5)
@@ -478,7 +488,18 @@ class Application(Frame):
         top_numbers = self.dataconn.get_top_stats_by_date(dd, 'mega_lotto')[:25]
 
         return len([num for num in num_set if num in top_numbers])
-    
+
+    def check_bot_n(self, data):
+
+        dd, na, nb, nc, nd, ne = data
+
+        num_set = [na, nb, nc, nd, ne]
+
+        # get the bot numbers prior to the draw date passed
+        bot_numbers = self.dataconn.get_top_stats_by_date(dd, 'mega_lotto')[-25:]
+
+        return len([num for num in num_set if num in bot_numbers])
+
     def reload(self):
 
         try:
@@ -510,6 +531,16 @@ class Application(Frame):
             self.sortMegaOrder.set(0)
 
         self.loadMegaStats()
+
+    def checkLeaningOdd(self):
+
+        if self.oddPatterns.get() == 1:
+            self.evenPatterns.set(0)
+
+    def checkLeaningEven(self):
+
+        if self.evenPatterns.get() == 1:
+            self.oddPatterns.set(0)
 
     def generate(self):
 
@@ -691,19 +722,20 @@ class Application(Frame):
         from mega_combos
         where'''
 
-        if self.topBased.get():
+        if self.baseOption.get() == 0:
 
-            tops = int(self.varCountLimit.get())
+            tops = int(self.varTopCount.get())
             select_sql += f''' top_count = {tops}'''
 
-        if self.idxBased.get():
+        if self.baseOption.get() == 1:
 
-            mod = int(self.varIdxClass.get())
+            bots = int(self.varBotCount.get())
+            select_sql += f''' bot_count = {bots}'''
 
-            if select_sql.endswith('where'):
-                select_sql += f''' mod(combo_idx, 2) = {mod}'''
-            else:
-                select_sql += f''' and mod(combo_idx, 2) = {mod}'''
+        if self.classOpt.get() == 1:
+            select_sql += f''' and mod(combo_idx, 2) = 1'''
+        else:
+            select_sql += f''' and mod(combo_idx, 2) = 0'''
 
         if self.noClose.get():
             select_sql += ''' and win_count = 0'''
@@ -713,22 +745,21 @@ class Application(Frame):
         else:
             select_sql += ''' and con_count < 3'''
 
-        if int(self.leanPattern.get()) == 0:
-            select_sql += ''' and odd_count in (3,2)''' 
-
-        if int(self.leanPattern.get()) == 1:
+        if self.oddPatterns.get() == 1:
             select_sql += ''' and odd_count >= 3''' 
-
-        if int(self.leanPattern.get()) == 2:
+        elif self.evenPatterns.get() == 1:
             select_sql += ''' and odd_count < 3''' 
+        else:
+            select_sql += ''' and odd_count in (4,3,2,1)''' 
 
+        print(select_sql)
         combo_keys = self.dataconn.execute_select(select_sql)
 
         selected = [self.split_key(combo_key[0]) for combo_key in combo_keys]
 
         print(f'Qualified combinations   : {len(selected)}')
-
-        return selected 
+        
+        return selected
 
     def format_sets(self, number_set):
 

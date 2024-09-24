@@ -42,10 +42,10 @@ class Application(Frame):
         self.topNumbers = IntVar()
         self.topCount = IntVar()
         self.noClose = IntVar()
-        self.leanPattern = IntVar()
+        # self.leanPattern = IntVar()
         self.noCon = IntVar()
         self.baseOption = IntVar()
-        self.topBased = IntVar()
+        # self.topBased = IntVar()
         self.classOpt = IntVar()
         self.oddPatterns = IntVar()
         self.evenPatterns = IntVar()
@@ -498,11 +498,11 @@ class Application(Frame):
     def checkLeaningOdd(self):
 
         if self.oddPatterns.get() == 1:
-            self.evePatterns.set(0)
+            self.evenPatterns.set(0)
 
     def checkLeaningEven(self):
 
-        if self.evePatterns.get() == 1:
+        if self.evenPatterns.get() == 1:
             self.oddPatterns.set(0)
 
     def generate(self):
@@ -565,12 +565,15 @@ class Application(Frame):
         inter_count = 0
         if self.baseOption.get() == 0:
             if int(self.varTopCount.get()) == 5:
-                # self.leanPattern.set(0)
                 inter_count = 1
+                if self.oddPatterns.get() or self.evenPatterns.get:
+                   inter_count = 4
+
         else:
             if int(self.varBotCount.get()) == 5:
-                # self.leanPattern.set(0)
                 inter_count = 1
+                if self.oddPatterns.get() or self.evenPatterns.get:
+                   inter_count = 4
 
         combo_sets = []
 
@@ -674,21 +677,21 @@ class Application(Frame):
         
         print(f'After consecutive filter : {len(selected)}')
         
-        if self.leanPattern.get() == 0:
+        # if self.leanPattern.get() == 0:
 
-            combos_all = self.set_iterator(selected)
-            selected = []
+        #     combos_all = self.set_iterator(selected)
+        #     selected = []
 
-            while True:
+        #     while True:
 
-                try:
-                    combo = next(combos_all)
-                    if self.check_pattern(combo):
-                        selected.append(combo)
-                except:
-                    break
+        #         try:
+        #             combo = next(combos_all)
+        #             if self.check_pattern(combo):
+        #                 selected.append(combo)
+        #         except:
+        #             break
         
-        print(f'After pattern filter     : {len(selected)}')
+        # print(f'After pattern filter     : {len(selected)}')
         
         if self.noClose.get():
             combos_all = self.set_iterator(selected)
@@ -730,19 +733,20 @@ class Application(Frame):
         from fantasy_combos
         where'''
 
-        if self.topBased.get():
+        if self.baseOption.get() == 0:
 
             tops = int(self.varTopCount.get())
             select_sql += f''' top_count = {tops}'''
 
-        if self.idxBased.get():
+        if self.baseOption.get() == 1:
 
-            mod = int(self.varIdxClass.get())
+            bots = int(self.varBotCount.get())
+            select_sql += f''' bot_count = {bots}'''
 
-            if select_sql.endswith('where'):
-                select_sql += f''' mod(combo_idx, 2) = {mod}'''
-            else:
-                select_sql += f''' and mod(combo_idx, 2) = {mod}'''
+        if self.classOpt.get() == 1:
+            select_sql += f''' and mod(combo_idx, 2) = 1'''
+        else:
+            select_sql += f''' and mod(combo_idx, 2) = 0'''
 
         if self.noClose.get():
             select_sql += ''' and win_count = 0'''
@@ -752,15 +756,14 @@ class Application(Frame):
         else:
             select_sql += ''' and con_count < 3'''
 
-        if int(self.leanPattern.get()) == 0:
+        if self.oddPatterns.get() == 1:
+            select_sql += ''' and odd_count >= 3''' 
+        elif self.evenPatterns.get() == 1:
+            select_sql += ''' and odd_count < 3''' 
+        else:
             select_sql += ''' and odd_count in (4,3,2,1)''' 
 
-        if int(self.leanPattern.get()) == 1:
-            select_sql += ''' and odd_count >= 3''' 
-
-        if int(self.leanPattern.get()) == 2:
-            select_sql += ''' and odd_count < 3''' 
-
+        print(select_sql)
         combo_keys = self.dataconn.execute_select(select_sql)
 
         selected = [self.split_key(combo_key[0]) for combo_key in combo_keys]
