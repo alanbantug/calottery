@@ -42,10 +42,8 @@ class Application(Frame):
         self.topNumbers = IntVar()
         self.topCount = IntVar()
         self.noClose = IntVar()
-        # self.leanPattern = IntVar()
         self.noCon = IntVar()
         self.baseOption = IntVar()
-        # self.topBased = IntVar()
         self.classOpt = IntVar()
         self.oddPatterns = IntVar()
         self.evenPatterns = IntVar()
@@ -188,7 +186,6 @@ class Application(Frame):
         self.noConsec = Checkbutton(self.filterOptions, text="No consecutives", style="B.TCheckbutton", variable=self.noCon)
         self.classOption = Checkbutton(self.filterOptions, text="Use odd idx class", style="B.TCheckbutton", variable=self.classOpt)
         self.patternOptions = LabelFrame(self.generateTab, text='Patterns', style="O.TLabelframe")
-        # self.leaningCommon = Radiobutton(self.patternOptions, text="Common ", style="B.TRadiobutton", variable=self.leanPattern, value=0)
         self.leaningOdd = Checkbutton(self.patternOptions, text="Lean odd ", style="B.TCheckbutton", variable=self.oddPatterns, command=self.checkLeaningEven)
         self.leaningEven = Checkbutton(self.patternOptions, text="Lean even ", style="B.TCheckbutton", variable=self.evenPatterns, command=self.checkLeaningOdd)
 
@@ -220,7 +217,6 @@ class Application(Frame):
         self.classOption.grid(row=2, column=0, padx=5, pady=5, sticky="W")
         self.filterOptions.grid(row=0, column=3, columnspan=2, rowspan=2, padx=5, pady=2, sticky='NSEW')
 
-        # self.leaningCommon.grid(row=0, column=0, padx=5, pady=5, sticky="NSEW")
         self.leaningOdd.grid(row=0, column=0, padx=5, pady=5, sticky="NSEW")
         self.leaningEven.grid(row=0, column=1, padx=(60,5), pady=5, sticky="NSEW")
         self.patternOptions.grid(row=1, column=0, columnspan=3, padx=5, pady=2, sticky='NSEW')
@@ -261,10 +257,9 @@ class Application(Frame):
         self.noCon.set(0)
 
         self.varTopCount.set('5')
+        self.varBotCount.set('5')
         self.plotTopNumbers.set(1)
         self.baseOption.set(0)
-        # self.topBased.set(0)
-        # self.idxBased.set(0)
 
         self.loadData()
         self.loadStats()
@@ -420,7 +415,7 @@ class Application(Frame):
             plt.plot(df['TOP'][:40], 'x-', label='T25', color='black', alpha=0.5)
         if self.plotBotNumbers.get():
             df['BOT'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_bot_n, axis=1)
-            plt.plot(df['BOT'][:40], 'o-', label='B25', color='black', alpha=0.5)
+            plt.plot(df['BOT'][:40], 'o-', label='B25', color='red', alpha=0.5)
         if self.plotIdxClass.get():
             df['CLS'] = df[['A', 'B', 'C', 'D', 'E']].apply(self.check_index_class, axis=1)
             plt.plot(df['CLS'][:40], 'o-', label='IDX', color='green', alpha=0.5)
@@ -470,8 +465,8 @@ class Application(Frame):
 
         num_set = [na, nb, nc, nd, ne]
 
-        # get the top numbers prior to the draw date passed
-        bot_numbers = self.dataconn.get_top_stats_by_date(dd, 'fantasy_five')[14:]
+        # get the bot numbers prior to the draw date passed
+        bot_numbers = self.dataconn.get_top_stats_by_date(dd, 'fantasy_five')[-25:]
 
         return len([num for num in num_set if num in bot_numbers])
 
@@ -670,21 +665,21 @@ class Application(Frame):
         
         print(f'After consecutive filter : {len(selected)}')
         
-        # if self.leanPattern.get() == 0:
+        if self.oddPatterns.get() == 0 and self.evenPatterns.get() == 0:
 
-        #     combos_all = self.set_iterator(selected)
-        #     selected = []
+            combos_all = self.set_iterator(selected)
+            selected = []
 
-        #     while True:
+            while True:
 
-        #         try:
-        #             combo = next(combos_all)
-        #             if self.check_pattern(combo):
-        #                 selected.append(combo)
-        #         except:
-        #             break
+                try:
+                    combo = next(combos_all)
+                    if self.check_pattern(combo):
+                        selected.append(combo)
+                except:
+                    break
         
-        # print(f'After pattern filter     : {len(selected)}')
+        print(f'After pattern filter     : {len(selected)}')
         
         if self.noClose.get():
             combos_all = self.set_iterator(selected)
@@ -756,7 +751,6 @@ class Application(Frame):
         else:
             select_sql += ''' and odd_count in (4,3,2,1)''' 
 
-        print(select_sql)
         combo_keys = self.dataconn.execute_select(select_sql)
 
         selected = [self.split_key(combo_key[0]) for combo_key in combo_keys]

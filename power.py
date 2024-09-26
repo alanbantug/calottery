@@ -48,7 +48,6 @@ class Application(Frame):
         self.oddPatterns = IntVar()
         self.evenPatterns = IntVar()
         self.baseOption = IntVar()
-        self.topBased = IntVar()
         self.classOpt = IntVar()
         self.plotTopNumbers = IntVar()
         self.plotBotNumbers = IntVar()
@@ -265,7 +264,6 @@ class Application(Frame):
         self.noClose.set(0)
         self.noCon.set(0)
         self.baseOption.set(0)
-        self.topBased.set(0)
         self.varTopCount.set('5')
         self.varBotCount.set('5')
 

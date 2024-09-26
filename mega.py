@@ -44,10 +44,7 @@ class Application(Frame):
         self.topCount = IntVar()
         self.noClose = IntVar()
         self.noCon = IntVar()
-        # self.leanPattern = IntVar()
         self.baseOption = IntVar()
-        # self.topBased = IntVar()
-        # self.idxBased = IntVar()
         self.classOpt =IntVar()
         self.oddPatterns = IntVar()
         self.evenPatterns = IntVar()
@@ -264,7 +261,6 @@ class Application(Frame):
 
         self.noClose.set(0)
         self.noCon.set(0)
-        # self.leanPattern.set(0)
 
         self.varTopCount.set('5')
         self.varBotCount.set('5')
@@ -632,8 +628,6 @@ class Application(Frame):
         self.genSet['text'] = 'NEXT'
         self.get_a_set()
 
-        # return combi_sets
-
     def generate_and_filter(self, all_numbers, top_numbers):
         
         combos_all = self.set_generator(all_numbers, 5)
@@ -679,7 +673,7 @@ class Application(Frame):
 
         print(f'After consecutive filter : {len(selected)}')
 
-        if self.leanPattern.get() == 0:
+        if self.oddPatterns.get() == 0 and self.evenPatterns.get() == 0:
 
             combos_all = self.set_iterator(selected)
             selected = []
@@ -752,7 +746,6 @@ class Application(Frame):
         else:
             select_sql += ''' and odd_count in (4,3,2,1)''' 
 
-        print(select_sql)
         combo_keys = self.dataconn.execute_select(select_sql)
 
         selected = [self.split_key(combo_key[0]) for combo_key in combo_keys]

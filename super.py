@@ -45,9 +45,7 @@ class Application(Frame):
         self.topCount = IntVar()
         self.noClose = IntVar()
         self.noCon = IntVar()
-        # self.leanPattern = IntVar()
         self.baseOption =IntVar()
-        self.topBased =IntVar()
         self.classOpt =IntVar()
         self.oddPatterns = IntVar()
         self.evenPatterns = IntVar()
@@ -271,8 +269,6 @@ class Application(Frame):
         self.noClose.set(0)
         self.noCon.set(0)
         self.baseOption.set(0)
-        # self.topBased.set(0)
-        # self.idxBased.set(0)
         
         self.varTopCount.set('5')
         self.varBotCount.set('5')
@@ -450,7 +446,7 @@ class Application(Frame):
 
         num_set = [na, nb, nc, nd, ne]
 
-        # get the top numbers prior to the draw date passed
+        # get the bot numbers prior to the draw date passed
         bot_numbers = self.dataconn.get_top_stats_by_date(dd, 'super_lotto')[-25:]
 
         return len([num for num in num_set if num in bot_numbers])
@@ -582,13 +578,6 @@ class Application(Frame):
         all_numbers = [n[0] for n in self.dataconn.get_number_stats('super_lotto', 0)]
         top_numbers = all_numbers[:25]
 
-        # if self.skipWinner.get() == 1:
-        #     if self.baseOption.get() ==  1 and int(self.varCountLimit.get()) == 5:
-        #         self.skipWinner.set(0)
-        #     else:
-        #         all_numbers = [n for n in all_numbers if n not in list(self.dataconn.get_latest_winner('super_lotto')[0])[1:]]
-        #         top_numbers = [n for n in top_numbers if n not in list(self.dataconn.get_latest_winner('super_lotto')[0])[1:]]
-
         self.generate_sets(all_numbers, top_numbers)
 
         self.progressBar.stop()
@@ -631,7 +620,6 @@ class Application(Frame):
                     for combo_set in combo_sets:
                         if len(combo_set) < 25:
                             if self.merge_or_not(combo_set, combo, inter_count):
-                            # if len(set(combo_set).intersection(set(combo))) == inter_count:
                                 combo_set.extend(combo)
                                 added = True
                                 break
@@ -662,8 +650,6 @@ class Application(Frame):
 
         self.genSet['text'] = 'NEXT'
         self.get_a_set()
-
-        # return combi_sets
 
     def merge_or_not(self, combo_set, combo, inter_count):
 
@@ -725,21 +711,21 @@ class Application(Frame):
         
         print(f'After consecutive filter : {len(selected)}')
 
-        # if self.leanPattern.get() == 0:
+        if self.oddPatterns.get() == 0 and self.evenPatterns.get() == 0:
 
-        #     combos_all = self.set_iterator(selected)
-        #     selected = []
+            combos_all = self.set_iterator(selected)
+            selected = []
 
-        #     while True:
+            while True:
 
-        #         try:
-        #             combo = next(combos_all)
-        #             if self.check_pattern(combo):
-        #                 selected.append(combo)
-        #         except:
-        #             break
+                try:
+                    combo = next(combos_all)
+                    if self.check_pattern(combo):
+                        selected.append(combo)
+                except:
+                    break
 
-        # print(f'After pattern filter     : {len(selected)}')
+        print(f'After pattern filter     : {len(selected)}')
 
         if self.noClose.get():
 
@@ -812,7 +798,6 @@ class Application(Frame):
         else:
             select_sql += ''' and odd_count in (4,3,2,1)''' 
 
-        print(select_sql)
         combo_keys = self.dataconn.execute_select(select_sql)
 
         selected = [self.split_key(combo_key[0]) for combo_key in combo_keys]
