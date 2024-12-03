@@ -412,16 +412,16 @@ class Application(Frame):
 
         if self.plotTopNumbers.get():
             df['TOP'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_top_n, axis=1)
-            plt.plot(df['TOP'][:40], 'x-', label='T25', color='black', alpha=0.5)
+            plt.plot(df['TOP'][:40], 'o-', label='T25', color='blue', alpha=0.5)
         if self.plotBotNumbers.get():
             df['BOT'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_bot_n, axis=1)
             plt.plot(df['BOT'][:40], 'o-', label='B25', color='red', alpha=0.5)
         if self.plotIdxClass.get():
             df['CLS'] = df[['A', 'B', 'C', 'D', 'E']].apply(self.check_index_class, axis=1)
-            plt.plot(df['CLS'][:40], 'o-', label='IDX', color='green', alpha=0.5)
+            plt.plot(df['CLS'][:40], 'o-', label='IDX', color='yellow', alpha=0.5)
         if self.plotPatClass.get():
             df['PAT'] = df[['A', 'B', 'C', 'D', 'E']].apply(self.check_pattern_class, axis=1)
-            plt.plot(df['PAT'][:40], 'o-', label='PAT', color='blue', alpha=0.5)
+            plt.plot(df['PAT'][:40], 'o-', label='PAT', color='green', alpha=0.5)
 
         plt.grid(axis='both', color='grey', alpha=0.5)
         plt.legend(title='Labels', loc='lower right')
