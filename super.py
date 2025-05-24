@@ -471,11 +471,11 @@ class Application(Frame):
 
         if self.plotBotNumbers.get() == 1:
             df['BOT'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_bot_n, axis=1)
-            plt.plot(df['BOT'][:50], 'o-', label='T25', color='red', alpha=0.5)
+            plt.plot(df['BOT'][:50], 'o-', label='B25', color='red', alpha=0.5)
 
         if self.plotIdxClass.get():
             df['IDX'] = df[['A', 'B', 'C', 'D', 'E']].apply(self.check_index_class, axis=1)
-            plt.plot(df['IDX'][:50], 'o-', label='IDX', color='yellow', alpha=0.5)
+            plt.plot(df['IDX'][:50], 'o-', label='IDX', color='black', alpha=0.5)
 
         if self.plotPatClass.get():
             df['PAT'] = df[['A', 'B', 'C', 'D', 'E']].apply(self.check_pattern_class, axis=1)
