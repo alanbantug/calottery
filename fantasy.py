@@ -85,7 +85,7 @@ class Application(Frame):
 
         # Create main frame
         self.main_container.grid(column=0, row=0, sticky=(N,S,E,W))
-        self.headerA  = Label(self.main_container, text="Fantasy Five", style="M.TLabel" )
+        self.headerA = Label(self.main_container, text="Fantasy Five", style="M.TLabel" )
         self.headerB = Label(self.main_container, text="Play and enjoy the Fantasy Five game fro CA Lottery", style="T.TLabel" )
 
         self.parentTab = Notebook(self.main_container)
@@ -171,14 +171,18 @@ class Application(Frame):
         '''
         define widgets for generator tab
         '''
-        self.mainOptions = LabelFrame(self.generateTab, text='Options', style="O.TLabelframe")
-        self.topsOption = Radiobutton(self.mainOptions, text="Top 25", style="B.TRadiobutton", variable=self.baseOption, value=0)
-        self.botOption = Radiobutton(self.mainOptions, text="Bot 25", style="B.TRadiobutton", variable=self.baseOption, value=1)
+        self.mainOptions = LabelFrame(self.generateTab, text='Number Options', style="O.TLabelframe")
+        self.numberSel = Button(self.mainOptions, text="Selection", style="F.TButton", command=self.showSelect)
+        self.distCountList = OptionMenu(self.mainOptions, self.varTopCount, *self.limitList)
+        self.distCountList.config(width=5)
+        self.selectText = Label(self.mainOptions, text="", style="M.TLabel" )
 
-        self.topCountList = OptionMenu(self.mainOptions, self.varTopCount, *self.limitList)
-        self.topCountList.config(width=3)
-        self.botCountList = OptionMenu(self.mainOptions, self.varBotCount, *self.limitList)
-        self.botCountList.config(width=3)
+        # self.topsOption = Radiobutton(self.mainOptions, text="Top 25", style="B.TRadiobutton", variable=self.baseOption, value=0)
+        # self.botOption = Radiobutton(self.mainOptions, text="Bot 25", style="B.TRadiobutton", variable=self.baseOption, value=1)
+        # self.topCountList = OptionMenu(self.mainOptions, self.varTopCount, *self.limitList)
+        # self.topCountList.config(width=3)
+        # self.botCountList = OptionMenu(self.mainOptions, self.varBotCount, *self.limitList)
+        # self.botCountList.config(width=3)
 
         self.filterOptions = LabelFrame(self.generateTab, text='Filters', style="O.TLabelframe")
         self.topNumsOnly = Checkbutton(self.filterOptions, text="Top numbers only", style="B.TCheckbutton", variable=self.topNumbers)
@@ -206,10 +210,10 @@ class Application(Frame):
         self.genSave = Button(self.generateTab, text="SAVE", style="F.TButton", command=self.save_generated)
         self.genClear = Button(self.generateTab, text="CLEAR", style="F.TButton", command=self.clear_generated)
 
-        self.topsOption.grid(row=0, column=0, padx=5, pady=5, sticky="W")
-        self.topCountList.grid(row=0, column=0, padx=(70,5), pady=5, sticky="W")
-        self.botOption.grid(row=0, column=0, padx=(150,5), pady=5, sticky="W")
-        self.botCountList.grid(row=0, column=0, padx=(220,5), pady=5, sticky="W")
+        # self.topsOption.grid(row=0, column=0, padx=5, pady=5, sticky="W")
+        # self.topCountList.grid(row=0, column=0, padx=(70,5), pady=5, sticky="W")
+        # self.botOption.grid(row=0, column=0, padx=(150,5), pady=5, sticky="W")
+        # self.botCountList.grid(row=0, column=0, padx=(220,5), pady=5, sticky="W")
         self.mainOptions.grid(row=0, column=0, columnspan=3, padx=5, pady=2, sticky='NSEW')
 
         self.noConsec.grid(row=0, column=0, padx=5, pady=5, sticky="W")
