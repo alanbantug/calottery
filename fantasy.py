@@ -64,7 +64,7 @@ class Application(Frame):
         self.varBotCount = StringVar()
         self.classList = ['0', '0', '1']
 
-        self.noneSelected = True
+        self.foundSelected = True
 
         rfont = font.Font(family='Verdana', size=8)
         lfont = font.Font(family='Verdana', size=8, slant="italic")
@@ -346,7 +346,11 @@ class Application(Frame):
         top_numbers = all_numbers[:25]
         bot_numbers = all_numbers[-25:]
 
-        sel_numbers = self.getSelectedNumbers()[0][0]
+        if self.foundSelected:
+            sel_numbers = self.getSelectedNumbers()[0][0]
+
+        for i in range(39):
+            self.intvars[i].set(0)
 
         if self.baseOption.get() == 0:
             for tops in top_numbers:
@@ -357,8 +361,11 @@ class Application(Frame):
                 self.intvars[bots - 1].set(1)
 
         if self.baseOption.get() == 2:
-            for sels in sel_numbers:
-                self.intvars[sels - 1].set(1)
+            if self.foundSelected:
+                for sels in sel_numbers:
+                    self.intvars[sels - 1].set(1)
+            else:
+                messagebox.showinfo(parent=self.selectNumbers, title='No Selections', message='No selections made for Fantasy Five')
 
     def getSelectedNumbers(self):
 
@@ -369,9 +376,9 @@ class Application(Frame):
         selected = self.dataconn.execute_select(select_sql)
         
         if selected:
-            self.noneSelected = False
+            self.foundSelected = True
         else:
-            self.noneSelected = True
+            self.foundSelected = False
 
         return selected
 
@@ -383,7 +390,7 @@ class Application(Frame):
                 if self.intvars[i].get():
                     count += 1
             if count != 25:
-                messagebox.showerror('Selection Error', 'Selections should be at 25 numbers exactly')
+                messagebox.showerror(parent=self.selectNumbers, title='Selection Error', message='Selections should be at 25 numbers exactly')
                 return
 
         selected = []
@@ -391,8 +398,19 @@ class Application(Frame):
             if self.intvars[i].get():
                 selected.append(i + 1)
 
-        if self.noneSelected:
+        if self.foundSelected:
 
+            update_selected = f'''update selected_numbers set selected = ARRAY{selected} 
+            where table_name = 'fantasy_five'
+            '''
+
+            if self.dataconn.execute_update(update_selected):
+                messagebox.showinfo(parent=self.selectNumbers, title='Selection updated', message='Number selections are updated ')
+                self.selectNumbers.destroy()
+            else:
+                messagebox.showerror(parent=self.selectNumbers, title='SQL Error', message='Error inserting selections')
+
+        else:
             insert_selected = '''
             insert into selected_numbers (table_name, selected)
             values (%s, %s)
@@ -401,21 +419,12 @@ class Application(Frame):
             select_data = ('fantasy_five', selected)
 
             if self.dataconn.execute_insert(insert_selected, select_data):
-                messagebox.showinfo('Selections inserted', 'Number selections are inserted ')
+                messagebox.showinfo(parent=self.selectNumbers, title='Selections inserted', message='Number selections are inserted ')
                 self.selectNumbers.destroy()
             else:
-                messagebox.showerror('SQL Error', 'Error inserting selections')
+                messagebox.showerror(parent=self.selectNumbers, title='SQL Error', message='Error inserting selections')
                 return
-        else:
-            update_selected = f'''update selected_numbers set selected = ARRAY{selected} 
-            where table_name = 'fantasy_five'
-            '''
 
-            if self.dataconn.execute_update(update_selected):
-                messagebox.showinfo('Selection updated', 'Number selections are updated ')
-                self.selectNumbers.destroy()
-            else:
-                messagebox.showerror('SQL Error', 'Error inserting selections')
 
     def callEntry(self):
 
@@ -551,7 +560,7 @@ class Application(Frame):
         
         self.progressBar.start()
         
-        if self.plotTopNumbers.get() == 0 and self.plotBotNumbers.get() == 0 and self.plotIdxClass.get() == 0 and self.plotPatClass.get() == 0:
+        if self.plotTopNumbers.get() == 0 and self.plotBotNumbers.get() == 0 and self.plotSelNumbers.get() == 0 and self.plotIdxClass.get() == 0 and self.plotPatClass.get() == 0:
             self.plotTopNumbers.set(1)
 
         winners = self.dataconn.get_fantasy_data()
@@ -569,7 +578,7 @@ class Application(Frame):
             plt.plot(df['BOT'][:40], 'o-', label='B25', color='red', alpha=0.5)
         if self.plotSelNumbers.get():
             df['SEL'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_selected, axis=1)
-            plt.plot(df['SEL'][:40], 'o-', label='S25', color='gray', alpha=0.5)
+            plt.plot(df['SEL'][:40], 'o-', label='S25', color='orange', alpha=0.5)
         if self.plotIdxClass.get():
             df['CLS'] = df[['A', 'B', 'C', 'D', 'E']].apply(self.check_index_class, axis=1)
             plt.plot(df['CLS'][:40], 'o-', label='IDX', color='black', alpha=0.5)
@@ -698,7 +707,6 @@ class Application(Frame):
 
         all_numbers = [n[0] for n in self.dataconn.get_number_stats('fantasy_five', 0)]
         sel_numbers = self.getSelectedNumbers()[0][0]
-        # top_numbers = all_numbers[:25]
 
         self.generate_sets(all_numbers, sel_numbers)
 

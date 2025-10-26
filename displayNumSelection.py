@@ -71,14 +71,14 @@ class displaySelection(object):
         row_ctr = row
 
         for i in range(self.topLimit):
-            self.num[i].grid(row=row_ctr, column=col, padx=(x_position,10), pady=1, sticky='W')
+            self.nums[i].grid(row=row_ctr, column=col, padx=(x_position,10), pady=1, sticky='W')
             col_ctr += 1
-            if col_ctr > 6:
+            if col_ctr > 10:
                 col_ctr = 1
                 row_ctr += 1
                 x_position = 9
             else:
-                x_position += 18
+                x_position += 40
 
         row_ctr += 1
 
@@ -87,16 +87,6 @@ class displaySelection(object):
         x_position = 9
         col_ctr = 1
         row_ctr += 1
-
-        for i in range(self.extLimit):
-            self.ext[i].grid(row=row_ctr, column=col, padx=(x_position,10), pady=1, sticky='W')
-            col_ctr += 1
-            if col_ctr > 5:
-                col_ctr = 1
-                row_ctr += 1
-                x_position = 9
-            else:
-                x_position += 18
 
     def positionMega(self, row, col):
 
