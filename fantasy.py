@@ -65,6 +65,7 @@ class Application(Frame):
         self.classList = ['0', '0', '1']
 
         self.foundSelected = True
+        self.selected = []
 
         rfont = font.Font(family='Verdana', size=8)
         lfont = font.Font(family='Verdana', size=8, slant="italic")
@@ -346,8 +347,9 @@ class Application(Frame):
         top_numbers = all_numbers[:25]
         bot_numbers = all_numbers[-25:]
 
+        self.foundSelected = self.getSelectedNumbers()
         if self.foundSelected:
-            sel_numbers = self.getSelectedNumbers()[0][0]
+            sel_numbers = self.selected
 
         for i in range(39):
             self.intvars[i].set(0)
@@ -374,13 +376,12 @@ class Application(Frame):
         '''
 
         selected = self.dataconn.execute_select(select_sql)
-        
         if selected:
-            self.foundSelected = True
+            self.selected = selected[0][0]
+            return True
         else:
-            self.foundSelected = False
-
-        return selected
+            self.selected = []
+            return False
 
     def setSelection(self):
 
