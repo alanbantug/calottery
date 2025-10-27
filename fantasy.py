@@ -708,7 +708,13 @@ class Application(Frame):
         self.progressBar.start()
 
         all_numbers = [n[0] for n in self.dataconn.get_number_stats('fantasy_five', 0)]
-        sel_numbers = self.getSelectedNumbers()[0][0]
+        if self.getSelectedNumbers():
+            pass   
+        else:
+            messagebox.showinfo(title='Generation Error', message='Selected numbers for generation not found.')
+            return
+
+        sel_numbers = self.selected
 
         self.generate_sets(all_numbers, sel_numbers)
 

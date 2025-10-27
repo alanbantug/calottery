@@ -692,7 +692,7 @@ class Application(Frame):
         # get the selected numbers - no date needed
         if self.getSelectedNumbers()
             sel_numbers = self.selected
-            
+
         return len([num for num in num_set if num in sel_numbers])
 
     def reload(self):
@@ -764,7 +764,13 @@ class Application(Frame):
         self.progressBar.start()
 
         all_numbers = [n[0] for n in self.dataconn.get_number_stats('super_lotto', 0)]
-        sel_numbers = self.getSelectedNumbers()[0][0]
+        if self.getSelectedNumbers():
+            pass   
+        else:
+            messagebox.showinfo(title='Generation Error', message='Selected numbers for generation not found.')
+            return
+
+        sel_numbers = self.selected
 
         self.generate_sets(all_numbers, sel_numbers)
 
@@ -791,7 +797,7 @@ class Application(Frame):
         count = 0
 
         inter_count = 0
-        if int(self.varTopCount.get()) == 5 or int(self.varBotCount.get()) == 5:
+        if int(self.varSelCount.get()) == 5:
             inter_count = 0
             if self.oddPatterns.get() or self.evenPatterns.get():
                 inter_count = 4
@@ -956,15 +962,8 @@ class Application(Frame):
         from super_combos
         where'''
 
-        if self.baseOption.get() == 0:
-
-            tops = int(self.varTopCount.get())
-            select_sql += f''' top_count = {tops}'''
-
-        if self.baseOption.get() == 1:
-
-            bots = int(self.varBotCount.get())
-            select_sql += f''' bot_count = {bots}'''
+        sels = int(self.varSelCount.get())
+        select_sql += f''' sel_count = {sels}'''
 
         if self.classOpt.get() == 1:
             select_sql += f''' and mod(combo_idx, 2) = 1'''
