@@ -690,8 +690,9 @@ class Application(Frame):
         num_set = [na, nb, nc, nd, ne]
 
         # get the selected numbers - no date needed
-        sel_numbers =  self.getSelectedNumbers()[0][0]
-
+        if self.getSelectedNumbers()
+            sel_numbers = self.selected
+            
         return len([num for num in num_set if num in sel_numbers])
 
     def reload(self):
