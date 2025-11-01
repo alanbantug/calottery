@@ -287,8 +287,9 @@ class Application(Frame):
         self.numGroups = LabelFrame(self.selectNumbers, text=' Number Groups ', style="O.TLabelframe")
         self.tops = Radiobutton(self.numGroups, text="Top 25", style="B.TRadiobutton", variable=self.baseOption, value=0)
         self.bots = Radiobutton(self.numGroups, text="Bot 25", style="B.TRadiobutton", variable=self.baseOption, value=1)
-        self.sels = Radiobutton(self.numGroups, text="Select", style="B.TRadiobutton", variable=self.baseOption, value=2)
-
+        self.rndm = Radiobutton(self.numGroups, text="Random", style="B.TRadiobutton", variable=self.baseOption, value=2)
+        self.sels = Radiobutton(self.numGroups, text="Select", style="B.TRadiobutton", variable=self.baseOption, value=3)
+        
         self.numDistro = LabelFrame(self.selectNumbers, text=' Distribution ', style="O.TLabelframe")
 
         self.allNumbers = LabelFrame(self.selectNumbers, text=' Numbers ', style="O.TLabelframe")
@@ -302,12 +303,13 @@ class Application(Frame):
         self.dSel = dn.displaySelection(self.allNumbers, self.intvars, 1)
         
         self.getSet = Button(self.selectNumbers, text="GET", style="F.TButton", command=self.getSelections)
-        self.selection = Button(self.selectNumbers, text="SELECT", style="F.TButton", command=self.setSelection)
+        self.selection = Button(self.selectNumbers, text="SAVE SELECTION", style="F.TButton", command=self.setSelection)
         self.exitSel = Button(self.selectNumbers, text="EXIT", style="F.TButton", command=self.selectNumbers.destroy)
 
         self.tops.grid(row=0, column=0, padx=20, pady=(5,10), sticky="NSEW")
-        self.bots.grid(row=0, column=1, padx=40, pady=(5,10), sticky="NSEW")
-        self.sels.grid(row=0, column=2, padx=40, pady=(5,10), sticky="NSEW")
+        self.bots.grid(row=0, column=1, padx=20, pady=(5,10), sticky="NSEW")
+        self.rndm.grid(row=0, column=2, padx=20, pady=(5,10), sticky="NSEW")
+        self.sels.grid(row=0, column=3, padx=20, pady=(5,10), sticky="NSEW")
         self.numGroups.grid(row=0, column=0, columnspan=4, padx=5, pady=5, sticky="NSEW")
 
         self.sel_a.grid(row=1, column=0, columnspan=4, padx=5, pady=5, sticky="NSEW")
@@ -346,6 +348,11 @@ class Application(Frame):
         all_numbers = self.dataconn.get_top_stats_by_date(curr_date, 'fantasy_five')
         top_numbers = all_numbers[:25]
         bot_numbers = all_numbers[-25:]
+        
+        # get random numbers by shuffling all_numbers
+        rnd_numbers = all_numbers
+        random.shuffle(rnd_numbers)
+        rnd_numbers = rnd_numbers[:25]
 
         self.foundSelected = self.getSelectedNumbers()
         if self.foundSelected:
@@ -363,6 +370,10 @@ class Application(Frame):
                 self.intvars[bots - 1].set(1)
 
         if self.baseOption.get() == 2:
+            for rnds in rnd_numbers:
+                self.intvars[rnds - 1].set(1)
+
+        if self.baseOption.get() == 3:
             if self.foundSelected:
                 for sels in sel_numbers:
                     self.intvars[sels - 1].set(1)

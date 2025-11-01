@@ -6,6 +6,7 @@ class databaseConn(object):
 
     def __init__(self):
 
+        # comment for development
         with open(r"c:\users\alan\creds\credentials.json", "r") as credentials:
             creds = json.loads(credentials.read())
 
