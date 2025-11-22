@@ -10,7 +10,7 @@ class databaseConn(object):
         with open(r"c:\users\alan\creds\credentials.json", "r") as credentials:
             creds = json.loads(credentials.read())
 
-        # uncomment for development
+        # comment for production
         # with open(r"c:\users\alanb\creds\credentials.json", "r") as credentials:
         #     creds = json.loads(credentials.read())
 

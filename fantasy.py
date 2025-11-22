@@ -22,6 +22,8 @@ import dbaccess as db
 import displayGenerate as dg
 import displayNumSelection as dn
 
+import recommend as rcm
+
 class Application(Frame):
 
     def __init__(self, master):
@@ -56,6 +58,7 @@ class Application(Frame):
 
         self.generated = [] 
         self.lastWinners = []
+        self.recommended = []
 
         self.varDistCount = StringVar()
         self.varTopCount = StringVar()
@@ -256,6 +259,7 @@ class Application(Frame):
         self.playReload.grid(row=8, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
 
         self.dataconn = db.databaseConn()
+        self.recom = rcm.recommendNumbers(1)
 
         self.sortOrder.set(0)
 
@@ -287,7 +291,7 @@ class Application(Frame):
         self.numGroups = LabelFrame(self.selectNumbers, text=' Number Groups ', style="O.TLabelframe")
         self.tops = Radiobutton(self.numGroups, text="Top 25", style="B.TRadiobutton", variable=self.baseOption, value=0)
         self.bots = Radiobutton(self.numGroups, text="Bot 25", style="B.TRadiobutton", variable=self.baseOption, value=1)
-        self.rndm = Radiobutton(self.numGroups, text="Random", style="B.TRadiobutton", variable=self.baseOption, value=2)
+        self.rndm = Radiobutton(self.numGroups, text="Recommend", style="B.TRadiobutton", variable=self.baseOption, value=2)
         self.sels = Radiobutton(self.numGroups, text="Select", style="B.TRadiobutton", variable=self.baseOption, value=3)
         
         self.numDistro = LabelFrame(self.selectNumbers, text=' Distribution ', style="O.TLabelframe")
@@ -306,10 +310,12 @@ class Application(Frame):
         self.selection = Button(self.selectNumbers, text="SAVE SELECTION", style="F.TButton", command=self.setSelection)
         self.exitSel = Button(self.selectNumbers, text="EXIT", style="F.TButton", command=self.selectNumbers.destroy)
 
-        self.tops.grid(row=0, column=0, padx=20, pady=(5,10), sticky="NSEW")
-        self.bots.grid(row=0, column=1, padx=20, pady=(5,10), sticky="NSEW")
-        self.rndm.grid(row=0, column=2, padx=20, pady=(5,10), sticky="NSEW")
-        self.sels.grid(row=0, column=3, padx=20, pady=(5,10), sticky="NSEW")
+        self.recomBar = Progressbar(self.selectNumbers, orient="horizontal", mode="indeterminate", length=280)
+
+        self.tops.grid(row=0, column=0, padx=15, pady=(5,10), sticky="NSEW")
+        self.bots.grid(row=0, column=1, padx=15, pady=(5,10), sticky="NSEW")
+        self.rndm.grid(row=0, column=2, padx=15, pady=(5,10), sticky="NSEW")
+        self.sels.grid(row=0, column=3, padx=15, pady=(5,10), sticky="NSEW")
         self.numGroups.grid(row=0, column=0, columnspan=4, padx=5, pady=5, sticky="NSEW")
 
         self.sel_a.grid(row=1, column=0, columnspan=4, padx=5, pady=5, sticky="NSEW")
@@ -327,7 +333,9 @@ class Application(Frame):
         
         self.exitSel.grid(row=7, column=0, columnspan=4, padx=5, pady=5, sticky="NSEW")
 
-        ph = 300
+        self.recomBar.grid(row=8, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
+        
+        ph = 330
         pw = 430
 
         self.selectNumbers.maxsize(pw, ph)
@@ -370,8 +378,11 @@ class Application(Frame):
                 self.intvars[bots - 1].set(1)
 
         if self.baseOption.get() == 2:
-            for rnds in rnd_numbers:
-                self.intvars[rnds - 1].set(1)
+            resp = messagebox.askyesno(parent=self.selectNumbers, title='Getting recommendation', message='Getting recommendation will take time. Continue?')
+
+            if resp:
+                r = threading.Thread(None, self.recomThread, ())
+                r.start()
 
         if self.baseOption.get() == 3:
             if self.foundSelected:
@@ -379,6 +390,40 @@ class Application(Frame):
                     self.intvars[sels - 1].set(1)
             else:
                 messagebox.showinfo(parent=self.selectNumbers, title='No Selections', message='No selections made for Fantasy Five')
+
+    def recomThread(self):
+
+        self.recomBar.start()
+
+        self.getSet["state"] = DISABLED
+        self.selection["state"] = DISABLED
+        self.exitSel["state"] = DISABLED
+
+        self.recommended = self.recom.getRecommendation(self.dataconn)
+        print(self.recommended)
+        if self.recommended:
+            for rnd in self.recommended:
+                self.intvars[rnd - 1].set(1)
+        else:
+            curr_date = date.today()
+            all_numbers = self.dataconn.get_top_stats_by_date(curr_date, 'fantasy_five')
+            
+            rnd_numbers = all_numbers
+            random.shuffle(rnd_numbers)
+            rnd_numbers = rnd_numbers[:25]
+
+            for rnd in rnd_numbers:
+                self.intvars[rnd - 1].set(1)
+
+            messagebox.showinfo(parent=self.selectNumbers, title='No recommendations', message='No recommendations made for Fantasy Five')
+
+        self.getSet["state"] = NORMAL
+        self.selection["state"] = NORMAL
+        self.exitSel["state"] = NORMAL
+
+        self.recomBar.stop()
+
+        return 
 
     def getSelectedNumbers(self):
 
