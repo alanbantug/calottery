@@ -441,7 +441,7 @@ class Application(Frame):
             for rnd in rnd_numbers:
                 self.intvars[rnd - 1].set(1)
 
-            messagebox.showinfo(parent=self.selectNumbers, title='No recommendations', message='No recommendations made for Fantasy Five')
+            messagebox.showinfo(parent=self.selectNumbers, title='No recommendations', message='No recommendations made for Super Lotto')
             
         self.getSet["state"] = NORMAL
         self.selection["state"] = NORMAL

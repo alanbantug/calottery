@@ -7,7 +7,7 @@ from tkinter.ttk import *
 from tkinter import messagebox
 from PIL import Image, ImageTk
 from itertools import combinations
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 import numpy as np
 import pandas as pd
@@ -21,6 +21,9 @@ import random
 
 import dbaccess as db
 import displayGenerate as dg
+import displayNumSelection as dn
+
+import recommend as rcm
 
 class Application(Frame):
 
@@ -51,14 +54,19 @@ class Application(Frame):
         self.classOpt = IntVar()
         self.plotTopNumbers = IntVar()
         self.plotBotNumbers = IntVar()
+        self.plotSelNumbers = IntVar()
         self.plotIdxClass = IntVar()
         self.plotPatClass = IntVar()
 
         self.generated = []
 
+        self.varSelCount = StringVar()
         self.varTopCount = StringVar()
         self.varBotCount = StringVar()
         self.limitList = ['5', '5', '4', '3', '2']
+
+        self.foundSelected = True
+        self.selected = []
 
         rfont = font.Font(family='Verdana', size=8)
         lfont = font.Font(family='Verdana', size=8, slant="italic")
@@ -168,8 +176,9 @@ class Application(Frame):
 
         self.trendPlot = Label(self.trendDisplay)
         self.reloadTrend = Button(self.trendDisplay, text="Reload", style="F.TButton", command=self.reload)
-        self.plotTop = Checkbutton(self.trendDisplay, text="Top Numbers", style="B.TCheckbutton", variable=self.plotTopNumbers)
-        self.plotBot = Checkbutton(self.trendDisplay, text="Bot Numbers", style="B.TCheckbutton", variable=self.plotBotNumbers)
+        self.plotTop = Checkbutton(self.trendDisplay, text="Tops", style="B.TCheckbutton", variable=self.plotTopNumbers)
+        self.plotBot = Checkbutton(self.trendDisplay, text="Bottomms", style="B.TCheckbutton", variable=self.plotBotNumbers)
+        self.plotSel = Checkbutton(self.trendDisplay, text="Selects", style="B.TCheckbutton", variable=self.plotSelNumbers)
         self.plotIdx = Checkbutton(self.trendDisplay, text="Index Class", style="B.TCheckbutton", variable=self.plotIdxClass)
         self.plotPat = Checkbutton(self.trendDisplay, text="Pat Class", style="B.TCheckbutton", variable=self.plotPatClass)
 
@@ -183,9 +192,10 @@ class Application(Frame):
         self.statDisplay.grid(row=0, column=0, columnspan=1, padx=5, pady=5, sticky='NSEW')
 
         self.plotTop.grid(row=0, column=0, padx=5, pady=5, sticky='NSEW')
-        self.plotBot.grid(row=0, column=0, padx=(160,5), pady=5, sticky='NSEW')
-        self.plotIdx.grid(row=0, column=0, padx=(320,5), pady=5, sticky='NSEW')
-        self.plotPat.grid(row=0, column=0, padx=(480,5), pady=5, sticky='NSEW')
+        self.plotBot.grid(row=0, column=0, padx=(140,5), pady=5, sticky='NSEW')
+        self.plotSel.grid(row=0, column=0, padx=(280,5), pady=5, sticky='NSEW')
+        self.plotIdx.grid(row=0, column=0, padx=(420,5), pady=5, sticky='NSEW')
+        self.plotPat.grid(row=0, column=0, padx=(560,5), pady=5, sticky='NSEW')
         self.trendPlot.grid(row=1, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
         self.reloadTrend.grid(row=2, column=0, columnspan=5, padx=5, pady=(8,5), sticky='NSEW')
         self.trendDisplay.grid(row=0, column=1, columnspan=4, padx=5, pady=5, sticky='NSEW')
@@ -195,12 +205,17 @@ class Application(Frame):
         '''
 
         self.mainOptions = LabelFrame(self.generateTab, text=' Options ', style="O.TLabelframe")
-        self.topsOption = Radiobutton(self.mainOptions, text="Top 25", style="B.TRadiobutton", variable=self.baseOption, value=0)
-        self.topCountList = OptionMenu(self.mainOptions, self.varTopCount, *self.limitList)
-        self.topCountList.config(width=5)
-        self.botOption = Radiobutton(self.mainOptions, text="Bot 25", style="B.TRadiobutton", variable=self.baseOption, value=1)
-        self.botCountList = OptionMenu(self.mainOptions, self.varBotCount, *self.limitList)
-        self.botCountList.config(width=5)
+        self.selectText = Label(self.mainOptions, text="Distribution :", style="S.TLabel" )
+        self.selectText.config(width=16)
+        self.numberSel = Button(self.mainOptions, text="Selection", style="F.TButton", command=self.showSelect)
+        # self.topsOption = Radiobutton(self.mainOptions, text="Top 25", style="B.TRadiobutton", variable=self.baseOption, value=0)
+        # self.topCountList = OptionMenu(self.mainOptions, self.varTopCount, *self.limitList)
+        # self.topCountList.config(width=5)
+        # self.botOption = Radiobutton(self.mainOptions, text="Bot 25", style="B.TRadiobutton", variable=self.baseOption, value=1)
+        # self.botCountList = OptionMenu(self.mainOptions, self.varBotCount, *self.limitList)
+        # self.botCountList.config(width=5)
+        self.distCountList = OptionMenu(self.mainOptions, self.varSelCount, *self.limitList)
+        self.distCountList.config(width=4)
 
         self.filterOptions = LabelFrame(self.generateTab, text='Filters', style="O.TLabelframe")
         self.avoidClose = Checkbutton(self.filterOptions, text="No past winners", style="B.TCheckbutton", variable=self.noClose)
@@ -228,10 +243,13 @@ class Application(Frame):
         self.genSave = Button(self.generateTab, text="SAVE", style="F.TButton", command=self.save_generated)
         self.genClear = Button(self.generateTab, text="CLEAR", style="F.TButton", command=self.clear_generated)
 
-        self.topsOption.grid(row=0, column=0, padx=5, pady=5, sticky="W")
-        self.topCountList.grid(row=0, column=0, padx=(90,5), pady=5, sticky="W")
-        self.botOption.grid(row=0, column=0, padx=(180,5), pady=5, sticky="W")
-        self.botCountList.grid(row=0, column=0, padx=(270,5), pady=5, sticky="W")
+        # self.topsOption.grid(row=0, column=0, padx=5, pady=5, sticky="W")
+        # self.topCountList.grid(row=0, column=0, padx=(90,5), pady=5, sticky="W")
+        # self.botOption.grid(row=0, column=0, padx=(180,5), pady=5, sticky="W")
+        # self.botCountList.grid(row=0, column=0, padx=(270,5), pady=5, sticky="W")
+        self.selectText.grid(row=0, column=0, padx=5, pady=5, sticky="W")
+        self.distCountList.grid(row=0, column=0, padx=(80,5), pady=5, sticky="W")
+        self.numberSel.grid(row=0, column=0, padx=(180,5), pady=5, sticky="W")
         self.mainOptions.grid(row=0, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
 
         self.noConsec.grid(row=0, column=0, padx=5, pady=5, sticky="W")
@@ -272,6 +290,213 @@ class Application(Frame):
         self.loadPowerStats()
         self.loadTrend()
         self.loadBets()
+
+    def showSelect(self):
+
+        Style().configure("PS.TLabel", font="Verdana 8", height="50" )
+        self.selectNumbers = Toplevel(self.main_container)
+        self.selectNumbers.title("Select numbers")
+
+        self.sel_a = Separator(self.selectNumbers, orient=HORIZONTAL)
+        self.sel_b = Separator(self.selectNumbers, orient=HORIZONTAL)
+        self.sel_c = Separator(self.selectNumbers, orient=HORIZONTAL)
+        self.sel_d = Separator(self.selectNumbers, orient=HORIZONTAL)
+        self.sel_e = Separator(self.selectNumbers, orient=HORIZONTAL)
+
+        self.numGroups = LabelFrame(self.selectNumbers, text=' Number Groups ', style="O.TLabelframe")
+        self.tops = Radiobutton(self.numGroups, text="Top 25", style="B.TRadiobutton", variable=self.baseOption, value=0)
+        self.bots = Radiobutton(self.numGroups, text="Bot 25", style="B.TRadiobutton", variable=self.baseOption, value=1)
+        self.rndm = Radiobutton(self.numGroups, text="Recommend", style="B.TRadiobutton", variable=self.baseOption, value=2)
+        self.sels = Radiobutton(self.numGroups, text="Select", style="B.TRadiobutton", variable=self.baseOption, value=3)
+
+        self.numDistro = LabelFrame(self.selectNumbers, text=' Distribution ', style="O.TLabelframe")
+
+        self.allNumbers = LabelFrame(self.selectNumbers, text=' Numbers ', style="O.TLabelframe")
+
+        self.intvars = []
+        for i in range(69):
+            var = IntVar()
+            var.set(0)
+            self.intvars.append(var)
+
+        self.dSel = dn.displaySelection(self.allNumbers, self.intvars, 4)
+        
+        self.getSet = Button(self.selectNumbers, text="GET", style="F.TButton", command=self.getSelections)
+        self.selection = Button(self.selectNumbers, text="SAVE SELECTION", style="F.TButton", command=self.setSelection)
+        self.exitSel = Button(self.selectNumbers, text="EXIT", style="F.TButton", command=self.selectNumbers.destroy)
+
+        self.recomBar = Progressbar(self.selectNumbers, orient="horizontal", mode="indeterminate", length=280)
+        
+        self.tops.grid(row=0, column=0, padx=15, pady=(5,10), sticky="NSEW")
+        self.bots.grid(row=0, column=1, padx=15, pady=(5,10), sticky="NSEW")
+        self.rndm.grid(row=0, column=2, padx=15, pady=(5,10), sticky="NSEW")
+        self.sels.grid(row=0, column=3, padx=15, pady=(5,10), sticky="NSEW")
+        self.numGroups.grid(row=0, column=0, columnspan=4, padx=5, pady=5, sticky="NSEW")
+
+        self.sel_a.grid(row=1, column=0, columnspan=4, padx=5, pady=5, sticky="NSEW")
+
+        self.dSel.positionCheckbuttons(5, 1)
+
+        self.allNumbers.grid(row=2, column=0, columnspan=4, padx=5, pady=5, sticky="NSEW")
+
+        self.sel_b.grid(row=3, column=0, columnspan=4, padx=5, pady=5, sticky="NSEW")
+
+        self.getSet.grid(row=4, column=0, columnspan=1, padx=5, pady=5, sticky="NSEW")
+        self.selection.grid(row=4, column=1, columnspan=3, padx=5, pady=5, sticky="NSEW")
+        
+        self.sel_c.grid(row=6, column=0, columnspan=4, padx=5, pady=5, sticky="NSEW")
+        
+        self.exitSel.grid(row=7, column=0, columnspan=4, padx=5, pady=5, sticky="NSEW")
+
+        self.recomBar.grid(row=8, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
+
+        ph = 410
+        pw = 440
+
+        self.selectNumbers.maxsize(pw, ph)
+        self.selectNumbers.minsize(pw, ph)
+
+        ws = self.selectNumbers.winfo_screenwidth()
+        hs = self.selectNumbers.winfo_screenheight()
+
+        x = (ws/2) - (pw/2)
+        y = (hs/2) - (ph/2)
+
+        self.selectNumbers.geometry('%dx%d+%d+%d' % (pw, ph, x, y))
+
+    def getSelections(self):
+
+        curr_date = date.today()
+
+        all_numbers = self.dataconn.get_top_stats_by_date(curr_date, 'power_ball')
+        top_numbers = all_numbers[:25]
+        bot_numbers = all_numbers[-25:]
+
+        # get random numbers by shuffling all_numbers
+        rnd_numbers = all_numbers
+        random.shuffle(rnd_numbers)
+        rnd_numbers = rnd_numbers[:25]
+
+        self.foundSelected = self.getSelectedNumbers()
+        if self.foundSelected:
+            sel_numbers = self.selected
+
+        for i in range(69):
+            self.intvars[i].set(0)
+
+        if self.baseOption.get() == 0:
+            for tops in top_numbers:
+                self.intvars[tops - 1].set(1)
+
+        if self.baseOption.get() == 1:
+            for bots in bot_numbers:
+                self.intvars[bots - 1].set(1)
+
+        if self.baseOption.get() == 2:
+            resp = messagebox.askyesno(parent=self.selectNumbers, title='Getting recommendation', message='Getting recommendation will take time. Continue?')
+
+            if resp:
+                r = threading.Thread(None, self.recomThread, ())
+                r.start()
+
+        if self.baseOption.get() == 3:
+            if self.foundSelected:
+                for sels in sel_numbers:
+                    self.intvars[sels - 1].set(1)
+            else:
+                messagebox.showinfo(parent=self.selectNumbers, title='No Selection', message='No selections made for Power Ball')
+
+    def recomThread(self):
+
+        self.recomBar.start()
+
+        self.getSet["state"] = DISABLED
+        self.selection["state"] = DISABLED
+        self.exitSel["state"] = DISABLED
+
+        self.recommended = self.recom.getRecommendation(self.dataconn)
+
+        if self.recommended:
+            for rnd in self.recommended:
+                self.intvars[rnd - 1].set(1)
+        else:
+            
+            curr_date = date.today()
+            all_numbers = self.dataconn.get_top_stats_by_date(curr_date, 'power_ball')
+            
+            rnd_numbers = all_numbers
+            random.shuffle(rnd_numbers)
+            rnd_numbers = rnd_numbers[:25]
+            
+            for rnd in rnd_numbers:
+                self.intvars[rnd - 1].set(1)
+
+            messagebox.showinfo(parent=self.selectNumbers, title='No recommendations', message='No recommendations made for PowerBall')
+            
+        self.getSet["state"] = NORMAL
+        self.selection["state"] = NORMAL
+        self.exitSel["state"] = NORMAL
+
+        self.recomBar.stop()
+
+        return 
+
+    def getSelectedNumbers(self):
+
+        select_sql = f'''
+        select selected from selected_numbers where table_name = 'power_ball'
+        '''
+
+        selected = self.dataconn.execute_select(select_sql)
+        if selected:
+            self.selected = selected[0][0]
+            return True
+        else:
+            self.selected = []
+            return False
+
+    def setSelection(self):
+
+        if self.baseOption.get() == 2:
+            count = 0
+            for i in range(69):
+                if self.intvars[i].get():
+                    count += 1
+            if count != 25:
+                messagebox.showerror(parent=self.selectNumbers, title='Selection Error', message='Selections should be at 25 numbers exactly')
+                return
+
+        selected = []
+        for i in range(69):
+            if self.intvars[i].get():
+                selected.append(i + 1)
+
+        if self.foundSelected:
+
+            update_selected = f'''update selected_numbers set selected = ARRAY{selected} 
+            where table_name = 'power_ball'
+            '''
+
+            if self.dataconn.execute_update(update_selected):
+                messagebox.showinfo(parent=self.selectNumbers, title='Selection updated', message='Number selections are updated ')
+                self.selectNumbers.destroy()
+            else:
+                messagebox.showerror(parent=self.selectNumbers, title='SQL Error', message='Error inserting selections')
+
+        else:
+            insert_selected = '''
+            insert into selected_numbers (table_name, selected)
+            values (%s, %s)
+            '''
+            
+            select_data = ('power_ball', selected)
+
+            if self.dataconn.execute_insert(insert_selected, select_data):
+                messagebox.showinfo(parent=self.selectNumbers, title='Selections inserted', message='Number selections are inserted ')
+                self.selectNumbers.destroy()
+            else:
+                messagebox.showerror(parent=self.selectNumbers, title='SQL Error', message='Error inserting selections')
+                return
 
     def callEntry(self):
 
