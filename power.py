@@ -177,7 +177,7 @@ class Application(Frame):
         self.trendPlot = Label(self.trendDisplay)
         self.reloadTrend = Button(self.trendDisplay, text="Reload", style="F.TButton", command=self.reload)
         self.plotTop = Checkbutton(self.trendDisplay, text="Tops", style="B.TCheckbutton", variable=self.plotTopNumbers)
-        self.plotBot = Checkbutton(self.trendDisplay, text="Bottomms", style="B.TCheckbutton", variable=self.plotBotNumbers)
+        self.plotBot = Checkbutton(self.trendDisplay, text="Bottoms", style="B.TCheckbutton", variable=self.plotBotNumbers)
         self.plotSel = Checkbutton(self.trendDisplay, text="Selects", style="B.TCheckbutton", variable=self.plotSelNumbers)
         self.plotIdx = Checkbutton(self.trendDisplay, text="Index Class", style="B.TCheckbutton", variable=self.plotIdxClass)
         self.plotPat = Checkbutton(self.trendDisplay, text="Pat Class", style="B.TCheckbutton", variable=self.plotPatClass)
@@ -276,6 +276,7 @@ class Application(Frame):
         '''
 
         self.dataconn = db.databaseConn()
+        self.recom = rcm.recommendNumbers(3)
 
         self.sortOrder.set(0)
 
@@ -651,7 +652,7 @@ class Application(Frame):
 
         self.progressBar.start()
 
-        if self.plotTopNumbers.get() == 0 and self.plotBotNumbers.get() == 0 and self.plotIdxClass.get() == 0 and self.plotPatClass.get() == 0:
+        if self.plotTopNumbers.get() == 0 and self.plotBotNumbers.get() == 0 and self.plotSelNumbers.get() == 0 and self.plotIdxClass.get() == 0 and self.plotPatClass.get() == 0:
             self.plotTopNumbers.set(1)
 
         winners = self.dataconn.get_mps_data('power_ball')
@@ -668,6 +669,10 @@ class Application(Frame):
         if self.plotBotNumbers.get() == 1:
             df['BOTS'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_bot_n, axis=1)
             plt.plot(df['BOTS'][:50], 'o-', label='B25', color='red')
+
+        if self.plotSelNumbers.get():
+            df['SEL'] = df[['Draw Date', 'A', 'B', 'C', 'D', 'E']].apply(self.check_selected, axis=1)
+            plt.plot(df['SEL'][:50], 'o-', label='S25', color='orange', alpha=0.5)
 
         if self.plotIdxClass.get() == 1:
             df['IDX'] = df[['A', 'B', 'C', 'D', 'E']].apply(self.check_index_class, axis=1)
@@ -710,6 +715,18 @@ class Application(Frame):
         Style().configure("DT.TLabel", image=results_fig, background="white", anchor="left", font="Verdana 2")
 
         self.trendPlot['style'] = 'DT.TLabel'
+
+    def check_selected(self, data):
+
+        dd, na, nb, nc, nd, ne = data
+
+        num_set = [na, nb, nc, nd, ne]
+
+        # get the selected numbers - no date needed
+        if self.getSelectedNumbers():
+            sel_numbers = self.selected
+
+        return len([num for num in num_set if num in sel_numbers])
 
     def check_top_n(self, data):
 
@@ -789,9 +806,15 @@ class Application(Frame):
         self.progressBar.start()
 
         all_numbers = [n[0] for n in self.dataconn.get_number_stats('power_ball', 0)]
-        top_numbers = all_numbers[:25]
+        if self.getSelectedNumbers():
+            pass   
+        else:
+            messagebox.showinfo(title='Generation Error', message='Selected numbers for generation not found.')
+            return
 
-        self.generate_sets(all_numbers, top_numbers)
+        sel_numbers = self.selected
+
+        self.generate_sets(all_numbers, sel_numbers)
 
         self.progressBar.stop()
 
@@ -947,15 +970,8 @@ class Application(Frame):
         from power_combos
         where'''
 
-        if self.baseOption.get() == 0:
-
-            tops = int(self.varTopCount.get())
-            select_sql += f''' top_count = {tops}'''
-
-        if self.baseOption.get() == 1:
-
-            bots = int(self.varBotCount.get())
-            select_sql += f''' bot_count = {bots}'''
+        sels = int(self.varSelCount.get())
+        select_sql += f''' sel_count = {sels}'''
 
         if self.classOpt.get() == 1:
             select_sql += f''' and mod(combo_idx, 2) = 1'''

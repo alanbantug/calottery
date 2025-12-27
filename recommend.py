@@ -57,6 +57,7 @@ class recommendNumbers(object):
             diff_days = 48
 
         winners = raw_winners
+        print(winners[0])
         all_numbers = [i + 1 for i in range(self.topRange)]
         
         count = 0
