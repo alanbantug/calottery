@@ -33,7 +33,7 @@ class recommendNumbers(object):
 
         if self.topRange == 39:
             raw_winners = dbconn.get_fantasy_data()
-            select_hits = 15
+            hits_limit = 15
             diff_days = 8
 
         if self.topRange == 47:
@@ -43,7 +43,7 @@ class recommendNumbers(object):
             for winner in all_winners:
                 raw_winners = [winner[:6] for winner in all_winners]
 
-            select_hits = 15
+            hits_limit = 15
             diff_days = 24
 
         if self.topRange == 69:
@@ -53,7 +53,7 @@ class recommendNumbers(object):
             for winner in all_winners:
                 raw_winners = [winner[:6] for winner in all_winners]
 
-            select_hits = 8
+            hits_limit = 5
             diff_days = 48
 
         winners = raw_winners
@@ -92,7 +92,7 @@ class recommendNumbers(object):
                             
                         hits += 1
                         
-                if hits > select_hits:
+                if hits > hits_limit:
                     diff = date_today - latest_hit
                     if diff.days < diff_days:
                         if hits > hi_hits:

@@ -351,7 +351,7 @@ class Application(Frame):
 
         self.recomBar.grid(row=8, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
 
-        ph = 410
+        ph = 440
         pw = 440
 
         self.selectNumbers.maxsize(pw, ph)
