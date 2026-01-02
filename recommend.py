@@ -34,7 +34,7 @@ class recommendNumbers(object):
         if self.topRange == 39:
             raw_winners = dbconn.get_fantasy_data()
             hits_limit = 15
-            diff_days = 8
+            diff_days = 4
 
         if self.topRange == 47:
             all_winners = dbconn.get_mps_data('super_lotto')
@@ -44,7 +44,7 @@ class recommendNumbers(object):
                 raw_winners = [winner[:6] for winner in all_winners]
 
             hits_limit = 15
-            diff_days = 24
+            diff_days = 12
 
         if self.topRange == 69:
             all_winners = dbconn.get_mps_data('power_ball')

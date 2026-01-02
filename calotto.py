@@ -16,6 +16,7 @@ import threading
 
 from time import time, sleep
 from datetime import datetime, timedelta
+import shutil
 
 import subprocess as sp
 
@@ -27,7 +28,8 @@ class Application(Frame):
         self.main_container = Frame(self.master)
 
         # Define the source and target folder variables
-
+        self.credSet = IntVar()
+        self.credSource = StringVar()
         self.origin = os.getcwd()
 
         # Create main frame
@@ -65,6 +67,7 @@ class Application(Frame):
         self.subLabelB = Label(self.main_container, text="of generating and analyzing results of all the draw games in the  ", style="S.TLabel" )
         self.subLabelC = Label(self.main_container, text="California Lottery. ", style="S.TLabel" )
 
+        self.creds = Button(self.main_container, text="Set Credentials", style="B.TButton", command=self.setCredentials)
         self.fantasy = Button(self.main_container, text="Fantasy", style="B.TButton", command=self.showFantasy)
         self.super = Button(self.main_container, text="Super", style="B.TButton", command=self.showSuper)
         self.power = Button(self.main_container, text="Power", style="B.TButton", command=self.showPower)
@@ -82,29 +85,73 @@ class Application(Frame):
 
         self.sep_b.grid(row=5, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
 
-        self.fantasy.grid(row=6, column=0, columnspan=1, padx=5, pady=5, sticky='NSEW')
-        self.super.grid(row=6, column=1, columnspan=1, padx=5, pady=5, sticky='NSEW')
-        self.power.grid(row=7, column=0, columnspan=1, padx=5, pady=5, sticky='NSEW')
-        self.mega.grid(row=7, column=1, columnspan=1, padx=5, pady=5, sticky='NSEW')
+        self.creds.grid(row=6, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
 
-        self.sep_c.grid(row=8, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
+        self.sep_c.grid(row=7, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
 
-        self.exit.grid(row=9, column=0, columnspan=4, padx=5, pady=0, sticky='NSEW')
+        self.fantasy.grid(row=8, column=0, columnspan=1, padx=5, pady=5, sticky='NSEW')
+        self.super.grid(row=8, column=1, columnspan=1, padx=5, pady=5, sticky='NSEW')
+        self.power.grid(row=9, column=0, columnspan=1, padx=5, pady=5, sticky='NSEW')
+        self.mega.grid(row=9, column=1, columnspan=1, padx=5, pady=5, sticky='NSEW')
+
+        self.sep_d.grid(row=10, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
+
+        self.exit.grid(row=11, column=0, columnspan=4, padx=5, pady=0, sticky='NSEW')
+
+        self.credSet.set(0)
+
+    def setCredentials(self):
+
+        pathname = askopenfilename()
+
+        self.credSource.set(pathname)
+        
+        if pathname:
+            try:
+                if self.credSource.get().endswith(".json"):
+                    self.updateCreds()
+                    self.credSet.set(1)
+                else:
+                    messagebox.showerror("Invalid file selected", "Invalid file type was selected. Please select again.")
+                    self.credSource.set('')
+
+            except Exception as e:
+                print(e)
+
+    def updateCreds(self):
+        
+        target = 'credentials.json'
+
+        try:
+            shutil.copy(self.credSource.get(), target)
+            messagebox.showinfo('Credentials set', 'Credentials successfully set')
+
+            self.credSet.set(1)
+
+        except Exception as e:
+            print(f"An error occurred: {e}")
 
     def showFantasy(self):
         
-        f = threading.Thread(None, self.fantasyThread, ())
-        f.start()
-
+        if self.credSet.get():
+            f = threading.Thread(None, self.fantasyThread, ())
+            f.start()
+        else:
+            messagebox.showerror('Credentials not set', 'Credentials not set. Please set before continuing')
+           
     def fantasyThread(self):
         
         # os.system('python fantasy.py')
         os.system('python C:/Users/Alan/Scripts/Code/calottery/fantasy.py')
 
     def showSuper(self):
-        
-        s = threading.Thread(None, self.superThread, ())
-        s.start()
+
+        if self.credSet.get():
+            s = threading.Thread(None, self.superThread, ())
+            s.start()
+        else:
+            messagebox.showerror('Credentials not set', 'Credentials not set. Please set before continuing')
+
 
     def superThread(self):
         
@@ -112,9 +159,12 @@ class Application(Frame):
         os.system('python C:/Users/Alan/Scripts/Code/calottery/super.py')
 
     def showPower(self):
-        
-        p = threading.Thread(None, self.powerThread, ())
-        p.start()
+
+        if self.credSet.get():
+            p = threading.Thread(None, self.powerThread, ())
+            p.start()
+        else:
+            messagebox.showerror('Credentials not set', 'Credentials not set. Please set before continuing')
 
     def powerThread(self):
         
@@ -122,9 +172,12 @@ class Application(Frame):
         os.system('python C:/Users/Alan/Scripts/Code/calottery/power.py')
 
     def showMega(self):
-        
-        m = threading.Thread(None, self.megaThread, ())
-        m.start()
+
+        if self.credSet.get():
+            m = threading.Thread(None, self.megaThread, ())
+            m.start()
+        else:
+            messagebox.showerror('Credentials not set', 'Credentials not set. Please set before continuing')
 
     def megaThread(self):
         
@@ -136,8 +189,8 @@ root.title("MY LOTTERY PLAYGROUND")
 
 # Set size
 
-wh = 230
-ww = 420
+wh = 275
+ww = 415
 
 root.resizable(height=False, width=False)
 
