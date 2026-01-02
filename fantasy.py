@@ -400,7 +400,7 @@ class Application(Frame):
         self.exitSel["state"] = DISABLED
 
         self.recommended = self.recom.getRecommendation(self.dataconn)
-        print(self.recommended)
+
         if self.recommended:
             for rnd in self.recommended:
                 self.intvars[rnd - 1].set(1)
