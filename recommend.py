@@ -34,7 +34,7 @@ class recommendNumbers(object):
         if self.topRange == 39:
             raw_winners = dbconn.get_fantasy_data()
             hits_limit = 15
-            diff_days = 4
+            diff_days = 10 # 4 hits in 10 days (10 draws)
 
         if self.topRange == 47:
             all_winners = dbconn.get_mps_data('super_lotto')
@@ -44,7 +44,7 @@ class recommendNumbers(object):
                 raw_winners = [winner[:6] for winner in all_winners]
 
             hits_limit = 15
-            diff_days = 12
+            diff_days = 35 # 4 hits in 35 days (10 draws)
 
         if self.topRange == 69:
             all_winners = dbconn.get_mps_data('power_ball')
@@ -87,14 +87,14 @@ class recommendNumbers(object):
                             pass
                         else:
                             hit_count += 1
-                            if hit_count == 2:
+                            if hit_count == 4:
                                 latest_hit = datetime.strptime(winner[0], "%Y-%m-%d")
                             
                         hits += 1
                         
                 if hits > hits_limit:
                     diff = date_today - latest_hit
-                    if diff.days < diff_days:
+                    if diff.days <= diff_days:
                         if hits > hi_hits:
                             hi_select = sorted(select)
                             select_hits = hits
