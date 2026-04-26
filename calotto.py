@@ -138,11 +138,11 @@ class Application(Frame):
 
     def showEntry(self):
 
-        if self.credSet.get():
-            e = threading.Thread(None, self.entryThread, ())
-            e.start()
-        else:
-            messagebox.showerror('Credentials not set', 'Credentials not set. Please set before continuing')
+        ''' Note that there is no need to check creds setting at this point is data entry
+            will do that
+        '''
+        e = threading.Thread(None, self.entryThread, ())
+        e.start()
 
     def entryThread(self):
 
