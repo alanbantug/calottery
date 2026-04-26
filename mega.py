@@ -101,22 +101,24 @@ class Application(Frame):
 
         self.dscroller = Scrollbar(self.dataDisplay, orient=VERTICAL)
         self.dataSelect = Listbox(self.dataDisplay, yscrollcommand=self.dscroller.set, width=95, height=20)
-        self.enterData = Button(self.dataDisplay, text="Enter Data", style="F.TButton", command = lambda : self.callEntry())
-        self.filterData = Button(self.dataDisplay, text="Filter Data", style="F.TButton", command = lambda : self.loadFilteredData())
+        # self.enterData = Button(self.dataDisplay, text="Enter Data", style="F.TButton", command = lambda : self.callEntry())
         self.reloadAll = Button(self.dataDisplay, text="Reload All", style="F.TButton", command = lambda : self.loadData())
 
         self.playsscroller = Scrollbar(self.playsDisplay, orient=VERTICAL)
         self.playsSelect = Listbox(self.playsDisplay, yscrollcommand=self.playsscroller.set, width=65, height=24)
         self.playReload = Button(self.playsDisplay, text="RELOAD", style="F.TButton", command=self.loadBets)
 
-        self.numA = Entry(self.dataCheck, textvariable=self.numberA, width="5")
-        self.numB = Entry(self.dataCheck, textvariable=self.numberB, width="5")
-        self.numC = Entry(self.dataCheck, textvariable=self.numberC, width="5")
-        self.numD = Entry(self.dataCheck, textvariable=self.numberD, width="5")
-        self.numE = Entry(self.dataCheck, textvariable=self.numberE, width="5")
+        self.numA = Entry(self.dataCheck, textvariable=self.numberA, width="4")
+        self.numB = Entry(self.dataCheck, textvariable=self.numberB, width="4")
+        self.numC = Entry(self.dataCheck, textvariable=self.numberC, width="4")
+        self.numD = Entry(self.dataCheck, textvariable=self.numberD, width="4")
+        self.numE = Entry(self.dataCheck, textvariable=self.numberE, width="4")
         self.megaLabel  = Label(self.dataCheck, text="Mega", style="T.TLabel" )
-        self.mega = Entry(self.dataCheck, textvariable=self.numberS, width="5")
+        self.mega = Entry(self.dataCheck, textvariable=self.numberS, width="4")
+        self.filterData = Button(self.dataCheck, text="Filter Data", style="F.TButton", command = lambda : self.loadFilteredData())
+        self.filterData.config(width=14)
         self.clearSelect = Button(self.dataCheck, text="Clear", style="C.TButton", command = lambda : self.clearFilter())
+        self.clearSelect.config(width=14)
 
         self.selectReturn = Button(self.main_container, text="EXIT", style="E.TButton",command=self.exitRoutine)
         self.progressBar = Progressbar(self.main_container, orient="horizontal", mode="indeterminate", length=280)
@@ -128,9 +130,7 @@ class Application(Frame):
 
         self.dataSelect.grid(row=0, column=0, columnspan=3, padx=(10,0), pady=5, sticky='NSEW')
         self.dscroller.grid(row=0, column=3, columnspan=1, padx=(10,0), pady=5, sticky='NSEW')
-        self.enterData.grid(row=1, column=0, columnspan=1, padx=(10,5), pady=5, sticky='NSEW')
-        self.filterData.grid(row=1, column=1, columnspan=1, padx=(10,5), pady=5, sticky='NSEW')
-        self.reloadAll.grid(row=1, column=2, columnspan=1, padx=(10,5), pady=5, sticky='NSEW')
+        self.reloadAll.grid(row=1, column=0, columnspan=3, padx=(10,5), pady=5, sticky='NSEW')
         self.dataDisplay.grid(row=7, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
 
         self.playsSelect.grid(row=0, column=0, columnspan=3, padx=(10,0), pady=5, sticky='NSEW')
@@ -139,14 +139,15 @@ class Application(Frame):
         self.playsDisplay.grid(row=7, column=3, columnspan=2, rowspan=2, padx=5, pady=2, sticky='NSEW')
 
         self.numA.grid(row=0, column=0, padx=(10,0), pady=(5, 5), sticky='W')
-        self.numB.grid(row=0, column=0, padx=(70,0), pady=(5, 5), sticky='W')
-        self.numC.grid(row=0, column=0, padx=(130,0), pady=(5, 5), sticky='W')
-        self.numD.grid(row=0, column=0, padx=(190,0), pady=(5, 5), sticky='W')
-        self.numE.grid(row=0, column=0, padx=(250,0), pady=(5, 5), sticky='W')
-        self.megaLabel.grid(row=0, column=0, padx=(310,0), pady=(5, 5), sticky='W')
-        self.mega.grid(row=0, column=0, padx=(370,0), pady=(5, 5), sticky='W')
+        self.numB.grid(row=0, column=0, padx=(60,0), pady=(5, 5), sticky='W')
+        self.numC.grid(row=0, column=0, padx=(110,0), pady=(5, 5), sticky='W')
+        self.numD.grid(row=0, column=0, padx=(160,0), pady=(5, 5), sticky='W')
+        self.numE.grid(row=0, column=0, padx=(210,0), pady=(5, 5), sticky='W')
+        self.megaLabel.grid(row=0, column=0, padx=(260,0), pady=(5, 5), sticky='W')
+        self.mega.grid(row=0, column=0, padx=(310,0), pady=(5, 5), sticky='W')
 
-        self.clearSelect.grid(row=0, column=0, padx=(430,0), pady=(5,10), sticky='W')
+        self.filterData.grid(row=0, column=0, padx=(360,0), pady=(5,10), sticky='W')
+        self.clearSelect.grid(row=0, column=0, padx=(480,0), pady=(5,10), sticky='W')
         self.dataCheck.grid(row=8, column=0, columnspan=3, padx=5, pady=2, sticky="NSEW")
 
         self.selectReturn.grid(row=10, column=0, columnspan=5, padx=5, pady=(0,5), sticky='NSEW')
@@ -271,10 +272,6 @@ class Application(Frame):
         self.loadMegaStats()
         self.loadTrend()
         self.loadBets()
-
-    def callEntry(self):
-
-        os.system('python C:/Users/Alan/Scripts/Code/data_entry/data_entry.py')
 
     def loadData(self):
 

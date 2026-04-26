@@ -68,6 +68,7 @@ class Application(Frame):
         self.subLabelC = Label(self.main_container, text="California Lottery. ", style="S.TLabel" )
 
         self.creds = Button(self.main_container, text="Set Credentials", style="B.TButton", command=self.setCredentials)
+        self.entry = Button(self.main_container, text="Enter Data", style="B.TButton", command=self.showEntry)
         self.fantasy = Button(self.main_container, text="Fantasy", style="B.TButton", command=self.showFantasy)
         self.super = Button(self.main_container, text="Super", style="B.TButton", command=self.showSuper)
         self.power = Button(self.main_container, text="Power", style="B.TButton", command=self.showPower)
@@ -85,18 +86,22 @@ class Application(Frame):
 
         self.sep_b.grid(row=5, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
 
-        self.creds.grid(row=6, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
+        self.entry.grid(row=6, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
 
         self.sep_c.grid(row=7, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
 
-        self.fantasy.grid(row=8, column=0, columnspan=1, padx=5, pady=5, sticky='NSEW')
-        self.super.grid(row=8, column=1, columnspan=1, padx=5, pady=5, sticky='NSEW')
-        self.power.grid(row=9, column=0, columnspan=1, padx=5, pady=5, sticky='NSEW')
-        self.mega.grid(row=9, column=1, columnspan=1, padx=5, pady=5, sticky='NSEW')
+        self.creds.grid(row=8, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
 
-        self.sep_d.grid(row=10, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
+        self.sep_d.grid(row=9, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
 
-        self.exit.grid(row=11, column=0, columnspan=4, padx=5, pady=0, sticky='NSEW')
+        self.fantasy.grid(row=10, column=0, columnspan=1, padx=5, pady=5, sticky='NSEW')
+        self.super.grid(row=10, column=1, columnspan=1, padx=5, pady=5, sticky='NSEW')
+        self.power.grid(row=11, column=0, columnspan=1, padx=5, pady=5, sticky='NSEW')
+        self.mega.grid(row=11, column=1, columnspan=1, padx=5, pady=5, sticky='NSEW')
+
+        self.sep_e.grid(row=12, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
+
+        self.exit.grid(row=13, column=0, columnspan=4, padx=5, pady=0, sticky='NSEW')
 
         self.credSet.set(0)
 
@@ -130,6 +135,18 @@ class Application(Frame):
 
         except Exception as e:
             print(f"An error occurred: {e}")
+
+    def showEntry(self):
+
+        if self.credSet.get():
+            e = threading.Thread(None, self.entryThread, ())
+            e.start()
+        else:
+            messagebox.showerror('Credentials not set', 'Credentials not set. Please set before continuing')
+
+    def entryThread(self):
+
+        os.system('python C:/Users/Alan/Scripts/Code/data_entry/data_entry.py')
 
     def showFantasy(self):
         
@@ -189,7 +206,7 @@ root.title("MY LOTTERY PLAYGROUND")
 
 # Set size
 
-wh = 275
+wh = 325
 ww = 415
 
 root.resizable(height=False, width=False)
