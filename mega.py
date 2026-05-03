@@ -8,6 +8,7 @@ from tkinter import messagebox
 from PIL import Image, ImageTk
 from itertools import combinations
 from datetime import datetime, timedelta
+from tkinter.filedialog import askdirectory
 
 import numpy as np
 import pandas as pd
@@ -101,8 +102,8 @@ class Application(Frame):
 
         self.dscroller = Scrollbar(self.dataDisplay, orient=VERTICAL)
         self.dataSelect = Listbox(self.dataDisplay, yscrollcommand=self.dscroller.set, width=95, height=20)
-        # self.enterData = Button(self.dataDisplay, text="Enter Data", style="F.TButton", command = lambda : self.callEntry())
-        self.reloadAll = Button(self.dataDisplay, text="Reload All", style="F.TButton", command = lambda : self.loadData())
+        self.reloadData = Button(self.dataDisplay, text="Reload Data", style="F.TButton", command = lambda : self.loadData())
+        self.exportData = Button(self.dataDisplay, text="Export Data", style="F.TButton", command = lambda : self.exportToCSV())
 
         self.playsscroller = Scrollbar(self.playsDisplay, orient=VERTICAL)
         self.playsSelect = Listbox(self.playsDisplay, yscrollcommand=self.playsscroller.set, width=65, height=24)
@@ -130,7 +131,8 @@ class Application(Frame):
 
         self.dataSelect.grid(row=0, column=0, columnspan=3, padx=(10,0), pady=5, sticky='NSEW')
         self.dscroller.grid(row=0, column=3, columnspan=1, padx=(10,0), pady=5, sticky='NSEW')
-        self.reloadAll.grid(row=1, column=0, columnspan=3, padx=(10,5), pady=5, sticky='NSEW')
+        self.reloadData.grid(row=1, column=0, columnspan=2, padx=(10,5), pady=5, sticky='NSEW')
+        self.exportData.grid(row=1, column=2, columnspan=1, padx=(10,5), pady=5, sticky='NSEW')
         self.dataDisplay.grid(row=7, column=0, columnspan=3, padx=5, pady=5, sticky='NSEW')
 
         self.playsSelect.grid(row=0, column=0, columnspan=3, padx=(10,0), pady=5, sticky='NSEW')
@@ -286,6 +288,38 @@ class Application(Frame):
             self.dataSelect.insert(END, formatted)
 
         self.dscroller.config(command=self.dataSelect.yview)
+
+    def exportToCSV(self):
+        
+        filepath = askdirectory()
+
+        winners = self.dataconn.get_mps_data('mega_lotto')
+        win_count = len(winners)
+
+        res = messagebox.askquestion(title="Export data count", message=f"You will extract {win_count} games. Do you want to continue?")
+        if res == 'no':
+            return
+
+        outfile = filepath + '/' + 'mega_lotto_' + datetime.now().strftime("%Y-%m-%d") + '.csv'
+
+        f = open(outfile, 'w')
+
+        for winner in winners:
+
+            winner_data = list(winner)
+
+            winner_data[1:] = [str(num) for num in winner_data[1:]]
+            
+            draw_date, numa, numb, numc, numd, nume, numx = winner_data
+            
+            line_list = [draw_date, numa, numb, numc, numd, nume, numx]
+            line = ','.join(line_list)
+
+            f.write(line)
+            f.write('\n')
+
+        f.close()
+        messagebox.showinfo("Export complete.","Selected games exported successfully")
 
     def clearFilter(self):
 
