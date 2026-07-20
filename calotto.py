@@ -146,8 +146,8 @@ class Application(Frame):
 
     def entryThread(self):
 
-        os.system('python data_entry.py')
-        # os.system('python C:/Users/Alan/Scripts/Code/calottery/data_entry.py')
+        # os.system('python data_entry.py')
+        os.system('python C:/Users/Alan/Scripts/Code/calottery/data_entry.py')
 
     def showFantasy(self):
         
