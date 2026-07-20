@@ -86,11 +86,11 @@ class Application(Frame):
 
         self.sep_b.grid(row=5, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
 
-        self.entry.grid(row=6, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
+        self.creds.grid(row=6, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
 
         self.sep_c.grid(row=7, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
 
-        self.creds.grid(row=8, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
+        self.entry.grid(row=8, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
 
         self.sep_d.grid(row=9, column=0, columnspan=2, padx=5, pady=5, sticky='NSEW')
 
@@ -138,15 +138,16 @@ class Application(Frame):
 
     def showEntry(self):
 
-        ''' Note that there is no need to check creds setting at this point is data entry
-            will do that
-        '''
-        e = threading.Thread(None, self.entryThread, ())
-        e.start()
+        if self.credSet.get():
+            e = threading.Thread(None, self.entryThread, ())
+            e.start()
+        else:
+            messagebox.showerror('Credentials not set', 'Credentials not set. Please set before continuing')
 
     def entryThread(self):
 
-        os.system('python C:/Users/Alan/Scripts/Code/data_entry/data_entry.py')
+        os.system('python data_entry.py')
+        # os.system('python C:/Users/Alan/Scripts/Code/calottery/data_entry.py')
 
     def showFantasy(self):
         

@@ -95,14 +95,14 @@ class displaySelection(object):
         row_ctr = row
 
         for i in range(self.topLimit):
-            self.num[i].grid(row=row_ctr, column=col, padx=(x_position,10), pady=5, sticky='W')
+            self.nums[i].grid(row=row_ctr, column=col, padx=(x_position,10), pady=5, sticky='W')
             col_ctr += 1
             if col_ctr > 10:
                 col_ctr = 1
                 row_ctr += 1
                 x_position = 9
             else:
-                x_position += 20
+                x_position += 40
 
         row_ctr += 1
 
@@ -111,16 +111,6 @@ class displaySelection(object):
         x_position = 9
         col_ctr = 1
         row_ctr += 1
-
-        for i in range(self.extLimit):
-            self.ext[i].grid(row=row_ctr, column=col, padx=(x_position,10), pady=5, sticky='W')
-            col_ctr += 1
-            if col_ctr > 10:
-                col_ctr = 1
-                row_ctr += 1
-                x_position = 9
-            else:
-                x_position += 20
 
     def positionPower(self, row, col):
 
@@ -146,13 +136,4 @@ class displaySelection(object):
         col_ctr = 1
         row_ctr += 1
 
-        # for i in range(self.extLimit):
-        #     self.ext[i].grid(row=row_ctr, column=col, padx=(x_position,10), pady=5, sticky='W')
-        #     col_ctr += 1
-        #     if col_ctr > 10:
-        #         col_ctr = 1
-        #         row_ctr += 1
-        #         x_position = 9
-        #     else:
-        #         x_position += 20
 

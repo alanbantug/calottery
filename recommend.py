@@ -15,6 +15,9 @@ class recommendNumbers(object):
             self.topRange = 47
 
         elif self.rtype == 3:
+            self.topRange = 70
+
+        elif self.rtype == 4:
             self.topRange = 69
 
     def check_winner(self, winner, select):
@@ -48,6 +51,16 @@ class recommendNumbers(object):
 
         if self.topRange == 69:
             all_winners = dbconn.get_mps_data('power_ball')
+
+            raw_winners = []
+            for winner in all_winners:
+                raw_winners = [winner[:6] for winner in all_winners]
+
+            hits_limit = 5
+            diff_days = 48
+
+        if self.topRange == 70:
+            all_winners = dbconn.get_mps_data('mega_lotto')
 
             raw_winners = []
             for winner in all_winners:

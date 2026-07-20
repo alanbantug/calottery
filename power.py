@@ -210,12 +210,6 @@ class Application(Frame):
         self.selectText = Label(self.mainOptions, text="Distribution :", style="S.TLabel" )
         self.selectText.config(width=16)
         self.numberSel = Button(self.mainOptions, text="Selection", style="F.TButton", command=self.showSelect)
-        # self.topsOption = Radiobutton(self.mainOptions, text="Top 25", style="B.TRadiobutton", variable=self.baseOption, value=0)
-        # self.topCountList = OptionMenu(self.mainOptions, self.varTopCount, *self.limitList)
-        # self.topCountList.config(width=5)
-        # self.botOption = Radiobutton(self.mainOptions, text="Bot 25", style="B.TRadiobutton", variable=self.baseOption, value=1)
-        # self.botCountList = OptionMenu(self.mainOptions, self.varBotCount, *self.limitList)
-        # self.botCountList.config(width=5)
         self.distCountList = OptionMenu(self.mainOptions, self.varSelCount, *self.limitList)
         self.distCountList.config(width=4)
 
@@ -278,7 +272,7 @@ class Application(Frame):
         '''
 
         self.dataconn = db.databaseConn()
-        self.recom = rcm.recommendNumbers(3)
+        self.recom = rcm.recommendNumbers(4)
 
         self.sortOrder.set(0)
 
