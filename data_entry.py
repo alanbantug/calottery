@@ -316,11 +316,11 @@ class Application(Frame):
 
     def saveData(self):
 
-        if self.credSet.get():
-            pass
-        else:
-            messagebox.showerror('Credentials not set', 'Please set credentials before saving data.')
-            return
+        # if self.credSet.get():
+        #     pass
+        # else:
+        #     messagebox.showerror('Credentials not set', 'Please set credentials before saving data.')
+        #     return
 
         # conn = self.create_connection()
         conn.autocommit = True
