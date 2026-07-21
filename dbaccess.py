@@ -657,7 +657,6 @@ class databaseConn(object):
 
     def execute_insert(self, insert_sql, data):
 
-        print(insert_sql)
         cur = self.db_conn.cursor()
 
         try: 
