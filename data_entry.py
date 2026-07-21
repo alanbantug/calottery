@@ -182,61 +182,12 @@ class Application(Frame):
         self.type.set(1)
         self.gotData.set(0)
 
-    # def setCredentials(self):
-
-    #     pathname = askopenfilename()
-
-    #     self.credSource.set(pathname)
-    #     self.credSet.set(0)
-        
-    #     if pathname:
-    #         try:
-    #             if self.credSource.get().endswith(".json"):
-    #                 self.updateCreds()
-    #                 self.credSet.set(1)
-    #             else:
-    #                 messagebox.showerror("Invalid file selected", "Invalid file type was selected. Please select again.")
-    #                 self.credSource.set('')
-
-    #         except Exception as e:
-    #             print(e)
-
-    # def updateCreds(self):
-        
-    #     target = 'credentials.json'
-
-    #     try:
-    #         shutil.copy(self.credSource.get(), target)
-    #         messagebox.showinfo('Credentials set', 'Credentials successfully set')
-
-    #         self.credSet.set(1)
-
-    #     except Exception as e:
-    #         print(f"An error occurred: {e}")
-
-    # def create_connection(self):
-
-    #     ''' Create connection to PostgreSQL database
-    #     '''
-
-    #     with open(r"credentials.json", "r") as credentials:
-    #         creds = json.loads(credentials.read())
-
-    #     conn = psycopg2.connect(database=creds['database'],
-    #     user=creds['user'],
-    #     password=creds['password'],
-    #     host=creds['host'],
-    #     port=creds['port'])
-
-    #     return conn
-
     def getData(self):
 
         try:
-            # conn = self.create_connection()
 
             if self.type.get() == 1:
-                data = self.get_fantasy(self.dataconn)
+                data = self.get_fantasy()
                 
                 dd, n1, n2, n3, n4, n5 = data[0]
 
@@ -247,7 +198,7 @@ class Application(Frame):
                 self.numE.set(n5)
 
             else:
-                data = self.get_extended(self.dataconn)
+                data = self.get_extended()
 
                 dd, n1, n2, n3, n4, n5, n6 = data[0]
 
@@ -258,14 +209,12 @@ class Application(Frame):
                 self.numE.set(n5)
                 self.numF.set(n6)
 
-            # conn.close()
-
             self.gotData.set(1)
 
         except Exception as e:
             messagebox.showerror('Error', 'Combination for date not found')
 
-    def get_fantasy(self, conn):
+    def get_fantasy(self):
 
         dd = self.dateLabel['text']
 
@@ -275,17 +224,11 @@ class Application(Frame):
         where draw_date = '{dd}'
         '''
 
-        cur = conn.cursor()
-
-        cur.execute(select_sql)
-
-        winner = cur.fetchall()
-
-        cur.close()
+        winner = self.dataconn.execute_select(select_sql)
 
         return winner
 
-    def get_extended(self, conn):
+    def get_extended(self):
 
         if self.type.get() == 2:
             table_name = 'super_lotto'
@@ -304,39 +247,24 @@ class Application(Frame):
         where draw_date = '{dd}'
         '''
 
-        cur = conn.cursor()
-
-        cur.execute(select_sql)
-
-        winner = cur.fetchall()
-
-        cur.close()
+        winner = self.dataconn.execute_select(select_sql)
 
         return winner
 
     def saveData(self):
 
-        # if self.credSet.get():
-        #     pass
-        # else:
-        #     messagebox.showerror('Credentials not set', 'Please set credentials before saving data.')
-        #     return
-
-        # conn = self.create_connection()
-        # conn.autocommit = True
-
         if self.type.get() == 1:
-            if self.save_fantasy(self.dataconn):
+            if self.save_fantasy():
                 messagebox.showinfo('Saved', 'Combination set save in database')
             else:
                 messagebox.showerror('Error', 'Combination not saved')
         else:
-            if self.save_extended(self.dataconn):
+            if self.save_extended():
                 messagebox.showinfo('Saved', 'Combination set save in database')
             else:
                 messagebox.showerror('Error', 'Combination not saved')
 
-    def save_fantasy(self, conn):
+    def save_fantasy(self):
 
         try:
             
@@ -349,8 +277,6 @@ class Application(Frame):
 
             fantasy_data = (draw, numa, numb, numc, numd, nume)
 
-            cursor = conn.cursor()
-
             if self.gotData.get():
                 update_sql = f'''
                 update fantasy_five
@@ -358,8 +284,7 @@ class Application(Frame):
                 where draw_date = '{draw}'
                 '''
 
-                cursor.execute(update_sql)
-                conn.commit()
+                self.dataconn.execute_update(update_sql)
 
             else:
                 insert_sql = '''
@@ -367,20 +292,15 @@ class Application(Frame):
                 values (%s, %s, %s, %s, %s, %s)
                 '''
 
-                cursor.execute(insert_sql, fantasy_data)
-                conn.commit()
+                self.dataconn.execute_insert(insert_sql, fantasy_data)
                 
-            cursor.close()
-            # conn.close()
-            
             return True
         
         except Exception as e:
             print(f'Error inserting record : {e}')
-            # conn.close()
             return False            
             
-    def save_extended(self, conn):
+    def save_extended(self):
        
         if self.type.get() == 2:
            table_name = 'super_lotto'
@@ -403,8 +323,6 @@ class Application(Frame):
 
             extended_data = (draw, numa, numb, numc, numd, nume, numx)
 
-            cursor = conn.cursor()
-
             if self.gotData.get():
                 update_sql = f'''
                 update {table_name}
@@ -412,8 +330,7 @@ class Application(Frame):
                 where draw_date = '{draw}'
                 '''
 
-                cursor.execute(update_sql)
-                conn.commit()
+                self.dataconn.execute_update(update_sql)
 
             else:
                 insert_sql = f'''
@@ -421,16 +338,11 @@ class Application(Frame):
                 values (%s, %s, %s, %s, %s, %s, %s)
                 '''
 
-                cursor.execute(insert_sql, extended_data)
-                conn.commit()
+                self.dataconn.execute_insert(insert_sql, extended_data)
                 
-            cursor.close()
-            # conn.close()
-
             return True
         except Exception as e:
             print(f'Error inserting record : {e}')
-            # conn.close()
             return False            
             
     def clearEntry(self):
