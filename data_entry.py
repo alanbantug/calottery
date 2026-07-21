@@ -323,7 +323,7 @@ class Application(Frame):
         #     return
 
         # conn = self.create_connection()
-        conn.autocommit = True
+        # conn.autocommit = True
 
         if self.type.get() == 1:
             if self.save_fantasy(self.dataconn):
@@ -359,6 +359,7 @@ class Application(Frame):
                 '''
 
                 cursor.execute(update_sql)
+                conn.commit()
 
             else:
                 insert_sql = '''
@@ -367,6 +368,7 @@ class Application(Frame):
                 '''
 
                 cursor.execute(insert_sql, fantasy_data)
+                conn.commit()
                 
             cursor.close()
             # conn.close()
@@ -411,6 +413,7 @@ class Application(Frame):
                 '''
 
                 cursor.execute(update_sql)
+                conn.commit()
 
             else:
                 insert_sql = f'''
@@ -419,6 +422,7 @@ class Application(Frame):
                 '''
 
                 cursor.execute(insert_sql, extended_data)
+                conn.commit()
                 
             cursor.close()
             # conn.close()
