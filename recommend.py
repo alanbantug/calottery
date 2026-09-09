@@ -126,20 +126,26 @@ class recommendNumbers(object):
                                 second_hit = datetime.strptime(winner[0], "%Y-%m-%d")
                             
                         hits += 1
-                        
+
+                ''' Check the following in the order shown
+                    1. Check that the hits is greater than the minimum for the game
+                    2. Check that the hits is greater than the highest value found so far
+                    3. Check that the difference between current day and first hit is greater that the longest gap found between hits
+
+                    Prior code is commented out so we can add it as a recommendation option
+
+                '''
+
                 if hits > hits_limit:
-                    diff1 = date_today - first_hit
-                    diff2 = first_hit - second_hit
-                    ''' check that the latest hit occured in the last diff_days and the difference between the first
-                        and second hits is the longest hit diffence. assumption is the combo is in current phase
-                    '''
-                    if diff1.days <= diff_days and diff2.days == longest_hit_diff:
-                        if hits > hi_hits:
+                    if hits > hi_hits:
+                        diff1 = date_today - first_hit
+                        if diff1.days > longest_hit_diff:
                             hi_select = sorted(select)
                             select_hits = hits
                             select_latest = first_hit
                             select_second = second_hit
                             select_longest = longest_hit_diff
+                            current_gap    = diff1.days
                             hi_hits = hits
                     
                 count += 1
@@ -159,6 +165,7 @@ class recommendNumbers(object):
         print('Latest hit    : ', select_latest)
         print('Latest hit    : ', select_second)
         print('Longest gap   : ', select_longest)
+        print('Current gap   : ', current_gap)
 
         return hi_select
 
