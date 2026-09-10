@@ -256,13 +256,9 @@ class Application(Frame):
         if self.type.get() == 1:
             if self.save_fantasy():
                 messagebox.showinfo('Saved', 'Combination set save in database')
-            else:
-                messagebox.showerror('Error', 'Combination not saved')
         else:
             if self.save_extended():
                 messagebox.showinfo('Saved', 'Combination set save in database')
-            else:
-                messagebox.showerror('Error', 'Combination not saved')
 
     def save_fantasy(self):
 
@@ -284,7 +280,11 @@ class Application(Frame):
                 where draw_date = '{draw}'
                 '''
 
-                self.dataconn.execute_update(update_sql)
+                if self.dataconn.execute_update(update_sql):
+                    return True
+                else:
+                    messagebox.showerror('Insert error', 'Error inserting data to database, possible duplicate')
+                    return False
 
             else:
                 insert_sql = '''
@@ -292,10 +292,12 @@ class Application(Frame):
                 values (%s, %s, %s, %s, %s, %s)
                 '''
 
-                self.dataconn.execute_insert(insert_sql, fantasy_data)
-                
-            return True
-        
+                if self.dataconn.execute_insert(insert_sql, fantasy_data):
+                    return True
+                else:
+                    messagebox.showerror('Insert error', 'Error inserting data to database, possible duplicate')
+                    return False
+
         except Exception as e:
             print(f'Error inserting record : {e}')
             return False            
@@ -330,7 +332,11 @@ class Application(Frame):
                 where draw_date = '{draw}'
                 '''
 
-                self.dataconn.execute_update(update_sql)
+                if self.dataconn.execute_update(update_sql):
+                    return True
+                else:
+                    messagebox.showerror('Insert error', 'Error inserting data to database, possible duplicate')
+                    return False
 
             else:
                 insert_sql = f'''
@@ -338,9 +344,12 @@ class Application(Frame):
                 values (%s, %s, %s, %s, %s, %s, %s)
                 '''
 
-                self.dataconn.execute_insert(insert_sql, extended_data)
+                if self.dataconn.execute_insert(insert_sql, extended_data):
+                    return True
+                else:
+                    messagebox.showerror('Insert error', 'Error inserting data to database, possible duplicate')
+                    return False
                 
-            return True
         except Exception as e:
             print(f'Error inserting record : {e}')
             return False            
