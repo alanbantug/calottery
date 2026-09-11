@@ -318,7 +318,6 @@ class Application(Frame):
         self.numGroups = LabelFrame(self.selectNumbers, text=' Number Groups ', style="O.TLabelframe")
         self.tops = Radiobutton(self.numGroups, text="Top 25", style="B.TRadiobutton", variable=self.baseOption, value=0)
         self.bots = Radiobutton(self.numGroups, text="Bot 25", style="B.TRadiobutton", variable=self.baseOption, value=1)
-        # self.rndm = Radiobutton(self.numGroups, text="Recommend", style="B.TRadiobutton", variable=self.baseOption, value=2)
         self.sels = Radiobutton(self.numGroups, text="Select", style="B.TRadiobutton", variable=self.baseOption, value=2)
 
         self.numDistro = LabelFrame(self.selectNumbers, text=' Distribution ', style="O.TLabelframe")
@@ -405,13 +404,6 @@ class Application(Frame):
         if self.baseOption.get() == 1:
             for bots in bot_numbers:
                 self.intvars[bots - 1].set(1)
-
-        # if self.baseOption.get() == 2:
-        #     resp = messagebox.askyesno(parent=self.selectNumbers, title='Getting recommendation', message='Getting recommendation will take time. Continue?')
-
-        #     if resp:
-        #         r = threading.Thread(None, self.recomThread, ())
-        #         r.start()
 
         if self.baseOption.get() == 2:
             if self.foundSelected:

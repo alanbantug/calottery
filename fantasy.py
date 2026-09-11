@@ -318,7 +318,6 @@ class Application(Frame):
 
         self.tops.grid(row=0, column=0, padx=15, pady=(5,10), sticky="NSEW")
         self.bots.grid(row=0, column=0, padx=(170,15), pady=(5,10), sticky="NSEW")
-        # self.rndm.grid(row=0, column=2, padx=15, pady=(5,10), sticky="NSEW")
         self.sels.grid(row=0, column=0, padx=(330,15), pady=(5,10), sticky="NSEW")
         self.numGroups.grid(row=0, column=0, columnspan=4, padx=5, pady=5, sticky="NSEW")
 
@@ -381,13 +380,6 @@ class Application(Frame):
         if self.baseOption.get() == 1:
             for bots in bot_numbers:
                 self.intvars[bots - 1].set(1)
-
-        # if self.baseOption.get() == 2:
-        #     resp = messagebox.askyesno(parent=self.selectNumbers, title='Getting recommendation', message='Getting recommendation will take time. Continue?')
-
-        #     if resp:
-        #         r = threading.Thread(None, self.recomThread, ())
-        #         r.start()
 
         if self.baseOption.get() == 2:
             if self.foundSelected:
