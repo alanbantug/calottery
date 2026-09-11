@@ -318,8 +318,8 @@ class Application(Frame):
         self.numGroups = LabelFrame(self.selectNumbers, text=' Number Groups ', style="O.TLabelframe")
         self.tops = Radiobutton(self.numGroups, text="Top 25", style="B.TRadiobutton", variable=self.baseOption, value=0)
         self.bots = Radiobutton(self.numGroups, text="Bot 25", style="B.TRadiobutton", variable=self.baseOption, value=1)
-        self.rndm = Radiobutton(self.numGroups, text="Recommend", style="B.TRadiobutton", variable=self.baseOption, value=2)
-        self.sels = Radiobutton(self.numGroups, text="Select", style="B.TRadiobutton", variable=self.baseOption, value=3)
+        # self.rndm = Radiobutton(self.numGroups, text="Recommend", style="B.TRadiobutton", variable=self.baseOption, value=2)
+        self.sels = Radiobutton(self.numGroups, text="Select", style="B.TRadiobutton", variable=self.baseOption, value=2)
 
         self.numDistro = LabelFrame(self.selectNumbers, text=' Distribution ', style="O.TLabelframe")
 
@@ -335,14 +335,15 @@ class Application(Frame):
         
         self.getSet = Button(self.selectNumbers, text="GET", style="F.TButton", command=self.getSelections)
         self.selection = Button(self.selectNumbers, text="SAVE SELECTION", style="F.TButton", command=self.setSelection)
+        self.getRecom = Button(self.selectNumbers, text="RECOMMEND", style="F.TButton", command=self.recommend)
         self.exitSel = Button(self.selectNumbers, text="EXIT", style="F.TButton", command=self.selectNumbers.destroy)
 
         self.recomBar = Progressbar(self.selectNumbers, orient="horizontal", mode="indeterminate", length=280)
         
         self.tops.grid(row=0, column=0, padx=15, pady=(5,10), sticky="NSEW")
-        self.bots.grid(row=0, column=1, padx=15, pady=(5,10), sticky="NSEW")
-        self.rndm.grid(row=0, column=2, padx=15, pady=(5,10), sticky="NSEW")
-        self.sels.grid(row=0, column=3, padx=15, pady=(5,10), sticky="NSEW")
+        self.bots.grid(row=0, column=0, padx=(170,15), pady=(5,10), sticky="NSEW")
+        # self.rndm.grid(row=0, column=2, padx=15, pady=(5,10), sticky="NSEW")
+        self.sels.grid(row=0, column=0, padx=(330,15), pady=(5,10), sticky="NSEW")
         self.numGroups.grid(row=0, column=0, columnspan=4, padx=5, pady=5, sticky="NSEW")
 
         self.sel_a.grid(row=1, column=0, columnspan=4, padx=5, pady=5, sticky="NSEW")
@@ -353,8 +354,9 @@ class Application(Frame):
 
         self.sel_b.grid(row=3, column=0, columnspan=4, padx=5, pady=5, sticky="NSEW")
 
-        self.getSet.grid(row=4, column=0, columnspan=1, padx=5, pady=5, sticky="NSEW")
-        self.selection.grid(row=4, column=1, columnspan=3, padx=5, pady=5, sticky="NSEW")
+        self.getSet.grid(row=4, column=0, columnspan=2, padx=5, pady=5, sticky="NSEW")
+        self.selection.grid(row=4, column=2, columnspan=2, padx=5, pady=5, sticky="NSEW")
+        self.getRecom.grid(row=5, column=0, columnspan=4, padx=5, pady=5, sticky="NSEW")
         
         self.sel_c.grid(row=6, column=0, columnspan=4, padx=5, pady=5, sticky="NSEW")
         
@@ -362,7 +364,7 @@ class Application(Frame):
 
         self.recomBar.grid(row=8, column=0, columnspan=5, padx=5, pady=5, sticky='NSEW')
 
-        ph = 340
+        ph = 375
         pw = 440
 
         self.selectNumbers.maxsize(pw, ph)
@@ -404,25 +406,34 @@ class Application(Frame):
             for bots in bot_numbers:
                 self.intvars[bots - 1].set(1)
 
+        # if self.baseOption.get() == 2:
+        #     resp = messagebox.askyesno(parent=self.selectNumbers, title='Getting recommendation', message='Getting recommendation will take time. Continue?')
+
+        #     if resp:
+        #         r = threading.Thread(None, self.recomThread, ())
+        #         r.start()
+
         if self.baseOption.get() == 2:
-            resp = messagebox.askyesno(parent=self.selectNumbers, title='Getting recommendation', message='Getting recommendation will take time. Continue?')
-
-            if resp:
-                r = threading.Thread(None, self.recomThread, ())
-                r.start()
-
-        if self.baseOption.get() == 3:
             if self.foundSelected:
                 for sels in sel_numbers:
                     self.intvars[sels - 1].set(1)
             else:
                 messagebox.showinfo(parent=self.selectNumbers, title='No Selection', message='No selections made for Super Lotto')
 
+    def recommend(self):
+
+        resp = messagebox.askyesno(parent=self.selectNumbers, title='Getting recommendation', message='Getting recommendation will take time. Continue?')
+
+        if resp:
+            r = threading.Thread(None, self.recomThread, ())
+            r.start()
+
     def recomThread(self):
 
         self.recomBar.start()
 
         self.getSet["state"] = DISABLED
+        self.getRecom["state"] = DISABLED
         self.selection["state"] = DISABLED
         self.exitSel["state"] = DISABLED
 
@@ -446,6 +457,7 @@ class Application(Frame):
             messagebox.showinfo(parent=self.selectNumbers, title='No recommendations', message='No recommendations made for Super Lotto')
             
         self.getSet["state"] = NORMAL
+        self.getRecom["state"] = NORMAL
         self.selection["state"] = NORMAL
         self.exitSel["state"] = NORMAL
 
