@@ -431,6 +431,9 @@ class Application(Frame):
 
         self.recommended = self.recom.getRecommendation(self.dataconn)
 
+        for i in range(47):
+            self.intvars[i].set(0)
+
         if self.recommended:
             for rnd in self.recommended:
                 self.intvars[rnd - 1].set(1)
